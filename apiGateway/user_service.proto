@@ -1,0 +1,83 @@
+
+syntax = "proto3";
+
+option go_package = "apiGateway/user";
+
+service UserService {
+    rpc Login(GetLoginRequest) returns (GetLoginResponse) {}
+    rpc Register(GetRegisterRequest) returns (GetRegisterResponse) {}
+    rpc UpdateUser (GetUpdateUserRequest) returns (GetUpdateUserResponse) {}
+
+}
+
+message User {
+    int32 id = 1;
+    enum Role {
+        HOST = 0;
+        GUEST = 1;
+    };
+    Role role = 2;
+    string firstName = 3;
+    string lastName = 4;
+    int32 age = 5;
+    enum Gender {
+        MALE = 0;
+        FEMALE = 1;
+        OTHER = 2;
+    }
+    Gender gender = 6;
+    string email = 7;
+    string residence = 8;
+    string username = 9;
+    string password = 10;
+}
+
+message LoginRequestDTO {
+    string username = 1;
+    string password = 2;
+}
+
+message LoginResponseDTO {
+    int32 id = 1;
+    enum Role {
+        HOST = 0;
+        GUEST = 1;
+    };
+    Role role = 2;
+    string firstName = 3;
+    string lastName = 4;
+    int32 age = 5;
+    enum Gender {
+        MALE = 0;
+        FEMALE = 1;
+        OTHER = 2;
+    }
+    Gender gender = 6;
+    string email = 7;
+    string residence = 8;
+    string username = 9;
+    string password = 10;
+}
+
+message GetLoginRequest {
+    LoginRequestDTO loginRequestDTO = 1;
+}
+
+message GetLoginResponse {
+    LoginResponseDTO loginResponseDTO = 1;
+}
+
+message GetRegisterRequest {
+    User user = 1;
+}
+
+message GetRegisterResponse {
+}
+
+message GetUpdateUserRequest {
+    User user = 1;
+}
+
+message GetUpdateUserResponse {
+    User user = 1;
+}
