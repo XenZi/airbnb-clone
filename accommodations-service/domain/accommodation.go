@@ -8,7 +8,7 @@ import (
 
 type Accommodation struct {
 	Id               gocql.UUID
-	Owner            User
+	UserId           string
 	Location         string
 	Conveniences     string
 	MinNumOfVisitors int

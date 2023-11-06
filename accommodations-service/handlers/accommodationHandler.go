@@ -22,12 +22,13 @@ func NewAccommodationsHandler(l *log.Logger, r *repository.AccommodationRepo) *A
 
 func (a *AccommodationsHandler) CreateAccommodationById(rw http.ResponseWriter, h *http.Request) {
 	accommodationById := h.Context().Value(KeyProduct{}).(*domain.Accommodation)
-	err := a.repo.InsertAccommodationById(accommodationById)
+	accommodationById, err := a.repo.InsertAccommodationById(accommodationById)
 	if err != nil {
 		a.logger.Print("Database exception: ", err)
 		rw.WriteHeader(http.StatusBadRequest)
 		return
 	}
+
 	rw.WriteHeader(http.StatusCreated)
 }
 

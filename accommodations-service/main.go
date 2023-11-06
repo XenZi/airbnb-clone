@@ -35,7 +35,7 @@ func main() {
 	router := mux.NewRouter()
 
 	postAccommodationForId := router.Methods(http.MethodPost).Subrouter()
-	postAccommodationForId.HandleFunc("/accommodations", accommodationsHandler.CreateAccommodationById)
+	postAccommodationForId.HandleFunc("/api/accommodations", accommodationsHandler.CreateAccommodationById)
 	postAccommodationForId.Use(accommodationsHandler.MiddlewareAccommodationByIdDeserialization)
 
 	cors := gorillaHandlers.CORS(gorillaHandlers.AllowedOrigins([]string{"*"}))

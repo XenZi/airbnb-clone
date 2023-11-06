@@ -56,9 +56,39 @@ func (ar *AccommodationRepo) CloseSession() {
 	ar.session.Close()
 }
 
+//func (ar *AccommodationRepo) CreateTables() {
+//	err := ar.session.Query(fmt.Sprintf(`CREATE TABLE IF NOT EXISTS %s
+//					(id UUID, user_id text, location text, conveniences text, minNumOfVisitors int, maxNumOfVisitors int,
+//					PRIMARY KEY ((id), location))
+//					WITH CLUSTERING ORDER BY (location ASC)`,
+//		"accommodations_by_id")).Exec()
+//	if err != nil {
+//		ar.logger.Println(err)
+//	}
+//	err = ar.session.Query(fmt.Sprintf(`CREATE TABLE IF NOT EXISTS %s
+//					(id UUID, user_id text, location text, conveniences text, minNumOfVisitors int, maxNumOfVisitors int,
+//					PRIMARY KEY ((user_id), location))
+//					WITH CLUSTERING ORDER BY (location ASC)`,
+//		"accommodations_by_user")).Exec()
+//	if err != nil {
+//		ar.logger.Println(err)
+//	}
+//
+//}
+
 func (ar *AccommodationRepo) CreateTables() {
-	err := ar.session.Query(fmt.Sprintf(`CREATE TABLE IF NOT EXISTS %s 
-					(id UUID, user_id UUID, location text, conveniences text, minNumOfVisitors int, maxNumOfVisitors int, 
+	err := ar.session.Query(fmt.Sprintf("DROP TABLE IF EXISTS %s", "accommodations_by_id")).Exec()
+	if err != nil {
+		ar.logger.Println(err)
+	}
+
+	err = ar.session.Query(fmt.Sprintf("DROP TABLE IF EXISTS %s", "accommodations_by_user")).Exec()
+	if err != nil {
+		ar.logger.Println(err)
+	}
+
+	err = ar.session.Query(fmt.Sprintf(`CREATE TABLE IF NOT EXISTS %s 
+					(id UUID, user_id text, location text, conveniences text, minNumOfVisitors int, maxNumOfVisitors int, 
 					PRIMARY KEY ((id), location)) 
 					WITH CLUSTERING ORDER BY (location ASC)`,
 		"accommodations_by_id")).Exec()
@@ -66,25 +96,30 @@ func (ar *AccommodationRepo) CreateTables() {
 		ar.logger.Println(err)
 	}
 	err = ar.session.Query(fmt.Sprintf(`CREATE TABLE IF NOT EXISTS %s 
-					(id UUID, user_id UUID, location text, conveniences text, minNumOfVisitors int, maxNumOfVisitors int, 
+					(id UUID, user_id text, location text, conveniences text, minNumOfVisitors int, maxNumOfVisitors int, 
 					PRIMARY KEY ((user_id), location)) 
 					WITH CLUSTERING ORDER BY (location ASC)`,
 		"accommodations_by_user")).Exec()
 	if err != nil {
 		ar.logger.Println(err)
 	}
-
 }
 
-func (ar *AccommodationRepo) InsertAccommodationById(accommodation *do.Accommodation) error {
+func (ar *AccommodationRepo) InsertAccommodationById(accommodation *do.Accommodation) (*do.Accommodation, error) {
 	Id, _ := gocql.RandomUUID()
-	userId, _ := gocql.RandomUUID()
+	userId := "Kreirani id"
+	ar.logger.Println("Prije kvjerija")
 	err := ar.session.Query(`INSERT INTO accommodations_by_id (id,user_id, location, conveniences, minNumOfVisitors, maxNumOfVisitors) 
 		VALUES (?, ?, ?, ?, ?, ?)`, Id, userId, accommodation.Location, accommodation.Conveniences, accommodation.MinNumOfVisitors, accommodation.MaxNumOfVisitors).Exec()
 	if err != nil {
 		ar.logger.Println(err)
-		return err
+		return nil, err
 	}
-	return nil
+	ar.logger.Println("Poslije kvjerija")
+	accommodation.Id = Id
+	accommodation.UserId = userId
+	ar.logger.Println("Treci kvjerija")
+	ar.logger.Println(accommodation)
+	return accommodation, nil
 
 }
