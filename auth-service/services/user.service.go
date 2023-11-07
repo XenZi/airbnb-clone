@@ -4,22 +4,37 @@ import (
 	"auth-service/domains"
 	"auth-service/errors"
 	"auth-service/repository"
+	"auth-service/utils"
 )
 
 type UserService struct {
 	userRepository  *repository.UserRepository
 	passwordService *PasswordService
 	jwtService      *JwtService
+	validator       *utils.Validator
 }
 
-func NewUserService(userRepo *repository.UserRepository, passwordService *PasswordService, jwtService *JwtService) *UserService {
+func NewUserService(userRepo *repository.UserRepository,
+	passwordService *PasswordService,
+	jwtService *JwtService,
+	validator *utils.Validator) *UserService {
 	return &UserService{
 		userRepository:  userRepo,
 		passwordService: passwordService,
 		jwtService:      jwtService,
+		validator:       validator,
 	}
 }
 func (u *UserService) CreateUser(registerUser domains.RegisterUser) (*domains.UserDTO, *errors.ErrorStruct) {
+	u.validator.ValidateRegisterUser(&registerUser)
+	validatorErrors := u.validator.GetErrors()
+	if len(validatorErrors) > 0 {
+		var constructedError string
+		for _, message := range validatorErrors {
+			constructedError += message + "\n"
+		}
+		return nil, errors.NewError(constructedError, 400)
+	}
 	user := domains.User{
 		Email:    registerUser.Email,
 		Password: registerUser.Password,

@@ -4,6 +4,7 @@ import (
 	"auth-service/handler"
 	"auth-service/repository"
 	"auth-service/services"
+	"auth-service/utils"
 	"context"
 	gorillaHandlers "github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
@@ -19,6 +20,8 @@ func main() {
 	defer cancel()
 	logger := log.New(os.Stdout, "[auth-api] ", log.LstdFlags)
 	mongoService, err := services.New(timeoutContext, logger)
+	validator := utils.NewValidator()
+
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -29,7 +32,7 @@ func main() {
 	key := os.Getenv("JWT_SECRET")
 	keyByte := []byte(key)
 	jwtService := services.NewJWTService(keyByte)
-	userService := services.NewUserService(userRepo, passwordService, jwtService)
+	userService := services.NewUserService(userRepo, passwordService, jwtService, validator)
 	authHandler := handler.AuthHandler{
 		UserService: userService,
 	}
