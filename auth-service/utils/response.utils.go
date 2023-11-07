@@ -13,16 +13,14 @@ func writeJSONResponse(w http.ResponseWriter, statusCode int, data interface{}) 
 
 	if err := json.NewEncoder(w).Encode(data); err != nil {
 		// Handle JSON encoding error
-		WriteErrorResp(err, http.StatusInternalServerError, "Internal Server Error", w)
+		WriteErrorResp(err.Error(), http.StatusInternalServerError, "Internal Server Error", w)
 	}
 }
 
-func WriteErrorResp(err error, status int, path string, w http.ResponseWriter) {
-	if err == nil {
-		return
-	}
+func WriteErrorResp(err string, status int, path string, w http.ResponseWriter) {
+
 	baseErrorResp := domains.BaseErrorHttpResponse{
-		Error:  err.Error(),
+		Error:  err,
 		Path:   path,
 		Status: status,
 		Time:   time.Now().String(),

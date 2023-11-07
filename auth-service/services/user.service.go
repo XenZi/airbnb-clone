@@ -2,8 +2,8 @@ package services
 
 import (
 	"auth-service/domains"
+	"auth-service/errors"
 	"auth-service/repository"
-	errors2 "errors"
 )
 
 type UserService struct {
@@ -19,7 +19,7 @@ func NewUserService(userRepo *repository.UserRepository, passwordService *Passwo
 		jwtService:      jwtService,
 	}
 }
-func (u *UserService) CreateUser(registerUser domains.RegisterUser) (*domains.UserDTO, error) {
+func (u *UserService) CreateUser(registerUser domains.RegisterUser) (*domains.UserDTO, *errors.ErrorStruct) {
 	user := domains.User{
 		Email:    registerUser.Email,
 		Password: registerUser.Password,
@@ -28,17 +28,16 @@ func (u *UserService) CreateUser(registerUser domains.RegisterUser) (*domains.Us
 	}
 	hashedPassword, err := u.passwordService.HashPassword(user.Password)
 	if err != nil {
-		return nil, err
+		return nil, errors.NewError(err.Error(), 500)
 	}
 	user.Password = hashedPassword
-	newUser, err := u.userRepository.SaveUser(user)
-
-	if err != nil {
-		return nil, err
+	newUser, foundErr := u.userRepository.SaveUser(user)
+	if foundErr != nil {
+		return nil, foundErr
 	}
 	id, err := newUser.ID.MarshalJSON()
 	if err != nil {
-		return nil, err
+		return nil, errors.NewError(err.Error(), 500)
 	}
 	return &domains.UserDTO{
 		ID:       string(id),
@@ -48,18 +47,20 @@ func (u *UserService) CreateUser(registerUser domains.RegisterUser) (*domains.Us
 	}, nil
 }
 
-func (u *UserService) LoginUser(loginData domains.LoginUser) (*string, error) {
+func (u *UserService) LoginUser(loginData domains.LoginUser) (*string, *errors.ErrorStruct) {
 	user, err := u.userRepository.FindUserByEmail(loginData.Email)
 	if err != nil {
 		return nil, err
 	}
 	isSamePassword := u.passwordService.CheckPasswordHash(loginData.Password, user.Password)
 	if !isSamePassword {
-		return nil, errors2.New("Bad credentials")
+		return nil, errors.NewError("Bad credentials", 401)
 	}
-	jwtToken, err := u.jwtService.CreateKey(user.Email, user.Role)
-	if err != nil {
-		return nil, err
+	jwtToken, foundError := u.jwtService.CreateKey(user.Email, user.Role)
+	if foundError != nil {
+		return nil, errors.NewError(
+			foundError.Error(),
+			500)
 	}
 	return jwtToken, nil
 }
