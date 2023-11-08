@@ -35,8 +35,9 @@ func main() {
 	reservationsHandler := handler.NewReservationsHandler(logger, store)
 	router := mux.NewRouter()
 
-	postReservationForId := router.Methods(http.MethodPost).Subrouter()
-	postReservationForId.HandleFunc("/api/reservations", reservationsHandler.CreateReservationById)
+	router.HandleFunc("/api/reservations", reservationsHandler.CreateReservationById).Methods("POST")
+	// postReservationForId := router.Methods(http.MethodPost).Subrouter()
+	// postReservationForId.HandleFunc("/api/reservations", reservationsHandler.CreateReservationById)
 	//postReservationForId.Use(reservationsHandler.MiddlewareReservationByIdDeserialization)
 
 	cors := gorillaHandlers.CORS(gorillaHandlers.AllowedOrigins([]string{"*"}))

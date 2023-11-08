@@ -22,14 +22,12 @@ func NewReservationsHandler(l *log.Logger, r *repository.ReservationRepo) *Reser
 
 func (r *ReservationHandler) CreateReservationById(rw http.ResponseWriter, h *http.Request) {
 	decoder := json.NewDecoder(h.Body)
-
-	var loginData domain.Reservation
-	if err := decoder.Decode(&loginData); err != nil {
-
+	var reservation domain.Reservation
+	if err := decoder.Decode(&reservation); err != nil {
+		log.Println(err)
 		return
 	}
-
-	reservationById, err := r.repo.InsertReservationById(&loginData)
+	reservationById, err := r.repo.InsertReservationById(&reservation)
 	r.logger.Println(reservationById)
 	if err != nil {
 		r.logger.Print("Database exception: ", err)
