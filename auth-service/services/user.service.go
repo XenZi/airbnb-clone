@@ -62,7 +62,7 @@ func (u *UserService) CreateUser(registerUser domains.RegisterUser) (*domains.Us
 	}, nil
 }
 
-func (u *UserService) LoginUser(loginData domains.LoginUser) (*string, *errors.ErrorStruct) {
+func (u *UserService) LoginUser(loginData domains.LoginUser) (*domains.SuccessfullyLoggedUser, *errors.ErrorStruct) {
 	user, err := u.userRepository.FindUserByEmail(loginData.Email)
 	if err != nil {
 		return nil, err
@@ -77,5 +77,14 @@ func (u *UserService) LoginUser(loginData domains.LoginUser) (*string, *errors.E
 			foundError.Error(),
 			500)
 	}
-	return jwtToken, nil
+	id, _ := user.ID.MarshalJSON()
+	return &domains.SuccessfullyLoggedUser{
+		Token: *jwtToken,
+		User: domains.UserDTO{
+			ID:       string(id),
+			Username: user.Username,
+			Email:    user.Email,
+			Role:     user.Role,
+		},
+	}, nil
 }
