@@ -15,12 +15,24 @@ type Accommodation struct {
 	MaxNumOfVisitors int
 }
 
-func (ac *Accommodation) ToJSON(w io.Writer) error {
+type AccommodationById []*Accommodation
+
+func (aco *Accommodation) ToJSON(w io.Writer) error {
+	e := json.NewEncoder(w)
+	return e.Encode(aco)
+}
+
+func (aco *Accommodation) FromJSON(r io.Reader) error {
+	d := json.NewDecoder(r)
+	return d.Decode(aco)
+}
+
+func (ac *AccommodationById) ToJSON(w io.Writer) error {
 	e := json.NewEncoder(w)
 	return e.Encode(ac)
 }
 
-func (ac *Accommodation) FromJSON(r io.Reader) error {
+func (ac *AccommodationById) FromJSON(r io.Reader) error {
 	d := json.NewDecoder(r)
 	return d.Decode(ac)
 }

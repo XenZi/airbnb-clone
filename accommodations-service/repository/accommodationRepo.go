@@ -123,3 +123,71 @@ func (ar *AccommodationRepo) InsertAccommodationById(accommodation *do.Accommoda
 	return accommodation, nil
 
 }
+func (ar *AccommodationRepo) GetAllAccommodations() (do.AccommodationById, error) {
+	scanner := ar.session.Query(`SELECT id, user_id, location, conveniences, minNumOfVisitors, maxNumOfVisitors FROM accommodations_by_id`).Iter().Scanner()
+	var accommodations do.AccommodationById
+	for scanner.Next() {
+		var accomm do.Accommodation
+		err := scanner.Scan(&accomm.Id, &accomm.UserId, &accomm.Location, &accomm.Conveniences, &accomm.MinNumOfVisitors, &accomm.MaxNumOfVisitors)
+		if err != nil {
+			ar.logger.Println(err)
+			return nil, err
+		}
+		accommodations = append(accommodations, &accomm)
+
+	}
+	if err := scanner.Err(); err != nil {
+		ar.logger.Println(err)
+		return nil, err
+	}
+	return accommodations, nil
+}
+
+func (ar *AccommodationRepo) GetAccommodationById(id string) (do.AccommodationById, error) {
+	scanner := ar.session.Query(`SELECT id, user_id, location, conveniences, minNumOfVisitors, maxNumOfVisitors FROM accommodations_by_id WHERE id=? `, id).Iter().Scanner()
+	var accommodations do.AccommodationById
+	for scanner.Next() {
+		var accomm do.Accommodation
+		err := scanner.Scan(&accomm.Id, &accomm.UserId, &accomm.Location, &accomm.Conveniences, &accomm.MinNumOfVisitors, &accomm.MaxNumOfVisitors)
+		if err != nil {
+			ar.logger.Println(err)
+			return nil, err
+		}
+		accommodations = append(accommodations, &accomm)
+
+	}
+	if err := scanner.Err(); err != nil {
+		ar.logger.Println(err)
+		return nil, err
+	}
+	return accommodations, nil
+}
+
+func (ar *AccommodationRepo) UpdateAccommodationById(id string, location string, accommodation *do.Accommodation) (*do.Accommodation, error) {
+	err := ar.session.Query(`UPDATE accommodations_by_id 
+                         SET                             
+                             conveniences = ?, 
+                             minNumOfVisitors = ?, 
+                             maxNumOfVisitors = ? 
+                         WHERE id = ? AND location=?`,
+
+		accommodation.Conveniences,
+		accommodation.MinNumOfVisitors,
+		accommodation.MaxNumOfVisitors,
+		id, location).Exec()
+	if err != nil {
+		ar.logger.Println(err)
+		return nil, err
+	}
+	return accommodation, nil
+
+}
+
+func (ar *AccommodationRepo) DeleteAccommodationById(id string) (do.AccommodationById, error) {
+	err := ar.session.Query(`DELETE FROM accommodations_by_id WHERE id = ?`, id).Exec()
+	if err != nil {
+		ar.logger.Println(err)
+		return nil, err
+	}
+	return nil, nil
+}
