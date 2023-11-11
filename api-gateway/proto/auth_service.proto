@@ -1,0 +1,65 @@
+syntax = "proto3";
+
+option go_package = "proto/auth_service";
+
+import "google/api/annotations.proto";
+
+service AuthService {
+    rpc Login(LoginRequestDTO) returns (MixLoginAndError) {
+        option (google.api.http) = {
+            post: "/api/login",
+            body: "*"
+        };
+    }
+
+    rpc Register(RegisterRequestDTO) returns (RegisterResponseDTO) {
+        option (google.api.http) = {
+            post: "/api/register",
+            body: "*"
+        };
+    }
+}
+message UserDTO {
+    string id = 1;
+    string username = 2;
+    string email = 3;
+    string role = 4;
+}
+
+message LoginRequestDTO {
+    string email = 1;
+    string password = 2;
+}
+
+message MixLoginAndError {
+    oneof mix_login {
+        SuccessfullyLoggedUser res = 1;
+        BaseErrorHttpResponse err = 2;
+    }
+}
+message SuccessfullyLoggedUser {
+  string Token = 1;
+    UserDTO user = 2;
+}
+
+message RegisterRequestDTO {
+    string firstName = 1;
+    string lastName = 2;
+    string email = 3;
+    string currentPlace = 4;
+    string password = 5;
+    string role = 6;
+    string username = 7;
+}
+
+message RegisterResponseDTO {
+    int32 status = 1;
+    UserDTO user = 2;
+}
+
+message BaseErrorHttpResponse {
+    string message = 1;
+    int32 status = 2;
+    string path = 3;
+    string time = 4;
+}

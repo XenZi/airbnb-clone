@@ -1,14 +1,16 @@
-version: "3.1"
+version: "3.8"
 
 services:
-  #Our service.
-  server:
+  auth-service:
     build:
-      context: .
+      context: ./auth-service/
       dockerfile: Dockerfile
     restart: always
     container_name: "auth-server"
     hostname: "auth-server"
+    volumes:
+      - ./auth-service:/app/auth-service
+      - ./api-gateway:/api-gateway
     #Mapping ports
     ports:
       # <port_on_local>:<port_in_machine>
@@ -17,6 +19,7 @@ services:
     environment:
       - PORT=8080
       - JWT_SECRET=JWTSECRETKEY
+      - AUTH_SERVICE_ADDRESS=${AUTH_SERVICE_ADDRESS}
       # NoSQL: environment variable holding connection URI for Mongo database
       # protocol://username:password@hostname:port
       - MONGO_DB_URI=mongodb://root:pass@mongo:27017
@@ -66,6 +69,31 @@ services:
     volumes:
       - mongo_express_data:/data/db
 
+  api_gateway:
+    image: api-gateway
+    container_name: api-gateway
+    hostname: api-gateway
+    build:
+      context: ./api-gateway/
+      dockerfile: Dockerfile
+    restart: always
+    environment:
+      AUTH_SERVICE_ADDRESS: auth-service:8080
+      GATEWAY_ADDRESS: ${GATEWAY_ADDRESS}
+    depends_on:
+      - auth-service
+    networks:
+      - network
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./api-gateway:/api-gateway
+networks:
+  network:
+    driver: bridge
+
 volumes:
-  mongo_store:
-  mongo_express_data:
+  mongo:
+  mongo-express:
+  mongo_store: # Define the volume here
+  mongo_express_data: # Define the volume here

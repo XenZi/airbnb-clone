@@ -1,5 +1,8 @@
 FROM golang:alpine as build_container
+
 WORKDIR /app
+
+COPY ../api-gateway /app/api-gateway
 COPY go.mod .
 COPY go.sum .
 RUN go mod download

@@ -6,16 +6,34 @@ import (
 	"auth-service/services"
 	"auth-service/utils"
 	"context"
-	gorillaHandlers "github.com/gorilla/handlers"
-	"github.com/gorilla/mux"
+	"github.com/XenZi/airbnb-clone/api-gateway/proto/auth_service"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
 	"log"
-	"net/http"
+	"net"
 	"os"
 	"os/signal"
+	"syscall"
 	"time"
 )
 
 func main() {
+
+	listener, err := net.Listen("tcp", os.Getenv("AUTH_SERVICE_ADDRESS"))
+
+	if err != nil {
+		log.Fatalln(err)
+	}
+	defer func(listener net.Listener) {
+		err := listener.Close()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}(listener)
+
+	grpcServer := grpc.NewServer()
+	reflection.Register(grpcServer)
+
 	timeoutContext, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 	logger := log.New(os.Stdout, "[auth-api] ", log.LstdFlags)
@@ -36,44 +54,19 @@ func main() {
 	authHandler := handler.AuthHandler{
 		UserService: userService,
 	}
-	router := mux.NewRouter()
-
-	router.HandleFunc("/api/login", authHandler.LoginHandler).Methods("POST")
-	router.HandleFunc("/api/register", authHandler.RegisterHandler).Methods("POST")
-	port := os.Getenv("PORT")
-	if len(port) == 0 {
-		port = "8080"
-	}
-	cors := gorillaHandlers.CORS(gorillaHandlers.AllowedOrigins([]string{"*"}))
-
-	server := http.Server{
-		Addr:         ":" + port,
-		Handler:      cors(router),
-		IdleTimeout:  120 * time.Second,
-		ReadTimeout:  1 * time.Second,
-		WriteTimeout: 1 * time.Second,
-	}
-
-	logger.Println("Server listening on port", port)
+	auth_service.RegisterAuthServiceServer(grpcServer, authHandler)
 
 	go func() {
-		err := server.ListenAndServe()
-		if err != nil {
-			logger.Fatal(err)
+		if err := grpcServer.Serve(listener); err != nil {
+			log.Fatal("server error: ", err)
 		}
 	}()
 
-	sigCh := make(chan os.Signal)
-	signal.Notify(sigCh, os.Interrupt)
-	signal.Notify(sigCh, os.Kill)
+	stopCh := make(chan os.Signal)
+	signal.Notify(stopCh, syscall.SIGTERM)
 
-	sig := <-sigCh
-	logger.Println("Received terminate, graceful shutdown", sig)
+	<-stopCh
 
-	//Try to shutdown gracefully
-	if server.Shutdown(timeoutContext) != nil {
-		logger.Fatal("Cannot gracefully shutdown...")
-	}
-	logger.Println("Server stopped")
+	grpcServer.Stop()
 
 }
