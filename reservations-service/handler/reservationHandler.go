@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"reservation-service/domain"
 	"reservation-service/repository"
+
+	"github.com/gorilla/mux"
 )
 
 type KeyProduct struct{}
@@ -35,6 +37,28 @@ func (r *ReservationHandler) CreateReservationById(rw http.ResponseWriter, h *ht
 		return
 	}
 	rw.WriteHeader(http.StatusCreated)
+}
+
+func (r *ReservationHandler) GetReservationsByUser(rw http.ResponseWriter, req *http.Request) {
+	userID := mux.Vars(req)["userId"]
+
+	reservations, err := r.repo.GetReservationsByUser(userID)
+	if err != nil {
+		http.Error(rw, "Failed to get reservations", http.StatusInternalServerError)
+		return
+	}
+
+	if reservations == nil {
+		http.Error(rw, "No reservations found for the user", http.StatusNotFound)
+		return
+	}
+
+	err = json.NewEncoder(rw).Encode(reservations)
+	if err != nil {
+		http.Error(rw, "Unable to convert to JSON", http.StatusInternalServerError)
+		r.logger.Fatal("Unable to convert to JSON: ", err)
+		return
+	}
 }
 
 /*func (r *ReservationHandler) MiddlewareReservationByIdDeserialization(next http.Handler) http.Handler {

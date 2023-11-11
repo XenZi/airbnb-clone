@@ -10,9 +10,9 @@ import (
 type Reservation struct {
 	Id              gocql.UUID `json: "id"`
 	UserID          string     `json: "userId"`
-	AccommodationID string     `json: "accommodation_id"`
-	StartDate       string     `json: "start_date"`
-	EndDate         string     `json: "end_date"`
+	AccommodationID string     `json: "accommodationId"`
+	StartDate       string     `json: "startDate"`
+	EndDate         string     `json: "endDate"`
 }
 
 func NewReservation(id gocql.UUID, userID, accommodationID string, startDate, endDate string) *Reservation {

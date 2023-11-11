@@ -91,15 +91,38 @@ func (rr *ReservationRepo) DropTables() {
 	dropTable("reservation_by_accommodation")
 }
 
-func (rr *ReservationRepo) GetReservationsByUser(id string) ([]domain.Reservation, error) {
+func (rr *ReservationRepo) GetReservationsByAccommodation(id string) ([]domain.Reservation, error) {
 
-	scanner := rr.session.Query(`SELECT accommodation_id, user_id, start_date, end_date FROM reservation_by_user WHERE user_id = ? `,
+	scanner := rr.session.Query(`SELECT accommodation_id, user_id, start_date, end_date FROM reservation_by_user WHERE accommodation_id = ? `,
 		id).Iter().Scanner()
 
 	var reservations []domain.Reservation
 	for scanner.Next() {
 		var reservation domain.Reservation
 		err := scanner.Scan(&reservation.Id)
+		if err != nil {
+			rr.logger.Println(err)
+			return nil, err
+		}
+		reservations = append(reservations, reservation)
+	}
+	if err := scanner.Err(); err != nil {
+		rr.logger.Println(err)
+		return nil, err
+	}
+	return reservations, nil
+}
+
+func (rr *ReservationRepo) GetReservationsByUser(id string) ([]domain.Reservation, error) {
+
+	scanner := rr.session.Query(`SELECT id,accommodation_id, user_id, start_date, end_date FROM reservation_by_user WHERE user_id = ? `,
+		id).Iter().Scanner()
+
+	var reservations []domain.Reservation
+	for scanner.Next() {
+		rr.logger.Println("U PETLJI")
+		var reservation domain.Reservation
+		err := scanner.Scan(&reservation.Id, &reservation.AccommodationID, &reservation.UserID, &reservation.StartDate, &reservation.EndDate)
 		if err != nil {
 			rr.logger.Println(err)
 			return nil, err
