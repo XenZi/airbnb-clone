@@ -5,13 +5,14 @@ FROM golang:latest as builder
 WORKDIR /app
 
 # Copy go mod and sum files
-COPY go.mod go.sum ./
+COPY ./api-gateway/go.mod .
+COPY /api-gateway/go.sum .
 
 # Download all dependencies. Dependencies will be cached if the go.mod and go.sum files are not changed
 RUN go mod download
 
 # Copy everything from the current directory to the Working Directory inside the container
-COPY . .
+COPY ./api-gateway/ .
 
 # Build the Go app
 RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o main .

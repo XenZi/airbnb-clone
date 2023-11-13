@@ -3,14 +3,12 @@ version: "3.8"
 services:
   auth-service:
     build:
-      context: ./auth-service/
-      dockerfile: Dockerfile
+      context: ../
+      dockerfile: auth-service/Dockerfile
+    image: auth-service
     restart: always
     container_name: "auth-server"
     hostname: "auth-server"
-    volumes:
-      - ./auth-service:/app/auth-service
-      - ./api-gateway:/api-gateway
     #Mapping ports
     ports:
       # <port_on_local>:<port_in_machine>
