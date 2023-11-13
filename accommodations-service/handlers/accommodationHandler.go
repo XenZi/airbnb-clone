@@ -2,7 +2,9 @@ package handlers
 
 import (
 	"accommodations-service/domain"
+	"accommodations-service/errors"
 	"accommodations-service/repository"
+	"accommodations-service/utils"
 	"context"
 	"github.com/gorilla/mux"
 	"log"
@@ -26,6 +28,7 @@ func (a *AccommodationsHandler) CreateAccommodationById(rw http.ResponseWriter, 
 	accommodationById, err := a.repo.InsertAccommodationById(accommodationById)
 	if err != nil {
 		a.logger.Print("Database exception: ", err)
+		utils.WriteErrorResp(err.GetErrorMessage(), 500, "api/accommodations", rw)
 		rw.WriteHeader(http.StatusBadRequest)
 		return
 	}
@@ -38,18 +41,18 @@ func (a *AccommodationsHandler) GetAllAccommodations(rw http.ResponseWriter, h *
 	accommodations, err := a.repo.GetAllAccommodations()
 	if err != nil {
 		a.logger.Print("Database exception: ", err)
+		utils.WriteErrorResp(err.GetErrorMessage(), 500, "api/accommodations", rw)
 	}
 
 	if accommodations == nil {
 		return
 	}
 
-	err = accommodations.ToJSON(rw)
-	if err != nil {
-		http.Error(rw, "Unable to convert to json", http.StatusInternalServerError)
-		a.logger.Fatal("Unable to convert to json :", err)
+	if err := accommodations.ToJSON(rw); err != nil {
+		a.handleJSONConversionError(errors.NewError("Conversion error", 500), rw)
 		return
 	}
+
 }
 
 func (a *AccommodationsHandler) GetAccommodationById(rw http.ResponseWriter, h *http.Request) {
@@ -58,18 +61,22 @@ func (a *AccommodationsHandler) GetAccommodationById(rw http.ResponseWriter, h *
 	accommodations, err := a.repo.GetAccommodationById(accommodationId)
 	if err != nil {
 		a.logger.Print("Database exception: ", err)
+		utils.WriteErrorResp(err.GetErrorMessage(), err.GetErrorStatus(), "api/accommodations", rw)
 	}
 
 	if accommodations == nil {
 		return
 	}
 
-	err = accommodations.ToJSON(rw)
-	if err != nil {
-		http.Error(rw, "Unable to convert to json", http.StatusInternalServerError)
-		a.logger.Fatal("Unable to convert to json :", err)
+	if err := accommodations.ToJSON(rw); err != nil {
+		a.handleJSONConversionError(errors.NewError("Conversion error", 500), rw)
 		return
 	}
+}
+
+func (a *AccommodationsHandler) handleJSONConversionError(err *errors.ErrorStruct, rw http.ResponseWriter) {
+	http.Error(rw, "Unable to convert to json", http.StatusInternalServerError)
+	a.logger.Fatal("Unable to convert to json:", err)
 }
 
 func (a *AccommodationsHandler) UpdateAccommodationById(rw http.ResponseWriter, h *http.Request) {
@@ -80,6 +87,7 @@ func (a *AccommodationsHandler) UpdateAccommodationById(rw http.ResponseWriter, 
 	UpdateAccommById, err := a.repo.UpdateAccommodationById(accommodationId, location, UpdateAccommById)
 	if err != nil {
 		a.logger.Print("Database exception:", err)
+		utils.WriteErrorResp(err.GetErrorMessage(), err.GetErrorStatus(), "api/accommodations", rw)
 		rw.WriteHeader(http.StatusBadRequest)
 		return
 	}

@@ -7,12 +7,12 @@ import (
 )
 
 type Accommodation struct {
-	Id               gocql.UUID
-	UserId           string
-	Location         string
-	Conveniences     string
-	MinNumOfVisitors int
-	MaxNumOfVisitors int
+	Id               gocql.UUID `json:"id"`
+	UserId           string     `json:"userId"`
+	Location         string     `json:"location"`
+	Conveniences     string     `json:"conveniences"`
+	MinNumOfVisitors int        `json:"minNumOfVisitors"`
+	MaxNumOfVisitors int        `json:"maxNumOfVisitors"`
 }
 
 type AccommodationById []*Accommodation
