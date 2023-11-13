@@ -63,14 +63,14 @@ func (rr *ReservationRepo) CreateTables() {
 	err := rr.session.Query(
 		fmt.Sprintf(`CREATE TABLE IF NOT EXISTS %s
 		(id UUID,user_id text, accommodation_id text, start_date text, end_date text, 
-			PRIMARY KEY((user_id), accommodation_id, start_date)) WITH CLUSTERING ORDER BY (accommodation_id DESC,start_date ASC)`, "reservation_by_user")).Exec()
+			PRIMARY KEY((user_id),id)) WITH CLUSTERING ORDER BY (accommodation_id DESC,start_date ASC)`, "reservation_by_user")).Exec()
 	if err != nil {
 		rr.logger.Println(err)
 	}
 	err = rr.session.Query(
 		fmt.Sprintf(`CREATE TABLE IF NOT EXISTS %s
-	(accommodation_id text,user_id text, start_date text, end_date text,
-		PRIMARY KEY((accommodation_id), user_id, start_date))
+	(id UUID,accommodation_id text,user_id text, start_date text, end_date text,
+		PRIMARY KEY((accommodation_id),id, user_id, start_date))
 		WITH CLUSTERING ORDER BY(user_id DESC,start_date ASC)`, "reservation_by_accommodation")).Exec()
 	if err != nil {
 		rr.logger.Println(err)
@@ -93,7 +93,7 @@ func (rr *ReservationRepo) DropTables() {
 
 func (rr *ReservationRepo) GetReservationsByAccommodation(id string) ([]domain.Reservation, error) {
 
-	scanner := rr.session.Query(`SELECT accommodation_id, user_id, start_date, end_date FROM reservation_by_user WHERE accommodation_id = ? `,
+	scanner := rr.session.Query(`SELECT accommodation_id, user_id, start_date, end_date FROM reservation_by_accommodation WHERE accommodation_id = ? `,
 		id).Iter().Scanner()
 
 	var reservations []domain.Reservation
@@ -120,7 +120,6 @@ func (rr *ReservationRepo) GetReservationsByUser(id string) ([]domain.Reservatio
 
 	var reservations []domain.Reservation
 	for scanner.Next() {
-		rr.logger.Println("U PETLJI")
 		var reservation domain.Reservation
 		err := scanner.Scan(&reservation.Id, &reservation.AccommodationID, &reservation.UserID, &reservation.StartDate, &reservation.EndDate)
 		if err != nil {
@@ -136,7 +135,7 @@ func (rr *ReservationRepo) GetReservationsByUser(id string) ([]domain.Reservatio
 	return reservations, nil
 }
 
-func (rr *ReservationRepo) InsertReservationById(reservation *domain.Reservation) (*domain.Reservation, error) {
+func (rr *ReservationRepo) InsertReservationByUser(reservation *domain.Reservation) (*domain.Reservation, error) {
 	Id, _ := gocql.RandomUUID()
 	UserId := "myID"
 	err := rr.session.Query(`INSERT INTO reservation_by_user(id,user_id,accommodation_id,start_date,end_date)
@@ -150,4 +149,19 @@ func (rr *ReservationRepo) InsertReservationById(reservation *domain.Reservation
 	rr.logger.Println(reservation)
 	return reservation, nil
 
+}
+
+func (rr *ReservationRepo) InsertReservationByAccommodantion(reservation *domain.Reservation) (*domain.Reservation, error) {
+	Id, _ := gocql.RandomUUID()
+	AccommodationId := "soba1"
+	err := rr.session.Query(`INSERT INTO reservation_by_accommodation(id,accommodation_id,user_id,start_date,end_date)
+	VALUES(?,?,?,?,?)`, Id, AccommodationId, reservation.UserID, reservation.StartDate, reservation.EndDate).Exec()
+	if err != nil {
+		rr.logger.Fatalln(err)
+		return nil, err
+	}
+	reservation.Id = Id
+	reservation.AccommodationID = AccommodationId
+	rr.logger.Println(reservation)
+	return reservation, nil
 }

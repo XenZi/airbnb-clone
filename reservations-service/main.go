@@ -34,7 +34,7 @@ func main() {
 	store.CreateTables()
 	reservationsHandler := handler.NewReservationsHandler(logger, store)
 	router := mux.NewRouter()
-	router.HandleFunc("/api/reservations", reservationsHandler.CreateReservationById).Methods("POST")
+	router.HandleFunc("/api/reservations", reservationsHandler.CreateReservationByUser).Methods("POST")
 	router.HandleFunc("/api/reservations/user/{userId}", reservationsHandler.GetReservationsByUser).Methods("GET")
 
 	cors := gorillaHandlers.CORS(gorillaHandlers.AllowedOrigins([]string{"*"}))
