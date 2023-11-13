@@ -77,6 +77,19 @@ func (r *ReservationHandler) GetReservationsByUser(rw http.ResponseWriter, req *
 	}
 }
 
+func (r *ReservationHandler) DeleteReservationById(rw http.ResponseWriter, h *http.Request) {
+	vars := mux.Vars(h)
+	reservationId := vars["id"]
+
+	err, _ := r.repo.DeleteById(reservationId)
+	if err != nil {
+		r.logger.Print("Database exception: ", err)
+		http.Error(rw, "Failed to delete the accommodation", http.StatusInternalServerError)
+		return
+	}
+	rw.WriteHeader(http.StatusTeapot)
+}
+
 /*func (r *ReservationHandler) MiddlewareReservationByIdDeserialization(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(rw http.ResponseWriter, h *http.Request) {
 		patient := &domain.Reservation{}

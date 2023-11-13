@@ -14,6 +14,7 @@ type Reservation struct {
 	StartDate       string     `json: "startDate"`
 	EndDate         string     `json: "endDate"`
 }
+type ReservationById []*Reservation
 
 func NewReservation(id gocql.UUID, userID, accommodationID string, startDate, endDate string) *Reservation {
 	return &Reservation{

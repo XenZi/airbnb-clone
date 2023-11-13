@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"reservation-service/domain"
+	"reservation-service/errors"
 
 	"github.com/gocql/gocql"
 )
@@ -63,15 +64,15 @@ func (rr *ReservationRepo) CreateTables() {
 	err := rr.session.Query(
 		fmt.Sprintf(`CREATE TABLE IF NOT EXISTS %s
 		(id UUID,user_id text, accommodation_id text, start_date text, end_date text, 
-			PRIMARY KEY((user_id),id)) WITH CLUSTERING ORDER BY (accommodation_id DESC,start_date ASC)`, "reservation_by_user")).Exec()
+			PRIMARY KEY((user_id),id)) WITH CLUSTERING ORDER BY (id ASC)`, "reservation_by_user")).Exec()
 	if err != nil {
 		rr.logger.Println(err)
 	}
 	err = rr.session.Query(
 		fmt.Sprintf(`CREATE TABLE IF NOT EXISTS %s
 	(id UUID,accommodation_id text,user_id text, start_date text, end_date text,
-		PRIMARY KEY((accommodation_id),id, user_id, start_date))
-		WITH CLUSTERING ORDER BY(user_id DESC,start_date ASC)`, "reservation_by_accommodation")).Exec()
+		PRIMARY KEY((accommodation_id),id))
+		WITH CLUSTERING ORDER BY(id ASC)`, "reservation_by_accommodation")).Exec()
 	if err != nil {
 		rr.logger.Println(err)
 	}
@@ -138,7 +139,7 @@ func (rr *ReservationRepo) GetReservationsByUser(id string) ([]domain.Reservatio
 func (rr *ReservationRepo) InsertReservationByUser(reservation *domain.Reservation) (*domain.Reservation, error) {
 	Id, _ := gocql.RandomUUID()
 	UserId := "myID"
-	err := rr.session.Query(`INSERT INTO reservation_by_user(id,user_id,accommodation_id,start_date,end_date)
+	err := rr.session.Query(`INSERT INTO reservation_by_user (id,user_id,accommodation_id,start_date,end_date)
 	VALUES(?,?,?,?,?)`, Id, UserId, reservation.AccommodationID, reservation.StartDate, reservation.EndDate).Exec()
 	if err != nil {
 		rr.logger.Println(err)
@@ -164,4 +165,12 @@ func (rr *ReservationRepo) InsertReservationByAccommodantion(reservation *domain
 	reservation.AccommodationID = AccommodationId
 	rr.logger.Println(reservation)
 	return reservation, nil
+}
+func (rr *ReservationRepo) DeleteById(id string) (domain.ReservationById, *errors.ReservationError) {
+	err := rr.session.Query(`DELETE FROM reservation_by_user WHERE id = ?`, id).Exec()
+	if err != nil {
+		rr.logger.Println(err)
+		return nil, errors.NewReservationError(500, "Unable to delete, database error")
+	}
+	return nil, nil
 }
