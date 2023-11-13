@@ -1,6 +1,8 @@
 import { Component, HostListener, Input } from '@angular/core';
 import { faL } from '@fortawesome/free-solid-svg-icons';
 import { SimpleProfileMenuItem } from 'src/app/domains/model/simple-profile-menu-item.model';
+import { FormLoginComponent } from 'src/app/forms/form-login/form-login.component';
+import { ModalService } from 'src/app/services/modal/modal.service';
 
 @Component({
   selector: 'app-simple-profile-menu',
@@ -26,7 +28,7 @@ export class SimpleProfileMenuComponent {
     },
   ];
 
-  constructor() {}
+  constructor(private modalService: ModalService) {}
 
   @HostListener('document:click', ['$event'])
   onClickOutside(event: any) {
@@ -47,5 +49,7 @@ export class SimpleProfileMenuComponent {
 
   callRegister() {}
 
-  callLogin() {}
+  callLogin() {
+    this.modalService.open(FormLoginComponent, 'Login');
+  }
 }

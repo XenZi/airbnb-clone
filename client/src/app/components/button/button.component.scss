@@ -1,0 +1,33 @@
+.btn {
+  text-align: center;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  cursor: pointer;
+  width: 100%;
+}
+
+.btn--rose {
+  background-color: #ff5977;
+  color: #fff;
+  transition: all 0.3s ease;
+  &:hover {
+    background-color: darken($color: #ff5977, $amount: 10);
+  }
+}
+
+.btn--xs {
+  font-size: 12px;
+  padding: 4px 8px;
+}
+
+.btn--sm {
+  padding: 8px 12px;
+}
+
+.btn--md {
+  padding: 10px 22px;
+}
+
+.btn--lg {
+  padding: 16px 32px;
+}

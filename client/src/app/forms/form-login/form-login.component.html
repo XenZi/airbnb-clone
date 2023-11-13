@@ -1,4 +1,4 @@
-<form class="form">
+<form [formGroup]="loginForm" (ngSubmit)="onSubmit($event)">
   <div class="form__group">
     <label for="email" class="form__label">Email</label>
     <input
@@ -6,9 +6,26 @@
       id="email"
       class="form__input"
       placeholder="you@example.com"
+      formControlName="email"
     />
+    <!-- Display validation errors if any -->
+    <p
+      *ngIf="
+        loginForm.get('email')?.hasError('required') &&
+        loginForm.get('email')?.touched
+      "
+    >
+      Email is required.
+    </p>
+    <p
+      *ngIf="
+        loginForm.get('email')?.hasError('email') &&
+        loginForm.get('email')?.touched
+      "
+    >
+      Please enter a valid email.
+    </p>
   </div>
-
   <div class="form__group">
     <label for="password" class="form__label">Password</label>
     <input
@@ -16,8 +33,16 @@
       id="password"
       class="form__input"
       placeholder="********"
+      formControlName="password"
     />
+    <p
+      *ngIf="
+        loginForm.get('password')?.hasError('required') &&
+        loginForm.get('password')?.touched
+      "
+    >
+      Password is required.
+    </p>
   </div>
-
-  <button type="submit" class="form__button">Submit</button>
+  <app-button size="md" color="rose" class="" type="submit">Login</app-button>
 </form>

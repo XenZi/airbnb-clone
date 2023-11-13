@@ -1,0 +1,27 @@
+.form {
+  padding: 10px;
+}
+
+.form__group {
+  width: 100%;
+  margin: 10px 0;
+}
+
+.form__input {
+  border: 2px solid #eee;
+  border-radius: 7px;
+  padding: 10px;
+  position: relative;
+  width: 100%;
+}
+
+.form__input::placeholder {
+  color: #343a40;
+  font-size: 12px;
+}
+
+.form__label {
+  display: inline-block;
+  font-size: 12px;
+  margin-bottom: 10px;
+}

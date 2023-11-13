@@ -9,10 +9,26 @@ import { FormLoginComponent } from './forms/form-login/form-login.component';
 import { HeaderComponent } from './components/header/header.component';
 import { DropdownComponent } from './components/dropdown/dropdown.component';
 import { SimpleProfileMenuComponent } from './components/simple-profile-menu/simple-profile-menu.component';
-
+import { ButtonComponent } from './components/button/button.component';
+import { ReactiveFormsModule } from '@angular/forms';
+import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
 @NgModule({
-  declarations: [AppComponent, ModalComponent, FormLoginComponent, HeaderComponent, DropdownComponent, SimpleProfileMenuComponent],
-  imports: [BrowserModule, AppRoutingModule, FontAwesomeModule],
+  declarations: [
+    AppComponent,
+    ModalComponent,
+    FormLoginComponent,
+    HeaderComponent,
+    DropdownComponent,
+    SimpleProfileMenuComponent,
+    ButtonComponent,
+  ],
+  imports: [
+    BrowserModule,
+    AppRoutingModule,
+    FontAwesomeModule,
+    HttpClientModule,
+    ReactiveFormsModule,
+  ],
   providers: [],
   bootstrap: [AppComponent],
 })

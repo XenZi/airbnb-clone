@@ -15,13 +15,15 @@ import { ModalComponent } from 'src/app/components/modal/modal.component';
 })
 export class ModalService {
   newModalComponent!: ComponentRef<ModalComponent>;
+  title!: string;
   constructor(
     private appRef: ApplicationRef,
     private injector: EnvironmentInjector
   ) {}
 
-  open<C>(vcrOrComponent: Type<C>) {
+  open<C>(vcrOrComponent: Type<C>, title: string) {
     this.openWithComponent(vcrOrComponent);
+    this.title = title;
   }
 
   private openWithComponent(component: Type<unknown>) {
