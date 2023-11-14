@@ -6,13 +6,14 @@ import (
 	"auth-service/services"
 	"auth-service/utils"
 	"context"
-	gorillaHandlers "github.com/gorilla/handlers"
-	"github.com/gorilla/mux"
 	"log"
 	"net/http"
 	"os"
 	"os/signal"
 	"time"
+
+	gorillaHandlers "github.com/gorilla/handlers"
+	"github.com/gorilla/mux"
 )
 
 func main() {
@@ -38,8 +39,8 @@ func main() {
 	}
 	router := mux.NewRouter()
 
-	router.HandleFunc("/api/login", authHandler.LoginHandler).Methods("POST")
-	router.HandleFunc("/api/register", authHandler.RegisterHandler).Methods("POST")
+	router.HandleFunc("/login", authHandler.LoginHandler).Methods("POST")
+	router.HandleFunc("/register", authHandler.RegisterHandler).Methods("POST")
 	port := os.Getenv("PORT")
 	if len(port) == 0 {
 		port = "8080"
