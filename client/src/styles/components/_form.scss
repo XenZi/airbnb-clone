@@ -25,3 +25,13 @@
   font-size: 12px;
   margin-bottom: 10px;
 }
+
+.form__error-container {
+  margin-top: 5px;
+}
+
+.form__error {
+  color: #dc3545; /* or any other color for error messages */
+  font-size: 12px;
+  margin: 5px 0 0;
+}

@@ -12,6 +12,8 @@ import { SimpleProfileMenuComponent } from './components/simple-profile-menu/sim
 import { ButtonComponent } from './components/button/button.component';
 import { ReactiveFormsModule } from '@angular/forms';
 import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
+import { ToastNotificationComponent } from './components/toast/toast-notification/toast-notification.component';
+import { ToastContainerComponent } from './components/toast/toast-container/toast-container.component';
 @NgModule({
   declarations: [
     AppComponent,
@@ -21,6 +23,8 @@ import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
     DropdownComponent,
     SimpleProfileMenuComponent,
     ButtonComponent,
+    ToastNotificationComponent,
+    ToastContainerComponent,
   ],
   imports: [
     BrowserModule,

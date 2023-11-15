@@ -3,6 +3,8 @@ import { LocalStorageService } from '../localstorage/local-storage.service';
 import { HttpClient } from '@angular/common/http';
 import { apiURL } from 'src/app/domains/constants';
 import { ModalService } from '../modal/modal.service';
+import { ToastService } from '../toast/toast.service';
+import { ToastNotificationType } from 'src/app/domains/enums/toast-notification-type.enum';
 
 @Injectable({
   providedIn: 'root',
@@ -11,13 +13,14 @@ export class AuthService {
   constructor(
     private localStorageService: LocalStorageService,
     private http: HttpClient,
-    private modalService: ModalService
+    private modalService: ModalService,
+    private toastSerice: ToastService
   ) {}
 
   login(email: string, password: string): void {
     this.http
       .post(
-        `${apiURL}/login`,
+        `${apiURL}/auth/login`,
         {
           email,
           password,
@@ -35,9 +38,20 @@ export class AuthService {
             'user',
             JSON.stringify(data.data?.User)
           );
+          this.toastSerice.showToast(
+            'You have successfully logged in',
+            'You made it',
+            ToastNotificationType.Success
+          );
           this.modalService.close();
         },
         error: (err) => {
+          console.log(err);
+          this.toastSerice.showToast(
+            'Error',
+            err.error.error,
+            ToastNotificationType.Error
+          );
           this.modalService.close();
         },
       });

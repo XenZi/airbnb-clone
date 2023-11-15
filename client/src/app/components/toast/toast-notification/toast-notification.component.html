@@ -1,0 +1,33 @@
+<div
+  class="toast"
+  [ngClass]="{
+    toast__success: toast.type == 'success',
+    toast__error: toast.type == 'error',
+    toast__info: toast.type == 'info'
+  }"
+>
+  <div class="toast__container flex-row items-center">
+    <div class="flex-row toast__icon-box" [ngSwitch]="toast.type">
+      <i
+        class="fa-regular fa-circle-xmark icon--2x toast__icon"
+        *ngSwitchCase="'error'"
+      ></i>
+      <i
+        class="fa-solid fa-circle-info icon--2x toast__icon"
+        *ngSwitchCase="'info'"
+      ></i>
+      <i
+        class="fa-solid fa-circle-check icon--2x toast__icon"
+        *ngSwitchCase="'success'"
+      ></i>
+    </div>
+    <div class="flex-col toast__details">
+      <h4 class="toast__title">
+        {{ toast.title }}
+      </h4>
+      <h5 class="toast__message">
+        {{ toast.message }}
+      </h5>
+    </div>
+  </div>
+</div>

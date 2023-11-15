@@ -1,4 +1,4 @@
-<form [formGroup]="loginForm" (ngSubmit)="onSubmit($event)">
+<form [formGroup]="loginForm" (ngSubmit)="onSubmit($event)" class="form">
   <div class="form__group">
     <label for="email" class="form__label">Email</label>
     <input
@@ -9,22 +9,26 @@
       formControlName="email"
     />
     <!-- Display validation errors if any -->
-    <p
-      *ngIf="
-        loginForm.get('email')?.hasError('required') &&
-        loginForm.get('email')?.touched
-      "
-    >
-      Email is required.
-    </p>
-    <p
-      *ngIf="
-        loginForm.get('email')?.hasError('email') &&
-        loginForm.get('email')?.touched
-      "
-    >
-      Please enter a valid email.
-    </p>
+    <div class="form__error-container">
+      <p
+        *ngIf="
+          loginForm.get('email')?.hasError('required') &&
+          loginForm.get('email')?.touched
+        "
+        class="form__error"
+      >
+        Email is required.
+      </p>
+      <p
+        *ngIf="
+          loginForm.get('email')?.hasError('email') &&
+          loginForm.get('email')?.touched
+        "
+        class="form__error"
+      >
+        Please enter a valid email.
+      </p>
+    </div>
   </div>
   <div class="form__group">
     <label for="password" class="form__label">Password</label>
@@ -35,14 +39,17 @@
       placeholder="********"
       formControlName="password"
     />
-    <p
-      *ngIf="
-        loginForm.get('password')?.hasError('required') &&
-        loginForm.get('password')?.touched
-      "
-    >
-      Password is required.
-    </p>
+    <div class="form__error-container">
+      <p
+        *ngIf="
+          loginForm.get('password')?.hasError('required') &&
+          loginForm.get('password')?.touched
+        "
+        class="form__error"
+      >
+        Password is required.
+      </p>
+    </div>
   </div>
   <app-button size="md" color="rose" class="" type="submit">Login</app-button>
 </form>
