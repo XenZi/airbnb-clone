@@ -9,6 +9,8 @@ import (
 type Accommodation struct {
 	Id               gocql.UUID `json:"id"`
 	UserId           string     `json:"userId"`
+	UserName         string     `json:"username"`
+	Name             string     `json:"name"`
 	Location         string     `json:"location"`
 	Conveniences     string     `json:"conveniences"`
 	MinNumOfVisitors int        `json:"minNumOfVisitors"`

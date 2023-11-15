@@ -90,7 +90,7 @@ func (ar *AccommodationRepo) CreateTables() {
 	}
 
 	err = ar.session.Query(fmt.Sprintf(`CREATE TABLE IF NOT EXISTS %s 
-					(id UUID, user_id text, location text, conveniences text, minNumOfVisitors int, maxNumOfVisitors int, 
+					(id UUID, user_id text,username text,name text, location text, conveniences text, minNumOfVisitors int, maxNumOfVisitors int, 
 					PRIMARY KEY ((id), location)) 
 					WITH CLUSTERING ORDER BY (location ASC)`,
 		"accommodations_by_id")).Exec()
@@ -110,9 +110,10 @@ func (ar *AccommodationRepo) CreateTables() {
 func (ar *AccommodationRepo) InsertAccommodationById(accommodation *do.Accommodation) (*do.Accommodation, *errors.ErrorStruct) {
 	Id, _ := gocql.RandomUUID()
 	userId := "Kreirani id"
+	username := "Atzo"
 	ar.logger.Println("Prije kvjerija")
-	err := ar.session.Query(`INSERT INTO accommodations_by_id (id,user_id, location, conveniences, minNumOfVisitors, maxNumOfVisitors) 
-		VALUES (?, ?, ?, ?, ?, ?)`, Id, userId, accommodation.Location, accommodation.Conveniences, accommodation.MinNumOfVisitors, accommodation.MaxNumOfVisitors).Exec()
+	err := ar.session.Query(`INSERT INTO accommodations_by_id (id,user_id,username,name, location, conveniences, minNumOfVisitors, maxNumOfVisitors) 
+		VALUES (?, ?, ?, ?, ?, ?,?,?)`, Id, userId, username, accommodation.Name, accommodation.Location, accommodation.Conveniences, accommodation.MinNumOfVisitors, accommodation.MaxNumOfVisitors).Exec()
 	if err != nil {
 		ar.logger.Println(err)
 		return nil, errors.NewError("Accommodation creating unsuccessful", 401)
@@ -120,17 +121,18 @@ func (ar *AccommodationRepo) InsertAccommodationById(accommodation *do.Accommoda
 	ar.logger.Println("Poslije kvjerija")
 	accommodation.Id = Id
 	accommodation.UserId = userId
+	accommodation.UserName = username
 	ar.logger.Println("Treci kvjerija")
 	ar.logger.Println(accommodation)
 	return accommodation, nil
 
 }
 func (ar *AccommodationRepo) GetAllAccommodations() (do.AccommodationById, *errors.ErrorStruct) {
-	scanner := ar.session.Query(`SELECT id, user_id, location, conveniences, minNumOfVisitors, maxNumOfVisitors FROM accommodations_by_id`).Iter().Scanner()
+	scanner := ar.session.Query(`SELECT id, user_id,username,name, location, conveniences, minNumOfVisitors, maxNumOfVisitors FROM accommodations_by_id`).Iter().Scanner()
 	var accommodations do.AccommodationById
 	for scanner.Next() {
 		var accomm do.Accommodation
-		err := scanner.Scan(&accomm.Id, &accomm.UserId, &accomm.Location, &accomm.Conveniences, &accomm.MinNumOfVisitors, &accomm.MaxNumOfVisitors)
+		err := scanner.Scan(&accomm.Id, &accomm.UserId, &accomm.UserName, &accomm.Name, &accomm.Location, &accomm.Conveniences, &accomm.MinNumOfVisitors, &accomm.MaxNumOfVisitors)
 		if err != nil {
 			ar.logger.Println(err)
 			return nil, errors.NewError("Unable to scan accommodations", 500)
@@ -146,11 +148,11 @@ func (ar *AccommodationRepo) GetAllAccommodations() (do.AccommodationById, *erro
 }
 
 func (ar *AccommodationRepo) GetAccommodationById(id string) (do.AccommodationById, *errors.ErrorStruct) {
-	scanner := ar.session.Query(`SELECT id, user_id, location, conveniences, minNumOfVisitors, maxNumOfVisitors FROM accommodations_by_id WHERE id=? `, id).Iter().Scanner()
+	scanner := ar.session.Query(`SELECT id, user_id,username,name, location, conveniences, minNumOfVisitors, maxNumOfVisitors FROM accommodations_by_id WHERE id=? `, id).Iter().Scanner()
 	var accommodations do.AccommodationById
 	for scanner.Next() {
 		var accomm do.Accommodation
-		err := scanner.Scan(&accomm.Id, &accomm.UserId, &accomm.Location, &accomm.Conveniences, &accomm.MinNumOfVisitors, &accomm.MaxNumOfVisitors)
+		err := scanner.Scan(&accomm.Id, &accomm.UserId, &accomm.UserName, &accomm.Name, &accomm.Location, &accomm.Conveniences, &accomm.MinNumOfVisitors, &accomm.MaxNumOfVisitors)
 		if err != nil {
 			ar.logger.Println(err)
 			return nil, errors.NewError("Unable to retrieve accommodation", 500)
@@ -167,12 +169,13 @@ func (ar *AccommodationRepo) GetAccommodationById(id string) (do.AccommodationBy
 
 func (ar *AccommodationRepo) UpdateAccommodationById(id string, location string, accommodation *do.Accommodation) (*do.Accommodation, *errors.ErrorStruct) {
 	err := ar.session.Query(`UPDATE accommodations_by_id 
-                         SET                             
+                         SET 
+                             name=?,
                              conveniences = ?, 
                              minNumOfVisitors = ?, 
                              maxNumOfVisitors = ? 
                          WHERE id = ? AND location=?`,
-
+		accommodation.Name,
 		accommodation.Conveniences,
 		accommodation.MinNumOfVisitors,
 		accommodation.MaxNumOfVisitors,

@@ -1,7 +1,8 @@
 package domain
 
 type User struct {
-	Id string
+	Id       string
+	username string
 }
 
 func (u User) Equals(user User) bool {
