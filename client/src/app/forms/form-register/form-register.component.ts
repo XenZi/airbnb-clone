@@ -15,6 +15,7 @@ import {
 } from '../get-form-validation-errors';
 import { ToastService } from 'src/app/services/toast/toast.service';
 import { ToastNotificationType } from 'src/app/domains/enums/toast-notification-type.enum';
+import { RecaptchaErrorParameters } from 'ng-recaptcha';
 
 @Component({
   selector: 'app-form-register',
@@ -25,6 +26,7 @@ export class FormRegisterComponent {
   registerForm: FormGroup;
   roles: string[] = [Role.Guest, Role.Host];
   errors: string = '';
+  isCaptchaValidated: boolean = false;
   constructor(
     private authService: AuthService,
     private formBuilder: FormBuilder,
@@ -51,9 +53,21 @@ export class FormRegisterComponent {
     });
   }
 
+  resolved(ecaptchaResponse: string) {
+    this.isCaptchaValidated = true;
+  }
+
+  onErrorCaptcha(errorDetails: RecaptchaErrorParameters) {}
   onSubmit(e: Event) {
     e.preventDefault();
-
+    if (!this.isCaptchaValidated) {
+      this.toastService.showToast(
+        'reCaptcha Error',
+        'You must validate captcha first',
+        ToastNotificationType.Error
+      );
+      return;
+    }
     if (!this.registerForm.valid) {
       Object.keys(this.registerForm.controls).forEach((key) => {
         const controlErrors = this.registerForm.get(key)?.errors;

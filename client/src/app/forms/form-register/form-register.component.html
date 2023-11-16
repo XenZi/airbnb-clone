@@ -160,7 +160,13 @@
       }}</label>
     </div>
   </div>
-  <app-button size="md" color="rose" class="" type="submit"
+  <re-captcha
+    (resolved)="resolved($event)"
+    (errored)="onErrorCaptcha($event)"
+    errorMode="handled"
+    siteKey="6LcgAxIpAAAAAGvlUKqkMGr_Oq30dS_U_v-LLWjq"
+  ></re-captcha>
+  <app-button size="md" color="rose" class="form__button" type="submit"
     >Register</app-button
   >
 </form>

@@ -89,3 +89,8 @@
 .form__radio-input:checked + .form__radio-label::after {
   opacity: 1;
 }
+
+.form__button {
+  padding: 10px 0px;
+  margin: 10px 0px;
+}
