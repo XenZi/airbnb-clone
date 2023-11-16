@@ -3,6 +3,7 @@ package main
 import (
 	"accommodations-service/handlers"
 	"accommodations-service/repository"
+	"accommodations-service/utils"
 	"context"
 	gorillaHandlers "github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
@@ -24,14 +25,14 @@ func main() {
 
 	logger := log.New(os.Stdout, "[accommodation-api]", log.LstdFlags)
 	storeLogger := log.New(os.Stdout, "[accommodations-store]", log.LstdFlags)
-
+	validator := utils.NewValidator()
 	store, err := repository.New(storeLogger)
 	if err != nil {
 		logger.Fatal(err)
 	}
 	defer store.CloseSession()
 	store.CreateTables()
-	accommodationsHandler := handlers.NewAccommodationsHandler(logger, store)
+	accommodationsHandler := handlers.NewAccommodationsHandler(logger, store, validator)
 	router := mux.NewRouter()
 
 	getAllAccommodations := router.Methods(http.MethodGet).Subrouter()

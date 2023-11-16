@@ -17,14 +17,26 @@ type AccommodationsHandler struct {
 	logger *log.Logger
 
 	repo *repository.AccommodationRepo
+
+	validator *utils.Validator
 }
 
-func NewAccommodationsHandler(l *log.Logger, r *repository.AccommodationRepo) *AccommodationsHandler {
-	return &AccommodationsHandler{l, r}
+func NewAccommodationsHandler(l *log.Logger, r *repository.AccommodationRepo, validator *utils.Validator) *AccommodationsHandler {
+	return &AccommodationsHandler{l, r, validator}
 }
 
 func (a *AccommodationsHandler) CreateAccommodationById(rw http.ResponseWriter, h *http.Request) {
 	accommodationById := h.Context().Value(KeyProduct{}).(*domain.Accommodation)
+	a.validator.ValidateAccommodation(accommodationById)
+	validatorErrors := a.validator.GetErrors()
+	if len(validatorErrors) > 0 {
+		var constructedError string
+		for _, message := range validatorErrors {
+			constructedError += message + "\n"
+		}
+		http.Error(rw, constructedError, http.StatusBadRequest)
+		return
+	}
 	accommodationById, err := a.repo.InsertAccommodationById(accommodationById)
 	if err != nil {
 		a.logger.Print("Database exception: ", err)
