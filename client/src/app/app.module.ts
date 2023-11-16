@@ -14,6 +14,8 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
 import { ToastNotificationComponent } from './components/toast/toast-notification/toast-notification.component';
 import { ToastContainerComponent } from './components/toast/toast-container/toast-container.component';
+import { FormRegisterComponent } from './forms/form-register/form-register.component';
+import { RecaptchaFormsModule, RecaptchaModule } from 'ng-recaptcha';
 @NgModule({
   declarations: [
     AppComponent,
@@ -25,6 +27,7 @@ import { ToastContainerComponent } from './components/toast/toast-container/toas
     ButtonComponent,
     ToastNotificationComponent,
     ToastContainerComponent,
+    FormRegisterComponent,
   ],
   imports: [
     BrowserModule,
@@ -32,6 +35,8 @@ import { ToastContainerComponent } from './components/toast/toast-container/toas
     FontAwesomeModule,
     HttpClientModule,
     ReactiveFormsModule,
+    RecaptchaModule,
+    RecaptchaFormsModule,
   ],
   providers: [],
   bootstrap: [AppComponent],

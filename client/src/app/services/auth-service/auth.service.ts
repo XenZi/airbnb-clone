@@ -56,4 +56,33 @@ export class AuthService {
         },
       });
   }
+
+  register(
+    email: string,
+    firstName: string,
+    lastName: string,
+    currentPlace: string,
+    password: string,
+    role: string,
+    username: string
+  ): void {
+    this.http
+      .post(`${apiURL}/auth/register`, {
+        email,
+        firstName,
+        lastName,
+        currentPlace,
+        password,
+        role,
+        username,
+      })
+      .subscribe({
+        next: (data) => {
+          console.log(data);
+        },
+        error: (err) => {
+          console.log(err);
+        },
+      });
+  }
 }

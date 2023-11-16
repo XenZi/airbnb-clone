@@ -2,6 +2,7 @@ import { Component, HostListener, Input } from '@angular/core';
 import { faL } from '@fortawesome/free-solid-svg-icons';
 import { SimpleProfileMenuItem } from 'src/app/domains/model/simple-profile-menu-item.model';
 import { FormLoginComponent } from 'src/app/forms/form-login/form-login.component';
+import { FormRegisterComponent } from 'src/app/forms/form-register/form-register.component';
 import { ModalService } from 'src/app/services/modal/modal.service';
 
 @Component({
@@ -47,7 +48,9 @@ export class SimpleProfileMenuComponent {
     this.isClicked = !this.isClicked;
   }
 
-  callRegister() {}
+  callRegister() {
+    this.modalService.open(FormRegisterComponent, 'Register');
+  }
 
   callLogin() {
     this.modalService.open(FormLoginComponent, 'Login');
