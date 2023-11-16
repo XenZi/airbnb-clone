@@ -11,7 +11,6 @@ WORKDIR /app
 COPY ./auth-service/go.mod ./auth-service/go.sum ./
 
 
-
 # Download all dependencies. Dependencies will be cached if the go.mod and go.sum files are not changed
 RUN go mod download
 
@@ -32,6 +31,8 @@ WORKDIR /root/
 
 # Copy the Pre-built binary file from the previous stage
 COPY --from=builder /app/main .
+RUN mkdir data
+COPY ./auth-service/data/blacklist-passwords.txt ./data/
 
 # Command to run the executable
 CMD ["./main"]

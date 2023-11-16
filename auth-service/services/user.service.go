@@ -35,6 +35,9 @@ func (u *UserService) CreateUser(registerUser domains.RegisterUser) (*domains.Us
 		}
 		return nil, errors.NewError(constructedError, 400)
 	}
+	if u.passwordService.CheckPasswordExistanceInBlacklist(registerUser.Password) != false {
+		return nil, errors.NewError("Choose better password that is more secure!", 400)
+	}
 	user := domains.User{
 		Email:    registerUser.Email,
 		Password: registerUser.Password,
