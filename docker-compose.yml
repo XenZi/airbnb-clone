@@ -38,24 +38,6 @@ services:
     networks:
       - network
 
-  # NoSQL: MognoExpress
-  auth-db-mongo-express:
-    image: mongo-express
-    restart: always
-    environment:
-      # hostname of mongo databse
-      - ME_CONFIG_MONGODB_SERVER=auth-db
-      - ME_CONFIG_MONGODB_ADMINUSERNAME=root
-      - ME_CONFIG_MONGODB_ADMINPASSWORD=pass
-      - ME_CONFIG_BASICAUTH_USERNAME=admin
-      - ME_CONFIG_BASICAUTH_PASSWORD=admin
-    depends_on:
-      - auth-db
-    ports:
-      - "8081:8081"
-    volumes:
-      - auth-db-mongo-express:/data/db
-
   api-gateway:
     build:
       context: ./api-gateway/
@@ -64,7 +46,7 @@ services:
     hostname: api-gateway
     restart: on-failure
     ports:
-      - 8000:8000
+      - 443:443
     depends_on:
       - auth-service
     networks:
