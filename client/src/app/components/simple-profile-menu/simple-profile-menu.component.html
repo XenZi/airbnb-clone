@@ -1,0 +1,21 @@
+<div class="simple-profile-menu" (click)="clickBox()">
+  <div class="simple-profile-menu__container">
+    <div class="simple-profile-menu__box">
+      <i class="fa-solid fa-bars simple-profile-menu__icon"></i>
+      <i class="fa-regular fa-user simple-profile-menu__icon-circle-box"></i>
+    </div>
+    <ul
+      class="simple-profile-menu__list"
+      [ngClass]="{ 'simple-profile-menu__list--active': isClicked == true }"
+    >
+      <li
+        class="simple-profile-menu__item"
+        *ngFor="let item of items"
+        (click)="item.action()"
+      >
+        <i [className]="item.icon"></i>
+        {{ item.title }}
+      </li>
+    </ul>
+  </div>
+</div>

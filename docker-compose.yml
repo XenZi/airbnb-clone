@@ -1,0 +1,61 @@
+version: "3.8"
+
+services:
+  auth-service:
+    build:
+      context: .
+      dockerfile: ./auth-service/Dockerfile
+    image: auth-service
+    container_name: auth-service
+    restart: always
+    hostname: "auth-server"
+    depends_on:
+      - auth-db
+    environment:
+      - PORT=8080
+      - JWT_SECRET=${JWT_SECRET}
+      - MONGO_DB_URI=mongodb://root:pass@auth-db:27017
+    networks:
+      - network
+
+  auth-db:
+    image: mongo
+    restart: always
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: pass
+      MONGO_INITDB_DATABASE: mongoDemo
+    # Docker healtcheck - checks if database is "alive"
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok'
+      interval: 10s
+      timeout: 10s
+      retries: 10
+    volumes:
+      - auth-db_store:/data/db
+    networks:
+      - network
+
+  api-gateway:
+    build:
+      context: ./api-gateway/
+      dockerfile: Dockerfile
+    container_name: api-gateway
+    hostname: api-gateway
+    restart: on-failure
+    ports:
+      - 443:443
+    depends_on:
+      - auth-service
+    networks:
+      - network
+
+networks:
+  network:
+    driver: bridge
+
+volumes:
+  auth-db-mongo-express:
+  auth-db_store:
