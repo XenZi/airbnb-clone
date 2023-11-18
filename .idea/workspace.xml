@@ -5,23 +5,20 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="8cc95ec9-a844-44d5-ba6e-119e8270bf9a" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/auth-service/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/auth-service/main.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/client/src/app/app.module.ts" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/app/app.module.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/client/src/app/components/modal/modal.component.html" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/app/components/modal/modal.component.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/client/src/app/components/modal/modal.component.scss" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/app/components/modal/modal.component.scss" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/client/src/app/components/modal/modal.component.ts" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/app/components/modal/modal.component.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/client/src/app/components/simple-profile-menu/simple-profile-menu.component.ts" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/app/components/simple-profile-menu/simple-profile-menu.component.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/client/src/app/domains/_.ts" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/client/src/app/forms/form-login/form-login.component.html" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/app/forms/form-login/form-login.component.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/client/src/app/forms/form-login/form-login.component.scss" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/app/forms/form-login/form-login.component.scss" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/client/src/app/forms/form-login/form-login.component.ts" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/app/forms/form-login/form-login.component.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/client/src/app/services/modal/modal.service.ts" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/app/services/modal/modal.service.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/client/src/styles/index.scss" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/styles/index.scss" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mail-service/services/mail.service.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Go File" />
+      </list>
+    </option>
   </component>
   <component name="GOROOT" url="file:///usr/local/go" />
   <component name="Git.Settings">
@@ -41,24 +38,25 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.go.formatter.settings.were.checked&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.go.migrated.go.modules.settings&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.go.modules.automatic.dependencies.download&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.go.modules.go.list.on.any.changes.was.set&quot;: &quot;true&quot;,
-    &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;feature/frontend-login&quot;,
-    &quot;go.import.settings.migrated&quot;: &quot;true&quot;,
-    &quot;go.sdk.automatically.set&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;/Users/matejarilak/Documents/airbnb-clone/auth-service&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "DefaultGoTemplateProperty": "Go File",
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.go.formatter.settings.were.checked": "true",
+    "RunOnceActivity.go.migrated.go.modules.settings": "true",
+    "RunOnceActivity.go.modules.automatic.dependencies.download": "true",
+    "RunOnceActivity.go.modules.go.list.on.any.changes.was.set": "true",
+    "WebServerToolWindowFactoryState": "false",
+    "git-widget-placeholder": "feature/mail-service",
+    "go.import.settings.migrated": "true",
+    "go.sdk.automatically.set": "true",
+    "last_opened_file_path": "/Users/matejarilak/Documents/airbnb-clone/auth-service",
+    "node.js.detected.package.eslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm"
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/auth-service" />
