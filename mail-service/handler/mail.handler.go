@@ -22,7 +22,6 @@ func NewMailHandler(mailService *services.MailService) *MailHandler {
 func (m MailHandler) SubmitAccountConfirmationMail(rw http.ResponseWriter, h *http.Request) {
 	decoder := json.NewDecoder(h.Body)
 	decoder.DisallowUnknownFields()
-	log.Println("USLO U HANDLER BAJO")
 	var accountConfirmationData domains.AccountConfirmation
 	if err := decoder.Decode(&accountConfirmationData); err != nil {
 		utils.WriteErrorResp(err.Error(), 500, "api/login", rw)
