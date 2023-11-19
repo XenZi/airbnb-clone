@@ -18,6 +18,21 @@ services:
     networks:
       - network
 
+  mail-service:
+    build:
+      context: .
+      dockerfile: ./mail-service/Dockerfile
+    image: mail-service
+    container_name: mail-service
+    restart: always
+    hostname: "mail-server"
+    environment:
+      - PORT=8081
+      - EMAIL=${EMAIL}
+      - PASSWORD=${PASSWORD}
+    networks:
+      - network
+
   auth-db:
     image: mongo
     restart: always
