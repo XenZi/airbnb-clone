@@ -1,6 +1,7 @@
 package main
 
 import (
+	"auth-service/client"
 	"auth-service/handler"
 	"auth-service/repository"
 	"auth-service/services"
@@ -20,28 +21,49 @@ func main() {
 	timeoutContext, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 	logger := log.New(os.Stdout, "[auth-api] ", log.LstdFlags)
-	mongoService, err := services.New(timeoutContext, logger)
-	validator := utils.NewValidator()
 
+	// env reads
+
+	jwtSecretKey := os.Getenv("JWT_SECRET")
+	secretKey := os.Getenv("SECRET_KEY")
+	mailServiceHost := os.Getenv("MAIL_SERVICE_HOST")
+	mailServicePort := os.Getenv("MAIL_SERVICE_PORT")
+	port := os.Getenv("PORT")
+
+	// clients
+
+	customHttpMailClient := &http.Client{Timeout: time.Second * 10}
+	mailClient := client.NewMailClient(mailServiceHost, mailServicePort, customHttpMailClient)
+
+	// services
+	mongoService, err := services.New(timeoutContext, logger)
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	validator := utils.NewValidator()
+
 	userRepo := repository.NewUserRepository(
 		mongoService.GetCli(), logger)
 	passwordService := services.NewPasswordService()
 
-	key := os.Getenv("JWT_SECRET")
-	keyByte := []byte(key)
+	keyByte := []byte(jwtSecretKey)
 	jwtService := services.NewJWTService(keyByte)
-	userService := services.NewUserService(userRepo, passwordService, jwtService, validator)
+	encryptionService := &services.EncryptionService{SecretKey: secretKey}
+	userService := services.NewUserService(userRepo, passwordService, jwtService, validator, encryptionService, mailClient)
 	authHandler := handler.AuthHandler{
 		UserService: userService,
 	}
-	router := mux.NewRouter()
 
+	// router definitions
+
+	router := mux.NewRouter()
 	router.HandleFunc("/login", authHandler.LoginHandler).Methods("POST")
 	router.HandleFunc("/register", authHandler.RegisterHandler).Methods("POST")
-	port := os.Getenv("PORT")
+	router.HandleFunc("/confirm-account", authHandler.ConfirmAccount).Methods("POST")
+
+	// server definitions
+
 	if len(port) == 0 {
 		port = "8080"
 	}

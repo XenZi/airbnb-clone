@@ -43,3 +43,7 @@ func (a AuthHandler) RegisterHandler(r http.ResponseWriter, h *http.Request) {
 	}
 	utils.WriteResp(userData, 201, r)
 }
+
+func (a AuthHandler) ConfirmAccount(r http.ResponseWriter, h *http.Request) {
+
+}

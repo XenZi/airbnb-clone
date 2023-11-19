@@ -1,6 +1,7 @@
 package services
 
 import (
+	"auth-service/client"
 	"auth-service/domains"
 	"auth-service/errors"
 	"auth-service/repository"
@@ -8,21 +9,27 @@ import (
 )
 
 type UserService struct {
-	userRepository  *repository.UserRepository
-	passwordService *PasswordService
-	jwtService      *JwtService
-	validator       *utils.Validator
+	userRepository    *repository.UserRepository
+	passwordService   *PasswordService
+	jwtService        *JwtService
+	validator         *utils.Validator
+	encryptionService *EncryptionService
+	mailClient        client.MailClientInterface
 }
 
 func NewUserService(userRepo *repository.UserRepository,
 	passwordService *PasswordService,
 	jwtService *JwtService,
-	validator *utils.Validator) *UserService {
+	validator *utils.Validator,
+	encryptionService *EncryptionService,
+	mailClient client.MailClientInterface) *UserService {
 	return &UserService{
-		userRepository:  userRepo,
-		passwordService: passwordService,
-		jwtService:      jwtService,
-		validator:       validator,
+		userRepository:    userRepo,
+		passwordService:   passwordService,
+		jwtService:        jwtService,
+		validator:         validator,
+		encryptionService: encryptionService,
+		mailClient:        mailClient,
 	}
 }
 func (u *UserService) CreateUser(registerUser domains.RegisterUser) (*domains.UserDTO, *errors.ErrorStruct) {
@@ -39,10 +46,11 @@ func (u *UserService) CreateUser(registerUser domains.RegisterUser) (*domains.Us
 		return nil, errors.NewError("Choose better password that is more secure!", 400)
 	}
 	user := domains.User{
-		Email:    registerUser.Email,
-		Password: registerUser.Password,
-		Username: registerUser.Username,
-		Role:     registerUser.Role,
+		Email:     registerUser.Email,
+		Password:  registerUser.Password,
+		Username:  registerUser.Username,
+		Role:      registerUser.Role,
+		Confirmed: false,
 	}
 	hashedPassword, err := u.passwordService.HashPassword(user.Password)
 	if err != nil {
@@ -57,6 +65,9 @@ func (u *UserService) CreateUser(registerUser domains.RegisterUser) (*domains.Us
 	if err != nil {
 		return nil, errors.NewError(err.Error(), 500)
 	}
+	go func() {
+		u.mailClient.SendAccountConfirmationEmail(registerUser.Email, string(id))
+	}()
 	return &domains.UserDTO{
 		ID:       string(id),
 		Email:    registerUser.Email,

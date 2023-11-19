@@ -2,11 +2,12 @@ package handler
 
 import (
 	"encoding/json"
+	"log"
+	"net/http"
+
 	"github.com/XenZi/airbnb-clone/mail-service/domains"
 	"github.com/XenZi/airbnb-clone/mail-service/services"
 	"github.com/XenZi/airbnb-clone/mail-service/utils"
-	"log"
-	"net/http"
 )
 
 type MailHandler struct {
@@ -19,7 +20,7 @@ func NewMailHandler(mailService *services.MailService) *MailHandler {
 	}
 }
 
-func (m MailHandler) SubmitAccountConfirmationMail(rw http.ResponseWriter, h *http.Request) {
+func (m MailHandler) SendAccountConfirmationEmail(rw http.ResponseWriter, h *http.Request) {
 	decoder := json.NewDecoder(h.Body)
 	decoder.DisallowUnknownFields()
 	var accountConfirmationData domains.AccountConfirmation
@@ -27,6 +28,7 @@ func (m MailHandler) SubmitAccountConfirmationMail(rw http.ResponseWriter, h *ht
 		utils.WriteErrorResp(err.Error(), 500, "api/login", rw)
 		return
 	}
+	log.Println(accountConfirmationData)
 	err := m.mailService.SendRegisterConfirmationEmail(accountConfirmationData)
 	if err != nil {
 		log.Println("ERRR")
