@@ -36,21 +36,21 @@ func main() {
 	router := mux.NewRouter()
 
 	getAllAccommodations := router.Methods(http.MethodGet).Subrouter()
-	getAllAccommodations.HandleFunc("/api/accommodations", accommodationsHandler.GetAllAccommodations)
+	getAllAccommodations.HandleFunc("/", accommodationsHandler.GetAllAccommodations)
 
 	getAccommodationsById := router.Methods(http.MethodGet).Subrouter()
-	getAccommodationsById.HandleFunc("/api/accommodations/{id}", accommodationsHandler.GetAccommodationById)
+	getAccommodationsById.HandleFunc("/{id}", accommodationsHandler.GetAccommodationById)
 
 	postAccommodationForId := router.Methods(http.MethodPost).Subrouter()
-	postAccommodationForId.HandleFunc("/api/accommodations", accommodationsHandler.CreateAccommodationById)
+	postAccommodationForId.HandleFunc("/", accommodationsHandler.CreateAccommodationById)
 	postAccommodationForId.Use(accommodationsHandler.MiddlewareAccommodationByIdDeserialization)
 
 	putAccommodationForId := router.Methods(http.MethodPut).Subrouter()
-	putAccommodationForId.HandleFunc("/api/accommodations/{location}/{id}", accommodationsHandler.UpdateAccommodationById)
+	putAccommodationForId.HandleFunc("/{location}/{id}", accommodationsHandler.UpdateAccommodationById)
 	putAccommodationForId.Use(accommodationsHandler.MiddlewareAccommodationByIdDeserialization)
 
 	deleteAccommodationsById := router.Methods(http.MethodDelete).Subrouter()
-	deleteAccommodationsById.HandleFunc("/api/accommodations/{id}", accommodationsHandler.DeleteAccommodationById)
+	deleteAccommodationsById.HandleFunc("/{id}", accommodationsHandler.DeleteAccommodationById)
 
 	cors := gorillaHandlers.CORS(gorillaHandlers.AllowedOrigins([]string{"*"}))
 

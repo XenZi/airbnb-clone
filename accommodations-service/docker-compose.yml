@@ -2,7 +2,7 @@ version: "3.1"
 
 services:
   #Our service.
-  server:
+  accommodations-service:
     build:
       context: .
       dockerfile: Dockerfile
@@ -21,11 +21,11 @@ services:
     # NoSQL: Extremely important! Cassandra takes a lot of time to start!
     # If we don't wait for it to fully initialize we will get exceptions and will not be able to connect!
     depends_on:
-      cassandra:
+      accommodation-db:
         condition: service_healthy
 
   # NoSQL: CassandraDB
-  cassandra:
+  accommodation-db:
     image: cassandra
     restart: always
     ports:

@@ -60,7 +60,7 @@ func IsName(value string) bool {
 }
 
 func IsLocationOrConvenience(value string) bool {
-	locationRegex := `^[a-zA-Z,]+$`
+	locationRegex := `^[a-zA-Z, ]+$`
 	isValid, _ := regexp.MatchString(locationRegex, value)
 	return isValid
 }

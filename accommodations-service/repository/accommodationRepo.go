@@ -113,7 +113,7 @@ func (ar *AccommodationRepo) InsertAccommodationById(accommodation *do.Accommoda
 	username := "Atzo"
 	ar.logger.Println("Prije kvjerija")
 	err := ar.session.Query(`INSERT INTO accommodations_by_id (id,user_id,username,name, location, conveniences, minNumOfVisitors, maxNumOfVisitors) 
-		VALUES (?, ?, ?, ?, ?, ?,?,?)`, Id, userId, username, accommodation.Name, accommodation.Location, accommodation.Conveniences, accommodation.MinNumOfVisitors, accommodation.MaxNumOfVisitors).Exec()
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?)`, Id, userId, username, accommodation.Name, accommodation.Location, accommodation.Conveniences, accommodation.MinNumOfVisitors, accommodation.MaxNumOfVisitors).Exec()
 	if err != nil {
 		ar.logger.Println(err)
 		return nil, errors.NewError("Accommodation creating unsuccessful", 401)
