@@ -87,7 +87,7 @@ func (r *ReservationHandler) DeleteReservationById(rw http.ResponseWriter, h *ht
 		http.Error(rw, "Failed to delete the accommodation", http.StatusInternalServerError)
 		return
 	}
-	rw.WriteHeader(http.StatusTeapot)
+	rw.WriteHeader(http.StatusAccepted)
 }
 
 /*func (r *ReservationHandler) MiddlewareReservationByIdDeserialization(next http.Handler) http.Handler {
