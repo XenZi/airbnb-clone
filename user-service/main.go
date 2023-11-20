@@ -20,7 +20,7 @@ import (
 func main() {
 	timeoutContext, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
-	logger := log.New(os.Stdout, "[auth-api] ", log.LstdFlags)
+	logger := log.New(os.Stdout, "[user-api] ", log.LstdFlags)
 	mongoService, err := service.New(timeoutContext, logger)
 	validator := utils.NewValidator()
 
@@ -39,6 +39,7 @@ func main() {
 	router := mux.NewRouter()
 
 	router.HandleFunc("/api/create", profileHandler.CreateHandler).Methods("POST")
+	router.HandleFunc("/api/get-all", profileHandler.GetAllHandler).Methods("GET")
 	port := os.Getenv("PORT")
 	if len(port) == 0 {
 		port = "8080"

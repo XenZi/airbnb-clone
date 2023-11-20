@@ -26,3 +26,11 @@ func (u UserHandler) CreateHandler(rw http.ResponseWriter, h *http.Request) {
 	}
 	utils.WriteResp(user, 200, rw)
 }
+
+func (u UserHandler) GetAllHandler(rw http.ResponseWriter, h *http.Request) {
+	userCollection, err := u.UserService.GetAllUsers()
+	if err != nil {
+		utils.WriteErrorResponse(err.GetErrorMessage(), err.GetErrorStatus(), "api/get-all", rw)
+	}
+	utils.WriteResp(userCollection, 200, rw)
+}

@@ -45,6 +45,9 @@ func New(ctx context.Context, logger *log.Logger) (*MongoService, error) {
 				Keys:    bson.D{{Key: "residence", Value: 1}},
 				Options: options.Index(),
 			},
+			{
+				Keys: bson.D{{Key: "age", Value: 1}},
+			},
 		})
 	logger.Println("Constraints created for mongo-db User model with name ", indexName)
 	if err != nil {
