@@ -87,9 +87,6 @@ func (ur UserRepository) UpdateUser(user domain.User) (*domain.User, *errors.Err
 	if err != nil {
 		ur.logger.Println(err.Error())
 		err, status := errors.HandleInsertError(err, user)
-		if status == -1 {
-			status = 500
-		}
 		return nil, errors.NewError(err.Error(), status)
 	}
 	return &user, nil
