@@ -4,10 +4,11 @@ import (
 	"auth-service/domains"
 	"auth-service/errors"
 	"context"
+	"log"
+
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
-	"log"
 )
 
 type UserRepository struct {
@@ -46,6 +47,20 @@ func (u UserRepository) FindUserByEmail(email string) (*domains.User, *errors.Er
 	if err != nil {
 		return nil, errors.NewError(
 			"Bad credentials",
+			401)
+	}
+	return &user, nil
+}
+
+
+func (u UserRepository) FindUserById(id string) (*domains.User, *errors.ErrorStruct) {
+	userCollection := u.cli.Database("auth").Collection("user")
+
+	var user domains.User
+	err := userCollection.FindOne(context.TODO(), bson.M{"id": id}).Decode(&user)
+	if err != nil {
+		return nil, errors.NewError(
+			"Not found with following ID",
 			401)
 	}
 	return &user, nil

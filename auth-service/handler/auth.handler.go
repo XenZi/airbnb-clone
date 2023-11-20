@@ -2,11 +2,12 @@ package handler
 
 import (
 	"auth-service/domains"
-	"auth-service/errors"
 	"auth-service/services"
 	"auth-service/utils"
 	"encoding/json"
 	"net/http"
+
+	"github.com/gorilla/mux"
 )
 
 type AuthHandler struct {
@@ -34,7 +35,7 @@ func (a AuthHandler) RegisterHandler(r http.ResponseWriter, h *http.Request) {
 	decoder.DisallowUnknownFields()
 	var registerData domains.RegisterUser
 	if err := decoder.Decode(&registerData); err != nil {
-		utils.WriteErrorResp(errors.ErrInternalServerError().Error(), 500, "api/login", r)
+		utils.WriteErrorResp("Internal server error", 500, "api/login", r)
 	}
 	userData, err := a.UserService.CreateUser(registerData)
 	if err != nil {
@@ -45,5 +46,8 @@ func (a AuthHandler) RegisterHandler(r http.ResponseWriter, h *http.Request) {
 }
 
 func (a AuthHandler) ConfirmAccount(r http.ResponseWriter, h *http.Request) {
+	vars := mux.Vars(h)
+	token := vars["token"]
 
+	a.UserService.ConfirmUserAccount(token)
 }

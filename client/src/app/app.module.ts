@@ -16,6 +16,9 @@ import { ToastNotificationComponent } from './components/toast/toast-notificatio
 import { ToastContainerComponent } from './components/toast/toast-container/toast-container.component';
 import { FormRegisterComponent } from './forms/form-register/form-register.component';
 import { RecaptchaFormsModule, RecaptchaModule } from 'ng-recaptcha';
+import { ConfirmAccountPageComponent } from './pages/confirm-account-page/confirm-account-page.component';
+import { BasePageComponent } from './pages/base-page/base-page.component';
+import { ConfirmingAccInfoComponent } from './components/confirming-acc-info/confirming-acc-info.component';
 @NgModule({
   declarations: [
     AppComponent,
@@ -28,6 +31,9 @@ import { RecaptchaFormsModule, RecaptchaModule } from 'ng-recaptcha';
     ToastNotificationComponent,
     ToastContainerComponent,
     FormRegisterComponent,
+    ConfirmAccountPageComponent,
+    BasePageComponent,
+    ConfirmingAccInfoComponent,
   ],
   imports: [
     BrowserModule,

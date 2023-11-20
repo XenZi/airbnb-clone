@@ -85,4 +85,15 @@ export class AuthService {
         },
       });
   }
+
+  confirmAccount(token: string): void {
+    this.http.post(`${apiURL}/auth/confirm-account/${token}`, {}).subscribe({
+      next: (data) => {
+        console.log(data);
+      },
+      error: (err) => {
+        console.log(err);
+      },
+    });
+  }
 }

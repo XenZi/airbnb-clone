@@ -60,7 +60,7 @@ func main() {
 	router := mux.NewRouter()
 	router.HandleFunc("/login", authHandler.LoginHandler).Methods("POST")
 	router.HandleFunc("/register", authHandler.RegisterHandler).Methods("POST")
-	router.HandleFunc("/confirm-account", authHandler.ConfirmAccount).Methods("POST")
+	router.HandleFunc("/confirm-account/{token}", authHandler.ConfirmAccount).Methods("POST")
 
 	// server definitions
 

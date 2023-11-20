@@ -7,6 +7,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"log"
 	"strings"
 	"time"
 )
@@ -21,7 +22,7 @@ type TokenData struct {
 }
 
 func (e EncryptionService) GenerateToken(userID string) (string, *errors.ErrorStruct) {
-	expirationDate := time.Now().Add(time.Hour)
+	expirationDate := time.Now().Add(time.Hour * 24)
 
 	data := TokenData{
 		UserID:         userID,
@@ -33,11 +34,13 @@ func (e EncryptionService) GenerateToken(userID string) (string, *errors.ErrorSt
 	if err != nil {
 		return "", errors.NewError(err.Error(), 500)
 	}
+	log.Println("SECRET KEY" + e.SecretKey)
 	h := hmac.New(sha256.New, []byte(e.SecretKey))
 	h.Write(tokenJSON)
 	signature := base64.URLEncoding.EncodeToString(h.Sum(nil))
 
 	token := fmt.Sprintf("%s.%s", base64.URLEncoding.EncodeToString(tokenJSON), signature)
+	log.Println("CREATED TOKEN", token)
 	return token, nil
 
 }

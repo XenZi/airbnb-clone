@@ -6,6 +6,7 @@ import (
 	"auth-service/errors"
 	"auth-service/repository"
 	"auth-service/utils"
+	"log"
 )
 
 type UserService struct {
@@ -65,11 +66,16 @@ func (u *UserService) CreateUser(registerUser domains.RegisterUser) (*domains.Us
 	if err != nil {
 		return nil, errors.NewError(err.Error(), 500)
 	}
+	token, encError := u.encryptionService.GenerateToken(string(id[1 : len(id)-1]))
+	if encError != nil {
+		return nil, encError
+	}
+
 	go func() {
-		u.mailClient.SendAccountConfirmationEmail(registerUser.Email, string(id))
+		u.mailClient.SendAccountConfirmationEmail(registerUser.Email, token)
 	}()
 	return &domains.UserDTO{
-		ID:       string(id),
+		ID:       string(id[1 : len(id)-1]),
 		Email:    registerUser.Email,
 		Username: registerUser.Username,
 		Role:     registerUser.Role,
@@ -101,4 +107,16 @@ func (u *UserService) LoginUser(loginData domains.LoginUser) (*domains.Successfu
 			Role:     user.Role,
 		},
 	}, nil
+}
+
+
+func (u UserService) ConfirmUserAccount(token string) (*domains.BaseHttpResponse, *errors.ErrorStruct) {
+	log.Println(token)
+	userID, err := u.encryptionService.ValidateToken(token)
+	if err != nil {
+		log.Println(err.GetErrorMessage())
+		return nil, err
+	}
+	log.Println(userID)
+	return nil, nil
 }
