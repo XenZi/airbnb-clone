@@ -9,6 +9,9 @@ type MailService struct {
 	sender *domains.Sender
 }
 
+type ConfirmMailLink struct {
+	Link string
+}
 const (
 	CONFIRM_ACCOUNT_TEMPLATE string = "templates/confirm-account-template.html"
 )
@@ -27,7 +30,9 @@ func (m MailService) SendRegisterConfirmationEmail(accountConfirmation domains.A
 		},
 		[]string{},
 		"Account confirmation email",
-		accountConfirmation,
+		ConfirmMailLink{
+			Link: "http://localhost:4200/confirm-account/" + accountConfirmation.Token,
+		},
 		[]string{}); err != nil {
 		return err
 	}

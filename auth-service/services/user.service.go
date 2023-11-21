@@ -110,13 +110,23 @@ func (u *UserService) LoginUser(loginData domains.LoginUser) (*domains.Successfu
 }
 
 
-func (u UserService) ConfirmUserAccount(token string) (*domains.BaseHttpResponse, *errors.ErrorStruct) {
-	log.Println(token)
+func (u UserService) ConfirmUserAccount(token string) (*domains.UserDTO, *errors.ErrorStruct) {
 	userID, err := u.encryptionService.ValidateToken(token)
 	if err != nil {
 		log.Println(err.GetErrorMessage())
 		return nil, err
 	}
 	log.Println(userID)
-	return nil, nil
+	updatedUser, err := u.userRepository.UpdateUserConfirmation(userID)
+	if err != nil {
+		log.Println(err.GetErrorMessage())
+		return nil, err
+	}
+	return &domains.UserDTO{
+		Username: updatedUser.Username,
+		Email: updatedUser.Email,
+		ID: userID,
+		Role: updatedUser.Role,
+		Confirmed: updatedUser.Confirmed,
+	}, nil
 }

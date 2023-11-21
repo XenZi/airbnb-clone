@@ -48,6 +48,14 @@ func (a AuthHandler) RegisterHandler(r http.ResponseWriter, h *http.Request) {
 func (a AuthHandler) ConfirmAccount(r http.ResponseWriter, h *http.Request) {
 	vars := mux.Vars(h)
 	token := vars["token"]
-
-	a.UserService.ConfirmUserAccount(token)
+	if token == "" {
+		utils.WriteErrorResp("Bad request", 400, "api/confirm-account", r)
+		return
+	}
+	user, err := a.UserService.ConfirmUserAccount(token)
+	if err != nil {
+		utils.WriteErrorResp(err.GetErrorMessage(), err.GetErrorStatus(), "api/confirm-account",r)
+		return
+	}
+	utils.WriteResp(user, 200, r)
 }
