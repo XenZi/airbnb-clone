@@ -8,18 +8,17 @@ import (
 )
 
 type Reservation struct {
-	Id                gocql.UUID `json: "id"`
-	UserID            string     `json: "userId"`
-	AccommodationID   string     `json: "accommodationId"`
-	StartDate         string     `json: "startDate"`
-	EndDate           string     `json: "endDate"`
-	Username          string     `json: "username"`
-	AccommodationName string     `json: "accommodationName"`
-	Quartal           string     `json: "quartal"`
+	Id                gocql.UUID `json:"id"`
+	UserID            string     `json:"userId"`
+	AccommodationID   string     `json:"accommodationId"`
+	StartDate         string     `json:"startDate"`
+	EndDate           string     `json:"endDate"`
+	Username          string     `json:"username"`
+	AccommodationName string     `json:"accommodationName"`
 }
 type ReservationById []*Reservation
 
-func NewReservation(id gocql.UUID, userID, accommodationID string, startDate, endDate, username, accommodationName, quartal string) *Reservation {
+func NewReservation(id gocql.UUID, userID, accommodationID string, startDate, endDate, username, accommodationName string) *Reservation {
 	return &Reservation{
 		Id:                id,
 		UserID:            userID,
@@ -28,7 +27,6 @@ func NewReservation(id gocql.UUID, userID, accommodationID string, startDate, en
 		EndDate:           endDate,
 		Username:          username,
 		AccommodationName: accommodationName,
-		Quartal:           quartal,
 	}
 }
 

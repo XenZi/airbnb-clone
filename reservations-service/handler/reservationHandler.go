@@ -5,7 +5,8 @@ import (
 	"log"
 	"net/http"
 	"reservation-service/domain"
-	"reservation-service/repository"
+	"reservation-service/service"
+	"reservation-service/utils"
 
 	"github.com/gorilla/mux"
 )
@@ -15,93 +16,51 @@ type KeyProduct struct{}
 type ReservationHandler struct {
 	logger *log.Logger
 
-	repo *repository.ReservationRepo
+	ReservationService *service.ReservationService
 }
 
-func NewReservationsHandler(l *log.Logger, r *repository.ReservationRepo) *ReservationHandler {
-	return &ReservationHandler{l, r}
+func NewReservationsHandler(l *log.Logger, rs *service.ReservationService) *ReservationHandler {
+	return &ReservationHandler{l, rs}
 }
 
 func (r *ReservationHandler) CreateReservationByUser(rw http.ResponseWriter, h *http.Request) {
 	decoder := json.NewDecoder(h.Body)
-	var reservation domain.Reservation
-	if err := decoder.Decode(&reservation); err != nil {
-		log.Println(err)
-		return
+	decoder.DisallowUnknownFields()
+	var res domain.Reservation
+	if err := decoder.Decode(&res); err != nil {
+		utils.WriteErrorResp("Internal server error", 500, "api/reservation", rw)
 	}
-	reservationById, err := r.repo.InsertReservationByUser(&reservation)
-	r.logger.Println(reservationById)
+	newRes, err := r.ReservationService.CreateReservationByUser(res)
 	if err != nil {
-		r.logger.Print("Database exception: ", err)
-		rw.WriteHeader(http.StatusBadRequest)
+		utils.WriteErrorResp(err.Message, err.Status, "api/reservation", rw)
 		return
 	}
-	rw.WriteHeader(http.StatusCreated)
+	utils.WriteResp(newRes, 201, rw)
 }
-func (r *ReservationHandler) CreateReservationByAccommodation(rw http.ResponseWriter, h *http.Request) {
-	decoder := json.NewDecoder(h.Body)
-	var reservation domain.Reservation
-	if err := decoder.Decode(&reservation); err != nil {
-		log.Println(err)
-		return
-	}
-	reservationById, err := r.repo.InsertReservationByAccommodantion(&reservation)
-	r.logger.Println(reservationById)
+func (rh *ReservationHandler) GetReservationsByUser(rw http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	userID := vars["userId"]
+
+	reservations, err := rh.ReservationService.GetReservationsByUser(userID)
 	if err != nil {
-		r.logger.Print("Database exception: ", err)
-		rw.WriteHeader(http.StatusBadRequest)
+		utils.WriteErrorResp(err.Message, err.Status, "api/reservations/user/{userId}", rw)
 		return
 	}
-	rw.WriteHeader(http.StatusCreated)
+
+	rw.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(rw).Encode(reservations)
 }
 
-func (r *ReservationHandler) GetReservationsByUser(rw http.ResponseWriter, req *http.Request) {
-	userID := mux.Vars(req)["userId"]
-
-	reservations, err := r.repo.GetReservationsByUser(userID)
+func (rh *ReservationHandler) DeleteReservationById(rw http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id := vars["id"]
+	userId := vars["userId"]
+	deletedReservation, err := rh.ReservationService.DeleteReservationById(userId, id)
 	if err != nil {
-		http.Error(rw, "Failed to get reservations", http.StatusInternalServerError)
+		utils.WriteErrorResp(err.Message, err.Status, "api/reservations/{id}", rw)
 		return
 	}
 
-	if reservations == nil {
-		http.Error(rw, "No reservations found for the user", http.StatusNotFound)
-		return
-	}
-
-	err = json.NewEncoder(rw).Encode(reservations)
-	if err != nil {
-		http.Error(rw, "Unable to convert to JSON", http.StatusInternalServerError)
-		r.logger.Fatal("Unable to convert to JSON: ", err)
-		return
-	}
+	rw.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(rw).Encode(deletedReservation)
 }
-
-func (r *ReservationHandler) DeleteReservationById(rw http.ResponseWriter, h *http.Request) {
-	vars := mux.Vars(h)
-	reservationId := vars["id"]
-
-	err, _ := r.repo.DeleteById(reservationId)
-	if err != nil {
-		r.logger.Print("Database exception: ", err)
-		http.Error(rw, "Failed to delete the accommodation", http.StatusInternalServerError)
-		return
-	}
-	rw.WriteHeader(http.StatusAccepted)
-}
-
-/*func (r *ReservationHandler) MiddlewareReservationByIdDeserialization(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(rw http.ResponseWriter, h *http.Request) {
-		patient := &domain.Reservation{}
-		err := patient.FromJSON(h.Body)
-		if err != nil {
-			http.Error(rw, "Unable to decode json", http.StatusBadRequest)
-			r.logger.Fatal(err)
-			return
-		}
-		ctx := context.WithValue(h.Context(), KeyProduct{}, patient)
-		h = h.WithContext(ctx)
-		next.ServeHTTP(rw, h)
-	})
-}
-*/

@@ -8,6 +8,8 @@ import (
 	"os/signal"
 	"reservation-service/handler"
 	"reservation-service/repository"
+	"reservation-service/service"
+	"reservation-service/utils"
 	"time"
 
 	gorillaHandlers "github.com/gorilla/handlers"
@@ -25,6 +27,7 @@ func main() {
 
 	logger := log.New(os.Stdout, "[reservation-api]", log.LstdFlags)
 	storeLogger := log.New(os.Stdout, "[reservation-store]", log.LstdFlags)
+	validator := utils.NewValidator()
 
 	store, err := repository.New(storeLogger)
 	if err != nil {
@@ -32,11 +35,18 @@ func main() {
 	}
 	defer store.CloseSession()
 	store.CreateTables()
-	reservationsHandler := handler.NewReservationsHandler(logger, store)
+	reservationRepo, err := repository.New(logger)
+	if err != nil {
+		return
+	}
+	reservationService := service.NewReservationService(reservationRepo, validator)
+	reservationsHandler := handler.ReservationHandler{
+		ReservationService: reservationService,
+	}
 	router := mux.NewRouter()
 	router.HandleFunc("/api/reservations", reservationsHandler.CreateReservationByUser).Methods("POST")
 	router.HandleFunc("/api/reservations/user/{userId}", reservationsHandler.GetReservationsByUser).Methods("GET")
-	router.HandleFunc("/api/reservations/{id}", reservationsHandler.DeleteReservationById).Methods("DELETE")
+	router.HandleFunc("/api/reservations/{userId}/{id}", reservationsHandler.DeleteReservationById).Methods("DELETE")
 
 	cors := gorillaHandlers.CORS(gorillaHandlers.AllowedOrigins([]string{"*"}))
 
