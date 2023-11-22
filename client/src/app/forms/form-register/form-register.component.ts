@@ -9,13 +9,12 @@ import {
 } from '@angular/forms';
 import { Role } from 'src/app/domains/enums/roles.enum';
 import { AuthService } from 'src/app/services/auth-service/auth.service';
-import {
-  AllValidationErrors,
-  getFormValidationErrors,
-} from '../get-form-validation-errors';
+
 import { ToastService } from 'src/app/services/toast/toast.service';
 import { ToastNotificationType } from 'src/app/domains/enums/toast-notification-type.enum';
 import { RecaptchaErrorParameters } from 'ng-recaptcha';
+import { customPasswordStrengthValidator } from 'src/app/utils/validations.utils';
+import { formatErrors } from 'src/app/utils/formatter.utils';
 
 @Component({
   selector: 'app-form-register',
@@ -45,10 +44,7 @@ export class FormRegisterComponent {
       firstName: ['', [Validators.required, Validators.minLength(2)]],
       lastName: ['', [Validators.required, Validators.minLength(2)]],
       currentPlace: ['', [Validators.required, Validators.minLength(2)]],
-      password: [
-        '',
-        [Validators.required, this.customPasswordStrengthValidator()],
-      ],
+      password: ['', [Validators.required, customPasswordStrengthValidator()]],
       role: ['Guest', Validators.required],
     });
   }
@@ -72,7 +68,7 @@ export class FormRegisterComponent {
       Object.keys(this.registerForm.controls).forEach((key) => {
         const controlErrors = this.registerForm.get(key)?.errors;
         if (controlErrors) {
-          this.formatErrors(key);
+          this.errors += formatErrors(key);
         }
       });
       this.toastService.showToast(
@@ -94,41 +90,25 @@ export class FormRegisterComponent {
     );
   }
 
-  customPasswordStrengthValidator(): ValidatorFn {
-    return (control: AbstractControl): ValidationErrors | null => {
-      const value = control.value;
-      console.log(value);
-      if (!value) {
-        return null;
-      }
+  // customPasswordStrengthValidator(): ValidatorFn {
+  //   return (control: AbstractControl): ValidationErrors | null => {
+  //     const value = control.value;
+  //     console.log(value);
+  //     if (!value) {
+  //       return null;
+  //     }
 
-      const hasUpperCase = /[A-Z]+/.test(value);
-      const hasNumeric = /[0-9]+/.test(value);
-      const hasSpecialChars = /[!@#$%^&*()_+\?><>:';\]\[']/.test(value);
-      const minLength = (value as string).length >= 8;
-      const passwordValid =
-        hasUpperCase && hasNumeric && hasSpecialChars && minLength;
-      console.log(hasUpperCase);
-      console.log(hasNumeric);
-      console.log(hasSpecialChars);
-      console.log(minLength);
-      return !passwordValid ? { passwordStrength: true } : null;
-    };
-  }
-  formatErrors(key: string) {
-    switch (key) {
-      case 'username':
-        this.errors +=
-          'Username must be 3+ characters long, and must be created with letters only. \n';
-        break;
-      case 'password':
-        this.errors +=
-          'Password must be 8+ characters long, and must contain 1 uppercase, 1 number, 1 special character. \n';
-        break;
-      case 'firstName' || 'lastName':
-        this.errors +=
-          'First Name and Last Name must be longer than 2 characters. \n';
-        break;
-    }
-  }
+  //     const hasUpperCase = /[A-Z]+/.test(value);
+  //     const hasNumeric = /[0-9]+/.test(value);
+  //     const hasSpecialChars = /[!@#$%^&*()_+\?><>:';\]\[']/.test(value);
+  //     const minLength = (value as string).length >= 8;
+  //     const passwordValid =
+  //       hasUpperCase && hasNumeric && hasSpecialChars && minLength;
+  //     console.log(hasUpperCase);
+  //     console.log(hasNumeric);
+  //     console.log(hasSpecialChars);
+  //     console.log(minLength);
+  //     return !passwordValid ? { passwordStrength: true } : null;
+  //   };
+  // }
 }

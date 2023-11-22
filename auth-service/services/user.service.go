@@ -116,7 +116,6 @@ func (u UserService) ConfirmUserAccount(token string) (*domains.UserDTO, *errors
 		log.Println(err.GetErrorMessage())
 		return nil, err
 	}
-	log.Println(userID)
 	updatedUser, err := u.userRepository.UpdateUserConfirmation(userID)
 	if err != nil {
 		log.Println(err.GetErrorMessage())
@@ -128,5 +127,58 @@ func (u UserService) ConfirmUserAccount(token string) (*domains.UserDTO, *errors
 		ID: userID,
 		Role: updatedUser.Role,
 		Confirmed: updatedUser.Confirmed,
+	}, nil
+}
+
+func (u UserService) RequestResetPassword(email string) (*domains.BaseMessageResponse, *errors.ErrorStruct){
+	if email == "" {
+		return nil, errors.NewError("Email is empty or incorrect", 400)
+	}
+	user, err := u.userRepository.FindUserByEmail(email)
+	if err != nil {
+		log.Println(err)
+		return nil, errors.NewError(err.GetErrorMessage(), err.GetErrorStatus())
+	}
+	token, err := u.encryptionService.GenerateToken(user.ID.Hex())
+	if err != nil {
+		log.Println(err)
+		return nil, errors.NewError(err.GetErrorMessage(), err.GetErrorStatus())
+	}
+	go func(){
+		u.mailClient.SendRequestResetPassword(email, token)
+	}()
+	return &domains.BaseMessageResponse{
+		Message: "Email has been sent",
+	}, nil
+}
+
+func (u UserService) ResetPassword(requestData domains.ResetPassword, token string) (*domains.UserDTO, *errors.ErrorStruct) {
+	u.validator.ValidatePassword(requestData.Password)
+	validatorErrors := u.validator.GetErrors()
+	if len(validatorErrors) > 0 {
+		var constructedError string
+		for _, message := range validatorErrors {
+			constructedError += message + "\n"
+		}
+		return nil, errors.NewError(constructedError, 400)
+	}
+	userID, err := u.encryptionService.ValidateToken(token)
+	if err != nil {
+		return nil, err
+	}
+	if requestData.Password != requestData.ConfirmedPassword {
+		return nil, errors.NewError("Password doesn't match", 400)
+	}
+	hashedPassword, hashError := u.passwordService.HashPassword(requestData.Password)
+	if hashError != nil {
+		return nil, err
+	}
+	user, err := u.userRepository.UpdateUserPassword(userID, hashedPassword)
+	return &domains.UserDTO{
+		Username: user.Username,
+		Email: user.Email,
+		ID: userID,
+		Role: user.Role,
+		Confirmed: user.Confirmed,
 	}, nil
 }

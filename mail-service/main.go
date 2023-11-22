@@ -32,7 +32,7 @@ func main() {
 	router := mux.NewRouter()
 
 	router.HandleFunc("/confirm-new-account", mailHandler.SendAccountConfirmationEmail).Methods("POST")
-
+	router.HandleFunc("/request-reset-password", mailHandler.SendPasswordResetEmail).Methods("POST")
 	// server
 
 	port := os.Getenv("PORT")

@@ -5,6 +5,7 @@ import { apiURL } from 'src/app/domains/constants';
 import { ModalService } from '../modal/modal.service';
 import { ToastService } from '../toast/toast.service';
 import { ToastNotificationType } from 'src/app/domains/enums/toast-notification-type.enum';
+import { Router } from '@angular/router';
 
 @Injectable({
   providedIn: 'root',
@@ -14,7 +15,8 @@ export class AuthService {
     private localStorageService: LocalStorageService,
     private http: HttpClient,
     private modalService: ModalService,
-    private toastSerice: ToastService
+    private toastSerice: ToastService,
+    private router: Router
   ) {}
 
   login(email: string, password: string): void {
@@ -78,10 +80,18 @@ export class AuthService {
       })
       .subscribe({
         next: (data) => {
-          console.log(data);
+          this.toastSerice.showToast(
+            'You have successfully registered',
+            'You can expect mail for confirmation',
+            ToastNotificationType.Success
+          );
         },
         error: (err) => {
-          console.log(err);
+          this.toastSerice.showToast(
+            'Error',
+            err.error.error,
+            ToastNotificationType.Error
+          );
         },
       });
   }
@@ -89,11 +99,76 @@ export class AuthService {
   confirmAccount(token: string): void {
     this.http.post(`${apiURL}/auth/confirm-account/${token}`, {}).subscribe({
       next: (data) => {
-        console.log(data);
+        this.toastSerice.showToast(
+          'You have successfully confirmed your account',
+          'You have successfully confirmed your account',
+          ToastNotificationType.Success
+        );
+        this.router.navigate(['/']);
       },
       error: (err) => {
-        console.log(err);
+        this.toastSerice.showToast(
+          'Error',
+          err.error.error,
+          ToastNotificationType.Error
+        );
       },
     });
+  }
+
+  requestPasswordReset(email: string) {
+    this.http
+      .post(`${apiURL}/auth/request-reset-password`, {
+        email,
+      })
+      .subscribe({
+        next: (data) => {
+          console.log(data);
+          this.toastSerice.showToast(
+            'You have successfully confirmed your account',
+            'You have successfully confirmed your account',
+            ToastNotificationType.Success
+          );
+          this.router.navigate(['/']);
+        },
+        error: (err) => {
+          console.log(err);
+          this.toastSerice.showToast(
+            'Error',
+            err.error.error,
+            ToastNotificationType.Error
+          );
+        },
+      });
+  }
+
+  resetPassword(
+    password: string,
+    confirmedPassword: string,
+    token: string
+  ): void {
+    this.http
+      .post(`${apiURL}/auth/reset-password/${token}`, {
+        password,
+        confirmedPassword,
+      })
+      .subscribe({
+        next: (data) => {
+          this.toastSerice.showToast(
+            'You have successfully reseted your password',
+            'You have successfully reseted your password',
+            ToastNotificationType.Success
+          );
+          this.router.navigate(['/']);
+        },
+        error: (err) => {
+          console.log(err);
+          this.toastSerice.showToast(
+            'Error',
+            err.error.error,
+            ToastNotificationType.Error
+          );
+        },
+      });
   }
 }

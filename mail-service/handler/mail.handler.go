@@ -40,3 +40,19 @@ func (m MailHandler) SendAccountConfirmationEmail(rw http.ResponseWriter, h *htt
 	}, 200, rw)
 	log.Println("SADDSADSASDAADSDS")
 }
+
+func (m MailHandler) SendPasswordResetEmail(rw http.ResponseWriter, h *http.Request) {
+	decoder := json.NewDecoder(h.Body)
+	decoder.DisallowUnknownFields()
+	var requestResetPassword domains.RequestResetPassword
+	if err := decoder.Decode(&requestResetPassword); err != nil {
+		utils.WriteErrorResp(err.Error(), 500, "api/login", rw)
+		return
+	}
+	err := m.mailService.SendPasswordReset(requestResetPassword)
+	if err != nil {
+		log.Println("ERRR")
+		utils.WriteErrorResp(err.GetErrorMessage(), err.GetErrorStatus(), "api/mail", rw)
+		return
+	}
+}

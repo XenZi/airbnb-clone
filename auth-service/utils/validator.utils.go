@@ -110,3 +110,13 @@ func (v *Validator) ValidateRegisterUser(registerUser *domains.RegisterUser) {
 		}
 	}
 }
+
+func (v *Validator) ValidatePassword(password string) {
+	v.ValidateField("Password", password, MinLength(6), MinDigits(1), MinSpecialChars(1), MinUpperCaseChars(1))
+	foundErrors := v.GetErrors()
+	if len(foundErrors) > 0 {
+		for field, message := range foundErrors {
+			fmt.Printf("%s: %s\n", field, message)
+		}
+	}
+}

@@ -19,6 +19,10 @@ import { RecaptchaFormsModule, RecaptchaModule } from 'ng-recaptcha';
 import { ConfirmAccountPageComponent } from './pages/confirm-account-page/confirm-account-page.component';
 import { BasePageComponent } from './pages/base-page/base-page.component';
 import { ConfirmingAccInfoComponent } from './components/confirming-acc-info/confirming-acc-info.component';
+import { FormForgotPasswordComponent } from './forms/form-forgot-password/form-forgot-password.component';
+import { ResetPasswordPageComponent } from './pages/reset-password-page/reset-password-page.component';
+import { FormResetPasswordComponent } from './forms/form-reset-password/form-reset-password.component';
+import { FormRequestResetPasswordComponent } from './forms/form-request-reset-password/form-request-reset-password.component';
 @NgModule({
   declarations: [
     AppComponent,
@@ -34,6 +38,10 @@ import { ConfirmingAccInfoComponent } from './components/confirming-acc-info/con
     ConfirmAccountPageComponent,
     BasePageComponent,
     ConfirmingAccInfoComponent,
+    FormForgotPasswordComponent,
+    ResetPasswordPageComponent,
+    FormResetPasswordComponent,
+    FormRequestResetPasswordComponent,
   ],
   imports: [
     BrowserModule,

@@ -61,6 +61,8 @@ func main() {
 	router.HandleFunc("/login", authHandler.LoginHandler).Methods("POST")
 	router.HandleFunc("/register", authHandler.RegisterHandler).Methods("POST")
 	router.HandleFunc("/confirm-account/{token}", authHandler.ConfirmAccount).Methods("POST")
+	router.HandleFunc("/request-reset-password", authHandler.RequestResetPassword).Methods("POST")
+	router.HandleFunc("/reset-password/{token}", authHandler.ResetPassword).Methods("POST")
 
 	// server definitions
 

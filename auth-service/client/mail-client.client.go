@@ -10,9 +10,10 @@ import (
 
 type MailClientInterface interface {
 	SendAccountConfirmationEmail(email, token string)
+	SendRequestResetPassword(email, token string)
 }
 
-type AccountConfirmation struct {
+type BaseClientSendStruct struct {
 	Email string
 	Token string
 }
@@ -27,23 +28,6 @@ func NewMailClient(host, port string, client *http.Client) MailClientInterface {
 		address: fmt.Sprintf("http://%s:%s", host, port),
 		client:  http.DefaultClient,
 	}
-}
-
-func (mc MailClient) SendAccountConfirmationEmail(email, token string) {
-	req := AccountConfirmation{
-		Email: email,
-		Token: token,
-	}
-
-	requestURL := mc.address + "/confirm-new-account"
-	log.Println(requestURL)
-	res, err := mc.request(http.MethodPost, requestURL, req)
-	log.Println(res)
-	if err != nil || res.StatusCode != 502 {
-		log.Println(err)
-		return
-	}
-	log.Println("Mail has been sent")
 }
 
 func (mc MailClient) request(method, url string, payload interface{}) (*http.Response, error) {
@@ -65,4 +49,29 @@ func (mc MailClient) request(method, url string, payload interface{}) (*http.Res
 	}
 
 	return mc.client.Do(httpReq)
+}
+
+func (mc MailClient) SendAccountConfirmationEmail(email, token string) {
+	req := BaseClientSendStruct{
+		Email: email,
+		Token: token,
+	}
+	requestURL := mc.address + "/confirm-new-account"
+	res, err := mc.request(http.MethodPost, requestURL, req)
+	if err != nil || res.StatusCode != 502 {
+		log.Println(err)
+		return
+	}
+	log.Println("Mail has been sent")
+}
+
+func (mc MailClient) SendRequestResetPassword(email, token string) {
+	req := BaseClientSendStruct{
+		Email: email,
+		Token: token,
+	}
+	requestURL := mc.address + "/request-reset-password"
+	_, err := mc.request(http.MethodPost, requestURL, req)
+	log.Println(err)
+	log.Println("Mail has been sent")
 }

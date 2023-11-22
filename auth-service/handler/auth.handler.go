@@ -59,3 +59,41 @@ func (a AuthHandler) ConfirmAccount(r http.ResponseWriter, h *http.Request) {
 	}
 	utils.WriteResp(user, 200, r)
 }
+
+func (a AuthHandler) RequestResetPassword(r http.ResponseWriter, h *http.Request) {
+	decoder := json.NewDecoder(h.Body)
+	decoder.DisallowUnknownFields()
+	var requestData domains.RequestResetPassword
+	if err := decoder.Decode(&requestData); err != nil {
+		utils.WriteErrorResp(err.Error(), 500, "api/request-reset-password", r)
+		return
+	}
+	res, err := a.UserService.RequestResetPassword(requestData.Email)
+	if err != nil {
+		utils.WriteErrorResp(err.GetErrorMessage(), err.GetErrorStatus(), "api/request-reset-password", r)
+		return
+	}
+	utils.WriteResp(res, 200, r)
+}
+
+func (a AuthHandler) ResetPassword (r http.ResponseWriter, h  *http.Request) {
+	vars := mux.Vars(h)
+	token := vars["token"]
+	if token == "" {
+		utils.WriteErrorResp("Bad request", 400, "api/confirm-account", r)
+		return
+	}
+	decoder := json.NewDecoder(h.Body)
+	decoder.DisallowUnknownFields()
+	var requestData domains.ResetPassword
+	if err := decoder.Decode(&requestData); err != nil {
+		utils.WriteErrorResp(err.Error(), 500, "api/request-reset-password", r)
+		return
+	}
+	user, err := a.UserService.ResetPassword(requestData, token)
+	if err != nil { 
+		utils.WriteErrorResp(err.GetErrorMessage(), err.GetErrorStatus(), "api/reset-password", r)
+		return
+	}
+	utils.WriteResp(user, 200, r)
+}
