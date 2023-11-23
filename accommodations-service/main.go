@@ -3,6 +3,7 @@ package main
 import (
 	"accommodations-service/handlers"
 	"accommodations-service/repository"
+	"accommodations-service/services"
 	"accommodations-service/utils"
 	"context"
 	gorillaHandlers "github.com/gorilla/handlers"
@@ -19,20 +20,24 @@ func main() {
 	if len(port) == 0 {
 		port = "8080"
 	}
-
 	timeoutContext, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	logger := log.New(os.Stdout, "[auth-api] ", log.LstdFlags)
+	validator := utils.NewValidator()
+
+	mongoService, err := services.New(timeoutContext, logger)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+	accommodationRepo := repository.NewAccommodationRepository(
+		mongoService.GetCli(), logger)
+	accommodationService := services.NewAccommodationService(accommodationRepo, validator)
+	accommodationsHandler := handlers.AccommodationsHandler{
+		AccommodationService: accommodationService,
+	}
+
 	defer cancel()
 
-	logger := log.New(os.Stdout, "[accommodation-api]", log.LstdFlags)
-	storeLogger := log.New(os.Stdout, "[accommodations-store]", log.LstdFlags)
-	validator := utils.NewValidator()
-	store, err := repository.New(storeLogger)
-	if err != nil {
-		logger.Fatal(err)
-	}
-	defer store.CloseSession()
-	store.CreateTables()
-	accommodationsHandler := handlers.NewAccommodationsHandler(logger, store, validator)
 	router := mux.NewRouter()
 
 	getAllAccommodations := router.Methods(http.MethodGet).Subrouter()
@@ -43,11 +48,9 @@ func main() {
 
 	postAccommodationForId := router.Methods(http.MethodPost).Subrouter()
 	postAccommodationForId.HandleFunc("/", accommodationsHandler.CreateAccommodationById)
-	postAccommodationForId.Use(accommodationsHandler.MiddlewareAccommodationByIdDeserialization)
 
 	putAccommodationForId := router.Methods(http.MethodPut).Subrouter()
-	putAccommodationForId.HandleFunc("/{location}/{id}", accommodationsHandler.UpdateAccommodationById)
-	putAccommodationForId.Use(accommodationsHandler.MiddlewareAccommodationByIdDeserialization)
+	putAccommodationForId.HandleFunc("/{id}", accommodationsHandler.UpdateAccommodationById)
 
 	deleteAccommodationsById := router.Methods(http.MethodDelete).Subrouter()
 	deleteAccommodationsById.HandleFunc("/{id}", accommodationsHandler.DeleteAccommodationById)

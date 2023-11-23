@@ -16,8 +16,7 @@ services:
     #Will be accessible through os.Getenv("PORT")
     environment:
       - PORT=8080
-      # NoSQL: environment variable holding connection URI for Cassandra database
-      - CASS_DB=cassandra:9042
+      - MONGO_DB_URI=mongodb://root:pass@accommodation-db:27017
     # NoSQL: Extremely important! Cassandra takes a lot of time to start!
     # If we don't wait for it to fully initialize we will get exceptions and will not be able to connect!
     depends_on:
@@ -26,18 +25,23 @@ services:
 
   # NoSQL: CassandraDB
   accommodation-db:
-    image: cassandra
+    image: mongo
     restart: always
     ports:
-      - "9042:9042"
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: pass
+      MONGO_INITDB_DATABASE: mongoDemo
     # Docker healtcheck - checks if database is "alive"
     healthcheck:
-      test: ["CMD-SHELL", "cqlsh -e 'describe cluster'"]
-      interval: 15s
-      timeout: 5s
-      retries: 15
+      test: echo 'db.runCommand("ping").ok'
+      interval: 10s
+      timeout: 10s
+      retries: 10
     volumes:
-      - cass_store:/var/lib/cassandra/data
+      - accommodation-db_store:/data/db
+
 
 volumes:
-  cass_store:
+  accommodation-db_store:

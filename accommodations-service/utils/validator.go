@@ -95,3 +95,61 @@ func (v *Validator) ValidateAccommodation(accommodation *domain.Accommodation) {
 		}
 	}
 }
+
+func (v *Validator) ValidateName(name string) {
+	v.ValidateField("Name", name, MinLength(2), IsName)
+
+	foundErrors := v.GetErrors()
+
+	if len(foundErrors) > 0 {
+		for field, message := range foundErrors {
+			fmt.Printf("%s: %s\n", field, message)
+		}
+	}
+}
+func (v *Validator) ValidateLocation(location string) {
+	v.ValidateField("Location", location, MinLength(2), IsLocationOrConvenience)
+
+	foundErrors := v.GetErrors()
+
+	if len(foundErrors) > 0 {
+		for field, message := range foundErrors {
+			fmt.Printf("%s: %s\n", field, message)
+		}
+	}
+}
+func (v *Validator) ValidateConvenience(convenience string) {
+	v.ValidateField("Convenience", convenience, MinLength(2), IsLocationOrConvenience)
+
+	foundErrors := v.GetErrors()
+
+	if len(foundErrors) > 0 {
+		for field, message := range foundErrors {
+			fmt.Printf("%s: %s\n", field, message)
+		}
+	}
+}
+
+func (v *Validator) ValidateMinNum(minNumOfVisitors string) {
+	v.ValidateField("MinNumOfVisitors", minNumOfVisitors, IsNumber)
+
+	foundErrors := v.GetErrors()
+
+	if len(foundErrors) > 0 {
+		for field, message := range foundErrors {
+			fmt.Printf("%s: %s\n", field, message)
+		}
+	}
+}
+
+func (v *Validator) ValidateMaxNum(maxNumOfVisitors string) {
+	v.ValidateField("MinNumOfVisitors", maxNumOfVisitors, IsNumber)
+
+	foundErrors := v.GetErrors()
+
+	if len(foundErrors) > 0 {
+		for field, message := range foundErrors {
+			fmt.Printf("%s: %s\n", field, message)
+		}
+	}
+}
