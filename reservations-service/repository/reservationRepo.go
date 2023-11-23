@@ -148,23 +148,26 @@ func (rr *ReservationRepo) GetReservationsByUser(id string) ([]domain.Reservatio
 	return reservations, nil
 }
 
-func (rr *ReservationRepo) GetReservationByDateRange(startDate string, endDate string) ([]domain.Reservation, error) {
-	scanner := rr.session.Query(`SELECT id, start_date, end_date, username, accomodation_name FROM reservation_by_date WHERE start_date >= ? AND end_date <= ?`, startDate, endDate).Iter().Scanner()
-	var reservations []domain.Reservation
-	for scanner.Next() {
-		var reservation domain.Reservation
-		err := scanner.Scan(&reservation.Id, &reservation.StartDate, &reservation.EndDate, &reservation.Username, &reservation.AccommodationName)
-		if err != nil {
-			rr.logger.Println(err)
-			return nil, err
-		}
-		reservations = append(reservations, reservation)
+func (rr *ReservationRepo) CheckAvailability(accommodationID, startDate, endDate string) (bool, *errors.ReservationError) {
+	query := `
+    SELECT id, accommodation_id, user_id, start_date, end_date, username, accommodation_name 
+    FROM reservation_by_user 
+    WHERE accommodation_id = ? 
+    AND start_date <= ? AND end_date >= ?
+    ALLOW FILTERING`
+
+	iter := rr.session.Query(query, accommodationID, endDate, startDate).Iter()
+
+	var reservationID string
+	if iter.Scan(&reservationID) {
+		return false, nil
 	}
-	if err := scanner.Err(); err != nil {
+
+	if err := iter.Close(); err != nil {
 		rr.logger.Println(err)
-		return nil, err
+		return false, errors.NewReservationError(500, "Unable to check availability, database error")
 	}
-	return reservations, nil
+	return true, nil
 }
 func (rr *ReservationRepo) InsertReservationByDate(reservation *domain.Reservation) (*domain.Reservation, error) {
 	Id, _ := gocql.RandomUUID()
