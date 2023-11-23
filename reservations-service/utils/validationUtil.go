@@ -3,6 +3,7 @@ package utils
 import (
 	"fmt"
 	"reservation-service/domain"
+	"strings"
 	"time"
 )
 
@@ -86,9 +87,27 @@ func MinLength(minLength int) ValidationRule {
 		return len(value) >= minLength
 	}
 }
+
+func MaxLength(maxLength int) ValidationRule {
+	return func(value string) bool {
+		return len(value) <= maxLength
+	}
+}
+func WordBan(value string) bool {
+	normalizedValue := strings.ReplaceAll(strings.ToUpper(value), " ", "")
+	bannedWords := []string{"SELECT", "UPDATE", "DELETE", "FROM", "WHERE"}
+	for _, word := range bannedWords {
+		if strings.Contains(normalizedValue, word) {
+			return false
+		}
+	}
+
+	return true
+}
+
 func (v *Validator) ValidateReservation(reservation *domain.Reservation) {
-	v.ValidateField("username", reservation.Username, MinLength(2))
-	v.ValidateField("accommodationName", reservation.AccommodationName, MinLength(2))
+	v.ValidateField("username", reservation.Username, MinLength(2), MaxLength(15), WordBan)
+	v.ValidateField("accommodationName", reservation.AccommodationName, MinLength(2), MaxLength(15), WordBan)
 	v.ValidateField("startDate", reservation.StartDate, DateNotAfter(reservation.StartDate, reservation.EndDate))
 	v.ValidateField("endDate", reservation.EndDate, DateNotBefore(reservation.EndDate, reservation.StartDate))
 	foundErrors := v.GetErrors()
