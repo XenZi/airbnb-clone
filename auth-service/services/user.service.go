@@ -97,11 +97,10 @@ func (u *UserService) LoginUser(loginData domains.LoginUser) (*domains.Successfu
 			foundError.Error(),
 			500)
 	}
-	id, _ := user.ID.MarshalJSON()
 	return &domains.SuccessfullyLoggedUser{
 		Token: *jwtToken,
 		User: domains.UserDTO{
-			ID:       string(id),
+			ID:       user.ID.Hex(),
 			Username: user.Username,
 			Email:    user.Email,
 			Role:     user.Role,
