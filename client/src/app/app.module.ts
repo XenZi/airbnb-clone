@@ -23,6 +23,7 @@ import { FormForgotPasswordComponent } from './forms/form-forgot-password/form-f
 import { ResetPasswordPageComponent } from './pages/reset-password-page/reset-password-page.component';
 import { FormResetPasswordComponent } from './forms/form-reset-password/form-reset-password.component';
 import { FormRequestResetPasswordComponent } from './forms/form-request-reset-password/form-request-reset-password.component';
+import { RoleBasedPageComponent } from './pages/role-based-page/role-based-page.component';
 @NgModule({
   declarations: [
     AppComponent,
@@ -42,6 +43,7 @@ import { FormRequestResetPasswordComponent } from './forms/form-request-reset-pa
     ResetPasswordPageComponent,
     FormResetPasswordComponent,
     FormRequestResetPasswordComponent,
+    RoleBasedPageComponent,
   ],
   imports: [
     BrowserModule,

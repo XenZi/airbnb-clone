@@ -35,10 +35,11 @@ export class AuthService {
       )
       .subscribe({
         next: (data: any) => {
-          this.localStorageService.setItem('token', data.data?.Token);
+          console.log(data);
+          this.localStorageService.setItem('token', data.data?.token);
           this.localStorageService.setItem(
             'user',
-            JSON.stringify(data.data?.User)
+            JSON.stringify(data.data?.user)
           );
           this.toastSerice.showToast(
             'You have successfully logged in',
