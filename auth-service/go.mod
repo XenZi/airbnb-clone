@@ -9,6 +9,8 @@ require (
 )
 
 require (
+	github.com/dgrijalva/jwt-go v3.2.0+incompatible
+	github.com/dgrijalva/jwt-go/v4 v4.0.0-preview1
 	github.com/felixge/httpsnoop v1.0.1 // indirect
 	github.com/golang-jwt/jwt/v5 v5.0.0 // indirect
 	github.com/golang/snappy v0.0.1 // indirect

@@ -13,10 +13,11 @@ func NewJWTService(key []byte) *JwtService {
 		key: key,
 	}
 }
-func (j JwtService) CreateKey(email, role string) (*string, error) {
+func (j JwtService) CreateKey(email, role, userID string) (*string, error) {
 	t := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"name": email,
 		"role": role,
+		"userID": userID,
 	})
 	signed, err := t.SignedString(j.key)
 	if err != nil {

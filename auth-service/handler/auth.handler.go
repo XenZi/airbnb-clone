@@ -97,3 +97,20 @@ func (a AuthHandler) ResetPassword (r http.ResponseWriter, h  *http.Request) {
 	}
 	utils.WriteResp(user, 200, r)
 }
+
+func (a AuthHandler) ChangePassword(r http.ResponseWriter, h *http.Request) {
+	decoder := json.NewDecoder(h.Body)
+	decoder.DisallowUnknownFields()
+	var requestData domains.ChangePassword
+	if err := decoder.Decode(&requestData); err != nil {
+		utils.WriteErrorResp(err.Error(), 500, "api/change-password", r)
+		return
+	}
+	userID := h.Context().Value("userID").(string)
+	resp, err := a.UserService.ChangePassword(requestData, userID)
+	if err != nil {
+		utils.WriteErrorResp(err.GetErrorMessage(), err.GetErrorStatus(), "api/auth/change-password", r)
+		return
+	}
+	utils.WriteResp(resp, 200, r)
+}

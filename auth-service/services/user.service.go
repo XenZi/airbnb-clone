@@ -91,7 +91,7 @@ func (u *UserService) LoginUser(loginData domains.LoginUser) (*domains.Successfu
 	if !isSamePassword {
 		return nil, errors.NewError("Bad credentials", 401)
 	}
-	jwtToken, foundError := u.jwtService.CreateKey(user.Email, user.Role)
+	jwtToken, foundError := u.jwtService.CreateKey(user.Email, user.Role, user.ID.Hex())
 	if foundError != nil {
 		return nil, errors.NewError(
 			foundError.Error(),
@@ -168,6 +168,9 @@ func (u UserService) ResetPassword(requestData domains.ResetPassword, token stri
 	if requestData.Password != requestData.ConfirmedPassword {
 		return nil, errors.NewError("Password doesn't match", 400)
 	}
+	if u.passwordService.CheckPasswordExistanceInBlacklist(requestData.Password) != false {
+		return nil, errors.NewError("Choose better password that is more secure!", 400)
+	}
 	hashedPassword, hashError := u.passwordService.HashPassword(requestData.Password)
 	if hashError != nil {
 		return nil, err
@@ -180,4 +183,32 @@ func (u UserService) ResetPassword(requestData domains.ResetPassword, token stri
 		Role: user.Role,
 		Confirmed: user.Confirmed,
 	}, nil
+}
+
+func (u UserService) ChangePassword(data domains.ChangePassword, userID string) (*domains.BaseMessageResponse, *errors.ErrorStruct) {
+	if data.ConfirmedPassword != data.Password {
+		return nil, errors.NewError("New password doesn't match with each other", 400)
+	}
+	user, err := u.userRepository.FindUserById(userID)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if u.passwordService.CheckPasswordHash(data.Password, user.Password) == true {
+		return nil, errors.NewError("Old password doesn't match", 400)
+	}
+
+	hashedPassword, hashError := u.passwordService.HashPassword(data.Password)
+	if hashError != nil {
+		return nil, errors.NewError(hashError.Error(), 500)
+	}
+	_, err = u.userRepository.UpdateUserPassword(userID, hashedPassword)
+	if err != nil {
+		return nil, err
+	}
+	response := domains.BaseMessageResponse{
+		Message: "You have updated your password",
+	}
+	return &response, nil
 }

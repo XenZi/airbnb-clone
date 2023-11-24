@@ -3,6 +3,7 @@ package main
 import (
 	"auth-service/client"
 	"auth-service/handler"
+	"auth-service/middlewares"
 	"auth-service/repository"
 	"auth-service/services"
 	"auth-service/utils"
@@ -63,6 +64,7 @@ func main() {
 	router.HandleFunc("/confirm-account/{token}", authHandler.ConfirmAccount).Methods("POST")
 	router.HandleFunc("/request-reset-password", authHandler.RequestResetPassword).Methods("POST")
 	router.HandleFunc("/reset-password/{token}", authHandler.ResetPassword).Methods("POST")
+	router.HandleFunc("/change-password", middlewares.ValidateJWT(authHandler.ChangePassword)).Methods("POST")
 
 	// server definitions
 
