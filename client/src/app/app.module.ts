@@ -16,6 +16,17 @@ import { ToastNotificationComponent } from './components/toast/toast-notificatio
 import { ToastContainerComponent } from './components/toast/toast-container/toast-container.component';
 import { FormRegisterComponent } from './forms/form-register/form-register.component';
 import { RecaptchaFormsModule, RecaptchaModule } from 'ng-recaptcha';
+import { ConfirmAccountPageComponent } from './pages/confirm-account-page/confirm-account-page.component';
+import { BasePageComponent } from './pages/base-page/base-page.component';
+import { ConfirmingAccInfoComponent } from './components/confirming-acc-info/confirming-acc-info.component';
+import { FormForgotPasswordComponent } from './forms/form-forgot-password/form-forgot-password.component';
+import { ResetPasswordPageComponent } from './pages/reset-password-page/reset-password-page.component';
+import { FormResetPasswordComponent } from './forms/form-reset-password/form-reset-password.component';
+import { FormRequestResetPasswordComponent } from './forms/form-request-reset-password/form-request-reset-password.component';
+import { RoleBasedPageComponent } from './pages/role-based-page/role-based-page.component';
+import { UpdateUserComponent } from './components/update-user/update-user.component';
+import { FormChangePasswordComponent } from './forms/form-change-password/form-change-password.component';
+import { TokenInterceptor } from './interceptors/token.interceptor';
 @NgModule({
   declarations: [
     AppComponent,
@@ -28,6 +39,16 @@ import { RecaptchaFormsModule, RecaptchaModule } from 'ng-recaptcha';
     ToastNotificationComponent,
     ToastContainerComponent,
     FormRegisterComponent,
+    ConfirmAccountPageComponent,
+    BasePageComponent,
+    ConfirmingAccInfoComponent,
+    FormForgotPasswordComponent,
+    ResetPasswordPageComponent,
+    FormResetPasswordComponent,
+    FormRequestResetPasswordComponent,
+    RoleBasedPageComponent,
+    UpdateUserComponent,
+    FormChangePasswordComponent,
   ],
   imports: [
     BrowserModule,
@@ -38,7 +59,13 @@ import { RecaptchaFormsModule, RecaptchaModule } from 'ng-recaptcha';
     RecaptchaModule,
     RecaptchaFormsModule,
   ],
-  providers: [],
+  providers: [
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: TokenInterceptor,
+      multi: true,
+    },
+  ],
   bootstrap: [AppComponent],
 })
 export class AppModule {}

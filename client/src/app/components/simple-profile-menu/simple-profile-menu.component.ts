@@ -4,6 +4,8 @@ import { SimpleProfileMenuItem } from 'src/app/domains/model/simple-profile-menu
 import { FormLoginComponent } from 'src/app/forms/form-login/form-login.component';
 import { FormRegisterComponent } from 'src/app/forms/form-register/form-register.component';
 import { ModalService } from 'src/app/services/modal/modal.service';
+import { UpdateUserComponent } from '../update-user/update-user.component';
+import { UserService } from 'src/app/services/user/user.service';
 
 @Component({
   selector: 'app-simple-profile-menu',
@@ -12,6 +14,7 @@ import { ModalService } from 'src/app/services/modal/modal.service';
 })
 export class SimpleProfileMenuComponent {
   isClicked: boolean = false;
+  isUserLogged: boolean = false;
   items: SimpleProfileMenuItem[] = [
     {
       icon: 'fa-solid fa-right-to-bracket',
@@ -29,7 +32,27 @@ export class SimpleProfileMenuComponent {
     },
   ];
 
-  constructor(private modalService: ModalService) {}
+  loggedItems: SimpleProfileMenuItem[] = [
+    {
+      icon: 'fa-solid fa-user',
+      title: 'Update profile',
+      action: () => {
+        this.callUpdateProfile();
+      },
+    },
+  ];
+
+  constructor(
+    private modalService: ModalService,
+    private userService: UserService
+  ) {}
+
+  ngOnInit() {
+    this.isUserLogged = this.userService.getLoggedUser() == null ? false : true;
+    this.items = this.isUserLogged
+      ? [...this.items, ...this.loggedItems]
+      : [...this.items];
+  }
 
   @HostListener('document:click', ['$event'])
   onClickOutside(event: any) {
@@ -54,5 +77,9 @@ export class SimpleProfileMenuComponent {
 
   callLogin() {
     this.modalService.open(FormLoginComponent, 'Login');
+  }
+
+  callUpdateProfile() {
+    this.modalService.open(UpdateUserComponent, 'Update your profile');
   }
 }

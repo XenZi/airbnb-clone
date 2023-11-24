@@ -15,6 +15,9 @@ services:
       - PORT=8080
       - JWT_SECRET=${JWT_SECRET}
       - MONGO_DB_URI=mongodb://root:pass@auth-db:27017
+      - SECRET_KEY=${SECRET_ENCRIPTION_KEY}
+      - MAIL_SERVICE_HOST=${MAIL_SERVICE_HOST}
+      - MAIL_SERVICE_PORT=${MAIL_SERVICE_PORT}
     networks:
       - network
 
@@ -42,6 +45,7 @@ services:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: pass
       MONGO_INITDB_DATABASE: mongoDemo
+      ME_CONFIG_MONGODB_SERVER: mongo
     # Docker healtcheck - checks if database is "alive"
     healthcheck:
       test: echo 'db.runCommand("ping").ok'

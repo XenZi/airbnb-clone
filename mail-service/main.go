@@ -2,15 +2,16 @@ package main
 
 import (
 	"context"
-	"github.com/XenZi/airbnb-clone/mail-service/domains"
-	"github.com/XenZi/airbnb-clone/mail-service/handler"
-	"github.com/XenZi/airbnb-clone/mail-service/services"
-	"github.com/gorilla/mux"
 	"log"
 	"net/http"
 	"os"
 	"os/signal"
 	"time"
+
+	"github.com/XenZi/airbnb-clone/mail-service/domains"
+	"github.com/XenZi/airbnb-clone/mail-service/handler"
+	"github.com/XenZi/airbnb-clone/mail-service/services"
+	"github.com/gorilla/mux"
 )
 
 func main() {
@@ -30,8 +31,8 @@ func main() {
 
 	router := mux.NewRouter()
 
-	router.HandleFunc("/confirm-new-account", mailHandler.SubmitAccountConfirmationMail).Methods("POST")
-
+	router.HandleFunc("/confirm-new-account", mailHandler.SendAccountConfirmationEmail).Methods("POST")
+	router.HandleFunc("/request-reset-password", mailHandler.SendPasswordResetEmail).Methods("POST")
 	// server
 
 	port := os.Getenv("PORT")

@@ -5,4 +5,5 @@ export interface UserAuth {
   username: string;
   email: string;
   role: Role;
+  confirmed: boolean;
 }

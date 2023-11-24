@@ -11,3 +11,7 @@ type BaseErrorHttpResponse struct {
 	Time   string `json:"time"`
 	Error  string `json:"error"`
 }
+
+type BaseMessageResponse struct {
+	Message string `json:"message"`
+}

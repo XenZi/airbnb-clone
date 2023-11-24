@@ -1,0 +1,16 @@
+<div class="update-user">
+  <div class="update-user__container flex flex-row">
+    <div class="update-user__left">
+      <ul class="update-user__list">
+        <li class="update-user__item">Update password</li>
+      </ul>
+    </div>
+    <div class="update-user__right">
+      <ng-container *ngIf="currActiveIndex !== null">
+        <app-form-change-password
+          *ngIf="isIndexActive(0)"
+        ></app-form-change-password>
+      </ng-container>
+    </div>
+  </div>
+</div>

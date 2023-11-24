@@ -6,6 +6,6 @@ type LoginUser struct {
 }
 
 type SuccessfullyLoggedUser struct {
-	Token string  `json: "token"`
-	User  UserDTO `json: "user"`
+	Token string  `json:"token"`
+	User  UserDTO `json:"user"`
 }
