@@ -24,6 +24,9 @@ import { ResetPasswordPageComponent } from './pages/reset-password-page/reset-pa
 import { FormResetPasswordComponent } from './forms/form-reset-password/form-reset-password.component';
 import { FormRequestResetPasswordComponent } from './forms/form-request-reset-password/form-request-reset-password.component';
 import { RoleBasedPageComponent } from './pages/role-based-page/role-based-page.component';
+import { UpdateUserComponent } from './components/update-user/update-user.component';
+import { FormChangePasswordComponent } from './forms/form-change-password/form-change-password.component';
+import { TokenInterceptor } from './interceptors/token.interceptor';
 @NgModule({
   declarations: [
     AppComponent,
@@ -44,6 +47,8 @@ import { RoleBasedPageComponent } from './pages/role-based-page/role-based-page.
     FormResetPasswordComponent,
     FormRequestResetPasswordComponent,
     RoleBasedPageComponent,
+    UpdateUserComponent,
+    FormChangePasswordComponent,
   ],
   imports: [
     BrowserModule,
@@ -54,7 +59,13 @@ import { RoleBasedPageComponent } from './pages/role-based-page/role-based-page.
     RecaptchaModule,
     RecaptchaFormsModule,
   ],
-  providers: [],
+  providers: [
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: TokenInterceptor,
+      multi: true,
+    },
+  ],
   bootstrap: [AppComponent],
 })
 export class AppModule {}

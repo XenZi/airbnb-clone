@@ -172,4 +172,39 @@ export class AuthService {
         },
       });
   }
+
+  changePassword(
+    oldPassword: string,
+    password: string,
+    confirmedPassword: string
+  ) {
+    this.http
+      .post(`${apiURL}/auth/change-password`, {
+        oldPassword,
+        password,
+        confirmedPassword,
+      })
+      .subscribe({
+        next: (data) => {
+          this.toastSerice.showToast(
+            'You have successfully changed your password',
+            'You have successfully changed your password',
+            ToastNotificationType.Success
+          );
+          this.localStorageService.clear();
+          this.router.navigate(['/']);
+        },
+        error: (err) => {
+          this.toastSerice.showToast(
+            'Error',
+            err.error.error,
+            ToastNotificationType.Error
+          );
+          if (err.error.status == 401) {
+            this.localStorageService.clear();
+            this.router.navigate(['/']);
+          }
+        },
+      });
+  }
 }
