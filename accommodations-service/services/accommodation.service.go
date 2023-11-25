@@ -85,6 +85,7 @@ func (as *AccommodationService) GetAccommodationById(accommodationId string) (*d
 	id, _ := accomm.Id.MarshalJSON()
 	return &domain.Accommodation{
 		Id:               primitive.ObjectID(id),
+		Name:             accomm.Name,
 		Location:         accomm.Location,
 		Conveniences:     accomm.Conveniences,
 		MinNumOfVisitors: accomm.MinNumOfVisitors,

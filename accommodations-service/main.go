@@ -21,7 +21,7 @@ func main() {
 		port = "8080"
 	}
 	timeoutContext, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-	logger := log.New(os.Stdout, "[auth-api] ", log.LstdFlags)
+	logger := log.New(os.Stdout, "[accommodation-api] ", log.LstdFlags)
 	validator := utils.NewValidator()
 
 	mongoService, err := services.New(timeoutContext, logger)

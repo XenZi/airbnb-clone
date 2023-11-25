@@ -17,7 +17,9 @@ type MongoService struct {
 }
 
 func New(ctx context.Context, logger *log.Logger) (*MongoService, error) {
+
 	uri := os.Getenv("MONGO_DB_URI")
+	log.Println(uri)
 	logger.Println("URI: ", uri)
 	client, err := mongo.Connect(ctx, options.Client().ApplyURI(uri))
 

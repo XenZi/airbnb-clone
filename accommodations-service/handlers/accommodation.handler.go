@@ -27,13 +27,14 @@ func (a *AccommodationsHandler) CreateAccommodationById(rw http.ResponseWriter, 
 		utils.WriteErrorResp(err.GetErrorMessage(), 500, "api/accommodations", rw)
 	}
 	rw.Header().Set("Content-Type", "application/json")
-	rw.WriteHeader(http.StatusOK)
+
 	jsonResponse, err1 := json.Marshal(accommodation)
 	if err1 != nil {
 		utils.WriteErrorResp(err.GetErrorMessage(), http.StatusInternalServerError, "api/accommodations", rw)
 		return
 	}
 	rw.Write(jsonResponse)
+	rw.WriteHeader(http.StatusOK)
 
 }
 
