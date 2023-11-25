@@ -1,0 +1,7 @@
+<button
+  [ngClass]="['btn', 'btn--' + size, 'btn--' + color, class]"
+  (click)="onClick.emit()"
+  type="{{ type ?? 'text' }}"
+>
+  <ng-content></ng-content>
+</button>

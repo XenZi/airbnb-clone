@@ -1,0 +1,18 @@
+@each $dir, $val in $flex-directions {
+  .flex-#{$dir} {
+    display: flex;
+    flex-direction: $val;
+  }
+}
+
+@each $j, $val in $justify-content {
+  .justify-#{$j} {
+    justify-content: $val;
+  }
+}
+
+@each $a, $val in $align-items {
+  .items-#{$a} {
+    align-items: $val;
+  }
+}
