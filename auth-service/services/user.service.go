@@ -189,6 +189,9 @@ func (u UserService) ChangePassword(data domains.ChangePassword, userID string) 
 	if data.ConfirmedPassword != data.Password {
 		return nil, errors.NewError("New password doesn't match with each other", 400)
 	}
+	if u.passwordService.CheckPasswordExistanceInBlacklist(data.Password) {
+		return nil, errors.NewError("Choose better password", 400)
+	}
 	user, err := u.userRepository.FindUserById(userID)
 
 	if err != nil {
@@ -211,4 +214,4 @@ func (u UserService) ChangePassword(data domains.ChangePassword, userID string) 
 		Message: "You have updated your password",
 	}
 	return &response, nil
-}
+	}
