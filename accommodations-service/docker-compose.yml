@@ -1,0 +1,47 @@
+version: "3.1"
+
+services:
+  #Our service.
+  accommodations-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: always
+    container_name: "accommodations-server"
+    hostname: "accommodations-server"
+    #Mapping ports
+    ports:
+      # <port_on_local>:<port_in_machine>
+      - "8080:8080"
+    #Will be accessible through os.Getenv("PORT")
+    environment:
+      - PORT=8080
+      - MONGO_DB_URI=mongodb://root:pass@accommodation-db:27017
+    # NoSQL: Extremely important! Cassandra takes a lot of time to start!
+    # If we don't wait for it to fully initialize we will get exceptions and will not be able to connect!
+    depends_on:
+      accommodation-db:
+        condition: service_healthy
+
+  # NoSQL: CassandraDB
+  accommodation-db:
+    image: mongo
+    restart: always
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: pass
+      MONGO_INITDB_DATABASE: mongoDemo
+    # Docker healtcheck - checks if database is "alive"
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok'
+      interval: 10s
+      timeout: 10s
+      retries: 10
+    volumes:
+      - accommodation-db_store:/data/db
+
+
+volumes:
+  accommodation-db_store:

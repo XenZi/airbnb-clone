@@ -1,0 +1,102 @@
+.form {
+  padding: 10px;
+}
+
+.form__group {
+  width: 100%;
+  margin: 10px 0;
+}
+
+.form__input {
+  border: 2px solid #eee;
+  border-radius: 7px;
+  padding: 10px;
+  position: relative;
+  width: 100%;
+}
+
+.form__input::placeholder {
+  color: #343a40;
+  font-size: 12px;
+}
+
+.form__label {
+  display: inline-block;
+  font-size: 12px;
+  margin-bottom: 10px;
+}
+
+.form__error-container {
+  margin-top: 5px;
+}
+
+.form__error {
+  color: #dc3545; /* or any other color for error messages */
+  font-size: 12px;
+  margin: 5px 0 0;
+}
+/* Radio Button Styles */
+.form__radio-group {
+  margin: 10px 0;
+}
+
+.form__radio-input {
+  display: none; /* hide the default radio button */
+}
+
+.form__radio-label {
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  position: relative;
+  padding-left: 30px; /* space for the custom radio button */
+}
+
+.form__radio-label::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 20px;
+  height: 20px;
+  border: 2px solid #333;
+  background-color: #fff;
+  border-radius: 50%;
+  transition: background-color 0.3s;
+}
+
+.form__radio-input:checked + .form__radio-label::before {
+  background-color: #ff5977; /* color when radio button is checked */
+  border-color: #ff5977;
+}
+
+.form__radio-label::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: #fff;
+  opacity: 0; /* initially hidden */
+  transition: opacity 0.3s;
+}
+
+.form__radio-input:checked + .form__radio-label::after {
+  opacity: 1;
+}
+
+.form__button {
+  padding: 10px 0px;
+  margin: 10px 0px;
+}
+
+.form__link {
+  padding: 10px 0px;
+  cursor: pointer;
+  text-decoration: underline;
+}

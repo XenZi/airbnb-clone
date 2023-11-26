@@ -1,0 +1,59 @@
+* {
+  font-family: "Roboto", sans-serif;
+}
+
+h1 {
+  font-size: $font-size-xxl;
+  font-weight: bold;
+}
+
+h2 {
+  font-size: $font-size-xl;
+}
+
+h3,
+h4,
+h5,
+h6 {
+  font-size: $font-size-lg;
+}
+
+p {
+  font-size: $font-size-sm;
+}
+
+.text__bold {
+  font-weight: bold;
+}
+
+.text--white {
+  color: #fff; /* --white */
+}
+
+.text--green {
+  color: #10d876; /* --green */
+}
+
+.text--blue {
+  color: #2754e6; /* --blue */
+}
+
+.text--dark-gray {
+  color: #343a40; /* --dark-gray */
+}
+
+.text--light-gray {
+  color: #afb7bf; /* --light-gray */
+}
+
+.text--error {
+  color: #ff5e5e; /* --error */
+}
+
+.text--orange {
+  color: #ec5c27; /* --orange */
+}
+
+.text--black {
+  color: #212529; /* --black */
+}
