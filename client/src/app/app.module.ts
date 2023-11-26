@@ -27,6 +27,9 @@ import { RoleBasedPageComponent } from './pages/role-based-page/role-based-page.
 import { UpdateUserComponent } from './components/update-user/update-user.component';
 import { FormChangePasswordComponent } from './forms/form-change-password/form-change-password.component';
 import { TokenInterceptor } from './interceptors/token.interceptor';
+import { FormCreateAccommodationComponent } from './forms/form-create-accommodation/form-create-accommodation.component';
+import { AccommodationCardComponent } from './components/accommodation-card/accommodation-card.component';
+import { AccommodationDetailsPageComponent } from './pages/accommodation-details-page/accommodation-details-page.component';
 @NgModule({
   declarations: [
     AppComponent,
@@ -49,6 +52,9 @@ import { TokenInterceptor } from './interceptors/token.interceptor';
     RoleBasedPageComponent,
     UpdateUserComponent,
     FormChangePasswordComponent,
+    FormCreateAccommodationComponent,
+    AccommodationCardComponent,
+    AccommodationDetailsPageComponent,
   ],
   imports: [
     BrowserModule,
