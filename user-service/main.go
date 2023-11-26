@@ -39,7 +39,10 @@ func main() {
 	router := mux.NewRouter()
 
 	router.HandleFunc("/api/create", profileHandler.CreateHandler).Methods("POST")
+	router.HandleFunc("/api/update", profileHandler.UpdateHandler).Methods("PUT")
 	router.HandleFunc("/api/get-all", profileHandler.GetAllHandler).Methods("GET")
+	router.HandleFunc("/api/get-user/{id}", profileHandler.GetUserById).Methods("GET")
+	router.HandleFunc("/api/delete/{id}", profileHandler.DeleteHandler).Methods("DELETE")
 	port := os.Getenv("PORT")
 	if len(port) == 0 {
 		port = "8080"

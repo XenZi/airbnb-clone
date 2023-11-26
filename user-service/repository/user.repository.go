@@ -23,7 +23,7 @@ func NewUserRepository(cli *mongo.Client, logger *log.Logger) *UserRepository {
 	}
 }
 func (ur UserRepository) CreatUser(user domain.User) (*domain.User, *errors.ErrorStruct) {
-	userCollection := ur.cli.Database("users").Collection("user")
+	userCollection := ur.cli.Database("user-service").Collection("users")
 	insertedUser, err := userCollection.InsertOne(context.TODO(), user)
 	if err != nil {
 		ur.logger.Println(err.Error())
@@ -39,7 +39,7 @@ func (ur UserRepository) CreatUser(user domain.User) (*domain.User, *errors.Erro
 }
 
 func (ur UserRepository) GetAllUsers() ([]*domain.User, *errors.ErrorStruct) {
-	userCollection := ur.cli.Database("users").Collection("user")
+	userCollection := ur.cli.Database("user-service").Collection("users")
 	findOptions := options.Find()
 
 	found, err := userCollection.Find(context.TODO(), bson.D{{}}, findOptions)
@@ -64,8 +64,12 @@ func (ur UserRepository) GetAllUsers() ([]*domain.User, *errors.ErrorStruct) {
 }
 
 func (ur UserRepository) GetUserById(id string) (*domain.User, *errors.ErrorStruct) {
-	userCollection := ur.cli.Database("users").Collection("user")
-	filter := bson.D{{"id", id}}
+	userCollection := ur.cli.Database("user-service").Collection("users")
+	foundId, erro := primitive.ObjectIDFromHex(id)
+	if erro != nil {
+		return nil, errors.NewError(erro.Error(), 500)
+	}
+	filter := bson.D{{"_id", foundId}}
 	var user *domain.User
 	err := userCollection.FindOne(context.TODO(), filter).Decode(&user)
 	if err != nil {
@@ -80,9 +84,16 @@ func (ur UserRepository) GetUserById(id string) (*domain.User, *errors.ErrorStru
 }
 
 func (ur UserRepository) UpdateUser(user domain.User) (*domain.User, *errors.ErrorStruct) {
-	userCollection := ur.cli.Database("users").Collection("user")
-	filter := bson.D{{"id", user.ID}}
-	update := bson.D{{"$set", bson.D{{"username", user.Username}}}}
+	userCollection := ur.cli.Database("user-service").Collection("users")
+	filter := bson.D{{"_id", user.ID}}
+	update := bson.D{{"$set", bson.D{
+		{"firstName", user.FirstName},
+		{"username", user.Username},
+		{"email", user.Email},
+		{"lastName", user.LastName},
+		{"residence", user.Residence},
+		{"age", user.Age},
+	}}}
 	_, err := userCollection.UpdateOne(context.TODO(), filter, update)
 	if err != nil {
 		ur.logger.Println(err.Error())
@@ -90,4 +101,18 @@ func (ur UserRepository) UpdateUser(user domain.User) (*domain.User, *errors.Err
 		return nil, errors.NewError(err.Error(), status)
 	}
 	return &user, nil
+}
+
+func (ur UserRepository) DeleteUser(id string) *errors.ErrorStruct {
+	userCollection := ur.cli.Database("user-service").Collection("users")
+	foundId, erro := primitive.ObjectIDFromHex(id)
+	if erro != nil {
+		return errors.NewError(erro.Error(), 500)
+	}
+	filter := bson.D{{"_id", foundId}}
+	_, err := userCollection.DeleteOne(context.TODO(), filter)
+	if err != nil {
+		return errors.NewError("User not found", 404)
+	}
+	return nil
 }
