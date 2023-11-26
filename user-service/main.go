@@ -38,20 +38,22 @@ func main() {
 	}
 	router := mux.NewRouter()
 
-	router.HandleFunc("/api/create", profileHandler.CreateHandler).Methods("POST")
-	router.HandleFunc("/api/update", profileHandler.UpdateHandler).Methods("PUT")
-	router.HandleFunc("/api/get-all", profileHandler.GetAllHandler).Methods("GET")
-	router.HandleFunc("/api/get-user/{id}", profileHandler.GetUserById).Methods("GET")
-	router.HandleFunc("/api/delete/{id}", profileHandler.DeleteHandler).Methods("DELETE")
+	router.HandleFunc("/create", profileHandler.CreateHandler).Methods("POST")
+	router.HandleFunc("/{id}", profileHandler.UpdateHandler).Methods("PUT")
+	router.HandleFunc("/all", profileHandler.GetAllHandler).Methods("GET")
+	router.HandleFunc("/{id}", profileHandler.GetUserById).Methods("GET")
+	router.HandleFunc("/{id}", profileHandler.DeleteHandler).Methods("DELETE")
 	port := os.Getenv("PORT")
 	if len(port) == 0 {
 		port = "8080"
 	}
-	cors := gorillaHandlers.CORS(gorillaHandlers.AllowedOrigins([]string{"*"}))
 
+	headersOk := gorillaHandlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"})
+	methodsOk := gorillaHandlers.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "OPTIONS"})
+	originsOk := gorillaHandlers.AllowedOrigins([]string{"http://localhost:4200"})
 	server := http.Server{
 		Addr:         ":" + port,
-		Handler:      cors(router),
+		Handler:      gorillaHandlers.CORS(headersOk, methodsOk, originsOk)(router),
 		IdleTimeout:  120 * time.Second,
 		ReadTimeout:  1 * time.Second,
 		WriteTimeout: 1 * time.Second,
