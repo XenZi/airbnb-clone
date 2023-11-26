@@ -95,7 +95,7 @@ func MaxLength(maxLength int) ValidationRule {
 }
 func WordBan(value string) bool {
 	normalizedValue := strings.ReplaceAll(strings.ToUpper(value), " ", "")
-	bannedWords := []string{"SELECT", "UPDATE", "DELETE", "FROM", "WHERE"}
+	bannedWords := []string{"SELECT", "UPDATE", "DELETE", "FROM", "WHERE", "<", ">"}
 	for _, word := range bannedWords {
 		if strings.Contains(normalizedValue, word) {
 			return false

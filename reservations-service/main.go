@@ -44,9 +44,9 @@ func main() {
 		ReservationService: reservationService,
 	}
 	router := mux.NewRouter()
-	router.HandleFunc("/api/reservations", reservationsHandler.CreateReservationByUser).Methods("POST")
-	router.HandleFunc("/api/reservations/user/{userId}", reservationsHandler.GetReservationsByUser).Methods("GET")
-	router.HandleFunc("/api/reservations/{userId}/{id}", reservationsHandler.DeleteReservationById).Methods("DELETE")
+	router.HandleFunc("/", reservationsHandler.CreateReservationByUser).Methods("POST")
+	router.HandleFunc("/user/{userId}", reservationsHandler.GetReservationsByUser).Methods("GET")
+	router.HandleFunc("/{userId}/{id}", reservationsHandler.DeleteReservationById).Methods("DELETE")
 
 	cors := gorillaHandlers.CORS(gorillaHandlers.AllowedOrigins([]string{"*"}))
 
