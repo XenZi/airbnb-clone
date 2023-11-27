@@ -41,12 +41,15 @@ export class AuthService {
             'user',
             JSON.stringify(data.data?.user)
           );
-          this.toastSerice.showToast(
-            'You have successfully logged in',
-            'You made it',
-            ToastNotificationType.Success
-          );
-          this.modalService.close();
+          setTimeout(() => {
+            this.toastSerice.showToast(
+              'You have successfully logged in',
+              'You made it',
+              ToastNotificationType.Success
+            );
+            this.modalService.close();
+          }, 1000);
+          window.location.reload();
         },
         error: (err) => {
           console.log(err);
@@ -86,6 +89,7 @@ export class AuthService {
             'You can expect mail for confirmation',
             ToastNotificationType.Success
           );
+          this.modalService.close();
         },
         error: (err) => {
           this.toastSerice.showToast(
@@ -126,8 +130,8 @@ export class AuthService {
         next: (data) => {
           console.log(data);
           this.toastSerice.showToast(
-            'You have successfully confirmed your account',
-            'You have successfully confirmed your account',
+            'You have successfully requested password reset',
+            'Check out email',
             ToastNotificationType.Success
           );
           this.router.navigate(['/']);
@@ -206,5 +210,17 @@ export class AuthService {
           }
         },
       });
+  }
+
+  logout(): void {
+    this.localStorageService.clear();
+    window.location.reload();
+    setTimeout(() => {
+      this.toastSerice.showToast(
+        "You're logged out",
+        "You're logged out",
+        ToastNotificationType.Info
+      );
+    }, 1000);
   }
 }
