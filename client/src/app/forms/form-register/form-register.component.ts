@@ -26,7 +26,7 @@ export class FormRegisterComponent {
   roles: string[] = [Role.Guest, Role.Host];
   errors: string = '';
   isCaptchaValidated: boolean = false;
-  @Input() kurcina!: string;
+
   constructor(
     private authService: AuthService,
     private formBuilder: FormBuilder,
