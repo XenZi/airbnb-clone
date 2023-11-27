@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, Input, SimpleChanges } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { AuthService } from 'src/app/services/auth-service/auth.service';
 import { ModalService } from 'src/app/services/modal/modal.service';
@@ -37,7 +37,8 @@ export class FormLoginComponent {
     this.modalService.close();
     this.modalService.open(
       FormRequestResetPasswordComponent,
-      'Request Password Reset'
+      'Request Password Reset',
+      {}
     );
   }
 }

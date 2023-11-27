@@ -1,0 +1,45 @@
+/* Rounded edges for the image */
+.container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  justify-content: space-between;
+}
+a {
+  text-decoration: none; /* Removes the underline */
+  color: inherit; /* Removes the default link color */
+}
+
+.accommodation-card {
+   /* Three cards per row with 20px gap */
+  margin-bottom: 20px;
+}
+
+.accommodation-card__image img {
+  border-radius: 10px;
+  width: 250px;
+  height: 250px;
+  object-fit: cover;
+}
+
+.accommodation-card__title {
+  font-weight: bold;
+  font-size: 17px;
+}
+
+.accommodation-card__location {
+  color: #777;
+  font-size: 15px;
+}
+
+.accommodation-card__price-value {
+  font-weight: bold;
+}
+
+.accommodation-card__details {
+  text-align: left;
+}
+
+.accommodation-card__details > * {
+  margin-bottom: 5px;
+}

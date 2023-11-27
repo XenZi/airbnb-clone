@@ -6,6 +6,7 @@ import { ResetPasswordPageComponent } from './pages/reset-password-page/reset-pa
 import { RoleBasedPageComponent } from './pages/role-based-page/role-based-page.component';
 import { RoleGuardService } from './guards/role-guard.service';
 import { UserProfilePageComponent } from './pages/user-profile-page/user-profile-page.component';
+import { AccommodationDetailsPageComponent } from './pages/accommodation-details-page/accommodation-details-page.component';
 
 const routes: Routes = [
   {
@@ -19,6 +20,10 @@ const routes: Routes = [
   {
     path: 'reset-password/:token',
     component: ResetPasswordPageComponent,
+  },
+  {
+    path: 'accommodations/:id',
+    component: AccommodationDetailsPageComponent,
   },
   {
     path: 'role-based-page',

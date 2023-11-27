@@ -1,0 +1,66 @@
+<form [formGroup]="updateAccommodationForm" (ngSubmit)="onSubmit($event)" class="form">
+    <div class="form__group">
+      <label for="name" class="form__label">Name</label>
+      <input
+        type="text"
+        id="name"
+        class="form__input"
+        placeholder="Accommodation name here..."
+        formControlName="name"
+      />
+      
+    </div>
+    <div class="form__group">
+      <label for="location" class="form__label">Location</label>
+      <input
+        type="text"
+        id="location"
+        class="form__input"
+        placeholder="Write your location..."
+        formControlName="location"
+      />
+      
+    </div>
+    <div class="form__group">
+      <label for="conveniences" class="form__label">Conveniences</label>
+      <input
+        type="text"
+        id="conveniences"
+        class="form__input"
+        placeholder="Insert your conveniences separated with comma..."
+        formControlName="conveniences"
+      />
+      <div class="form__error-container">
+        
+      </div>
+    </div>
+    <div class="form__group">
+      <label for="minNumOfVisitors" class="form__label">Minimum number of visitors</label>
+      <input
+        type="number"
+        id="minNumOfVisitors"
+        class="form__input"
+        placeholder="Minimum number of visitors..."
+        formControlName="minNumOfVisitors"
+      />
+      
+    </div>
+    <div class="form__group">
+        <label for="maxNumOfVisitors" class="form__label">Maximum number of visitors</label>
+        <input
+          type="number"
+          id="maxNumOfVisitors"
+          class="form__input"
+          placeholder="Maximum number of visitors..."
+          formControlName="maxNumOfVisitors"
+        />
+       
+    </div>
+   
+    <app-button size="md" color="rose" class="form__button" type="submit">
+        Update Accommodation
+    </app-button
+    >
+  </form>
+  
+

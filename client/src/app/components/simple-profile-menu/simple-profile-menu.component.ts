@@ -6,6 +6,7 @@ import { FormRegisterComponent } from 'src/app/forms/form-register/form-register
 import { ModalService } from 'src/app/services/modal/modal.service';
 import { UpdateUserComponent } from '../update-user/update-user.component';
 import { UserService } from 'src/app/services/user/user.service';
+import { FormCreateAccommodationComponent } from 'src/app/forms/form-create-accommodation/form-create-accommodation.component';
 import { Role } from 'src/app/domains/enums/roles.enum';
 import { AuthService } from 'src/app/services/auth-service/auth.service';
 
@@ -39,6 +40,12 @@ export class SimpleProfileMenuComponent {
       title: 'Update profile',
       action: () => {
         this.callUpdateProfile();
+      },
+    },{
+      icon: 'fa-solid fa-user',
+      title: 'Add accommodation',
+      action: () => {
+        this.callNewAccommodation();
       },
     },
     {
@@ -100,18 +107,21 @@ export class SimpleProfileMenuComponent {
   }
 
   callRegister() {
-    this.modalService.open(FormRegisterComponent, 'Register');
+    this.modalService.open(FormRegisterComponent, 'Register', {});
   }
 
   callLogin() {
-    this.modalService.open(FormLoginComponent, 'Login');
+    this.modalService.open(FormLoginComponent, 'Login', {});
   }
 
   callUpdateProfile() {
-    this.modalService.open(UpdateUserComponent, 'Update your profile');
+    this.modalService.open(UpdateUserComponent, 'Update your profile', {});
   }
+  callNewAccommodation(){
+    this.modalService.open(FormCreateAccommodationComponent, 'Create accommodation');
 
+  }
   callLogout() {
     this.authService.logout();
-  }
+  } 
 }

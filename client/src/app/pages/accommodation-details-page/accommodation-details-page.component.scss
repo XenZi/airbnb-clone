@@ -1,0 +1,77 @@
+/* styles.css */
+
+body {
+    font-family:'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+   
+    margin: 0;
+    padding: 0;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 20px auto;
+    padding: 20px;
+    
+}
+
+
+.name {
+    text-align: left;
+    margin-bottom: 20px;
+}
+
+.name h1 {
+    font-weight: bold;
+}
+
+.picture {
+    text-align: center;
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.picture img {
+    max-width: 1200px;
+    height: 400px;
+    
+    margin: 5px;
+    object-fit: cover;
+}
+
+.location {
+    text-align: left;
+    margin-bottom: 20px;
+}
+
+.conveniences {
+    margin-bottom: 20px;
+}
+
+.visitor-info {
+    text-align: right;
+}
+
+.visitor-info .min-max-visitors {
+    display: flex;
+    justify-content: right;
+    
+}
+
+
+.min-visitors{
+    border-right: 1px solid #000;
+    padding-right: 15px;
+}
+
+.visitor-info .min-visitors,
+.visitor-info .max-visitors {
+    width: 20%; /* Adjust as needed */
+}
+.update__button {
+    display: flex;
+    justify-content: left;
+    width: 150px;
+    color: #000000;
+  }

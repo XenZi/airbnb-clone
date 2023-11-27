@@ -108,7 +108,6 @@ func (u *UserService) LoginUser(loginData domains.LoginUser) (*domains.Successfu
 	}, nil
 }
 
-
 func (u UserService) ConfirmUserAccount(token string) (*domains.UserDTO, *errors.ErrorStruct) {
 	userID, err := u.encryptionService.ValidateToken(token)
 	if err != nil {
@@ -121,15 +120,15 @@ func (u UserService) ConfirmUserAccount(token string) (*domains.UserDTO, *errors
 		return nil, err
 	}
 	return &domains.UserDTO{
-		Username: updatedUser.Username,
-		Email: updatedUser.Email,
-		ID: userID,
-		Role: updatedUser.Role,
+		Username:  updatedUser.Username,
+		Email:     updatedUser.Email,
+		ID:        userID,
+		Role:      updatedUser.Role,
 		Confirmed: updatedUser.Confirmed,
 	}, nil
 }
 
-func (u UserService) RequestResetPassword(email string) (*domains.BaseMessageResponse, *errors.ErrorStruct){
+func (u UserService) RequestResetPassword(email string) (*domains.BaseMessageResponse, *errors.ErrorStruct) {
 	if email == "" {
 		return nil, errors.NewError("Email is empty or incorrect", 400)
 	}
@@ -143,7 +142,7 @@ func (u UserService) RequestResetPassword(email string) (*domains.BaseMessageRes
 		log.Println(err)
 		return nil, errors.NewError(err.GetErrorMessage(), err.GetErrorStatus())
 	}
-	go func(){
+	go func() {
 		u.mailClient.SendRequestResetPassword(email, token)
 	}()
 	return &domains.BaseMessageResponse{
@@ -177,10 +176,10 @@ func (u UserService) ResetPassword(requestData domains.ResetPassword, token stri
 	}
 	user, err := u.userRepository.UpdateUserPassword(userID, hashedPassword)
 	return &domains.UserDTO{
-		Username: user.Username,
-		Email: user.Email,
-		ID: userID,
-		Role: user.Role,
+		Username:  user.Username,
+		Email:     user.Email,
+		ID:        userID,
+		Role:      user.Role,
 		Confirmed: user.Confirmed,
 	}, nil
 }
@@ -214,4 +213,4 @@ func (u UserService) ChangePassword(data domains.ChangePassword, userID string) 
 		Message: "You have updated your password",
 	}
 	return &response, nil
-	}
+}
