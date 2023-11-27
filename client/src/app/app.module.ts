@@ -27,6 +27,7 @@ import { RoleBasedPageComponent } from './pages/role-based-page/role-based-page.
 import { UpdateUserComponent } from './components/update-user/update-user.component';
 import { FormChangePasswordComponent } from './forms/form-change-password/form-change-password.component';
 import { TokenInterceptor } from './interceptors/token.interceptor';
+import { TopLevelInfoComponent } from './components/top-level-info/top-level-info.component';
 @NgModule({
   declarations: [
     AppComponent,
@@ -49,6 +50,7 @@ import { TokenInterceptor } from './interceptors/token.interceptor';
     RoleBasedPageComponent,
     UpdateUserComponent,
     FormChangePasswordComponent,
+    TopLevelInfoComponent,
   ],
   imports: [
     BrowserModule,
