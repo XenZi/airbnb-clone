@@ -160,8 +160,8 @@ export class AuthService {
       .subscribe({
         next: (data) => {
           this.toastSerice.showToast(
-            'You have successfully reseted your password',
-            'You have successfully reseted your password',
+            'You have successfully reset your password',
+            'You have successfully reset your password',
             ToastNotificationType.Success
           );
           this.router.navigate(['/']);
