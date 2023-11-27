@@ -11,7 +11,6 @@ import { FormRequestResetPasswordComponent } from '../form-request-reset-passwor
 })
 export class FormLoginComponent {
   loginForm: FormGroup;
-  @Input() text!: string;
   constructor(
     private authService: AuthService,
     private formBuilder: FormBuilder,
@@ -23,13 +22,6 @@ export class FormLoginComponent {
     });
   }
 
-  ngOnInit() {
-    console.log(this.text);
-  }
-
-  ngOnChanges(changes: SimpleChanges) {
-    console.log(this.text);
-  }
   onSubmit(e: Event) {
     e.preventDefault();
     if (!this.loginForm.valid) {
