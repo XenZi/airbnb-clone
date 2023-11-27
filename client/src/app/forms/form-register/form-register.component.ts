@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, Input } from '@angular/core';
 import {
   AbstractControl,
   FormBuilder,
@@ -26,6 +26,7 @@ export class FormRegisterComponent {
   roles: string[] = [Role.Guest, Role.Host];
   errors: string = '';
   isCaptchaValidated: boolean = false;
+  @Input() kurcina!: string;
   constructor(
     private authService: AuthService,
     private formBuilder: FormBuilder,

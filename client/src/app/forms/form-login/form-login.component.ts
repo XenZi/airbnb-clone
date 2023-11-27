@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, Input, SimpleChanges } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { AuthService } from 'src/app/services/auth-service/auth.service';
 import { ModalService } from 'src/app/services/modal/modal.service';
@@ -11,6 +11,7 @@ import { FormRequestResetPasswordComponent } from '../form-request-reset-passwor
 })
 export class FormLoginComponent {
   loginForm: FormGroup;
+  @Input() text!: string;
   constructor(
     private authService: AuthService,
     private formBuilder: FormBuilder,
@@ -22,6 +23,13 @@ export class FormLoginComponent {
     });
   }
 
+  ngOnInit() {
+    console.log(this.text);
+  }
+
+  ngOnChanges(changes: SimpleChanges) {
+    console.log(this.text);
+  }
   onSubmit(e: Event) {
     e.preventDefault();
     if (!this.loginForm.valid) {
@@ -37,7 +45,8 @@ export class FormLoginComponent {
     this.modalService.close();
     this.modalService.open(
       FormRequestResetPasswordComponent,
-      'Request Password Reset'
+      'Request Password Reset',
+      {}
     );
   }
 }
