@@ -64,4 +64,8 @@ export class AccommodationsService {
     return this.http.get<Accommodation[]>(`${apiURL}/accommodations/`)
   }
 
+  public getAccommodationById(id: string): Observable<Accommodation> {
+    return this.http.get<Accommodation>(`${apiURL}/accommodations/${id}`);
+  }
+
 }
