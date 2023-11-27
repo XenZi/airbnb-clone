@@ -30,6 +30,7 @@ import { TokenInterceptor } from './interceptors/token.interceptor';
 import { FormCreateAccommodationComponent } from './forms/form-create-accommodation/form-create-accommodation.component';
 import { AccommodationCardComponent } from './components/accommodation-card/accommodation-card.component';
 import { AccommodationDetailsPageComponent } from './pages/accommodation-details-page/accommodation-details-page.component';
+import { TopLevelInfoComponent } from './components/top-level-info/top-level-info.component';
 @NgModule({
   declarations: [
     AppComponent,
@@ -55,6 +56,7 @@ import { AccommodationDetailsPageComponent } from './pages/accommodation-details
     FormCreateAccommodationComponent,
     AccommodationCardComponent,
     AccommodationDetailsPageComponent,
+    TopLevelInfoComponent,
   ],
   imports: [
     BrowserModule,

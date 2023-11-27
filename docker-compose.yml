@@ -99,7 +99,41 @@ services:
     networks:
       - network
 
-
+  reservations-service:
+    image: reservations-service
+    build:
+      context: .
+      dockerfile: ./reservations-service/Dockerfile
+    restart: always
+    container_name: "reservations-server"
+    hostname: "reservations-server"
+    #Will be accessible through os.Getenv("PORT")
+    environment:
+      - PORT=8080
+      # NoSQL: environment variable holding connection URI for Cassandra database
+      - CASS_DB=reservations-db:9042
+    # NoSQL: Extremely important! Cassandra takes a lot of time to start!
+    # If we don't wait for it to fully initialize we will get exceptions and will not be able to connect!
+    depends_on:
+      reservations-db:
+        condition: service_healthy
+    networks:
+      - network
+  reservations-db:
+    image: cassandra
+    restart: always
+    ports:
+      - "9042:9042"
+    # Docker healtcheck - checks if database is "alive"
+    healthcheck:
+      test: ["CMD-SHELL", "cqlsh -e 'describe cluster'"]
+      interval: 15s
+      timeout: 15s
+      retries: 15
+    volumes:
+      - cass_store:/var/lib/cassandra/data
+    networks:
+      - network
 
   api-gateway:
     build:
@@ -113,6 +147,7 @@ services:
     depends_on:
       - auth-service
       - accommodations-service
+      - reservations-service
     networks:
       - network
 
@@ -124,3 +159,4 @@ volumes:
   auth-db-mongo-express:
   auth-db_store:
   accommodation-db_store:
+  cass_store:
