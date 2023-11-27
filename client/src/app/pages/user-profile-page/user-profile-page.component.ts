@@ -19,10 +19,12 @@ export class UserProfilePageComponent {
   ) {}
 
   ngOnInit(){
-    console.log("zapoceo")
     this.getUserID()
     console.log(this.profileID)
-    this.getUserById()
+    this.profileService.getUserById(this.profileID as string).subscribe((data) => {
+      console.log(2)
+    this.user = data.data  
+    })
     
     
   }
@@ -34,8 +36,6 @@ export class UserProfilePageComponent {
 
   getUserById() {
     this.profileService.getUserById(this.profileID as string).subscribe((data) => {
-      console.log(data)
-      console.log("dva")
       this.user = data.data;
     });
   }
