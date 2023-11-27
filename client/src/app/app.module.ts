@@ -28,6 +28,8 @@ import { UpdateUserComponent } from './components/update-user/update-user.compon
 import { FormChangePasswordComponent } from './forms/form-change-password/form-change-password.component';
 import { TokenInterceptor } from './interceptors/token.interceptor';
 import { TopLevelInfoComponent } from './components/top-level-info/top-level-info.component';
+import { UserProfilePageComponent } from './pages/user-profile-page/user-profile-page.component';
+import { FormUpdateUserProfileComponent } from './forms/form-update-user-profile/form-update-user-profile.component';
 @NgModule({
   declarations: [
     AppComponent,
@@ -51,6 +53,8 @@ import { TopLevelInfoComponent } from './components/top-level-info/top-level-inf
     UpdateUserComponent,
     FormChangePasswordComponent,
     TopLevelInfoComponent,
+    UserProfilePageComponent,
+    FormUpdateUserProfileComponent,
   ],
   imports: [
     BrowserModule,
