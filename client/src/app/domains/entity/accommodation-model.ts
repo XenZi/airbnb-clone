@@ -3,6 +3,6 @@ export interface Accommodation {
     name: string;
     location: string;
     conveniences: string;
-    minNumOfVisitors: boolean;
-    maxNumOfVisitors:boolean;
+    minNumOfVisitors: number;
+    maxNumOfVisitors:number;
   }

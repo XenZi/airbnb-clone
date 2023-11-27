@@ -1,6 +1,8 @@
+import { ModalService } from './../../services/modal/modal.service';
 import { Component } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { Accommodation } from 'src/app/domains/entity/accommodation-model';
+import { FormUpdateAccommodationComponent } from 'src/app/forms/form-update-accommodation/form-update-accommodation.component';
 import { AccommodationsService } from 'src/app/services/accommodations-service/accommodations.service';
 
 @Component({
@@ -14,7 +16,7 @@ export class AccommodationDetailsPageComponent {
 
   constructor(
     private route: ActivatedRoute,
-    
+    private modalService:ModalService,
     private accommodationsService: AccommodationsService,
     
     
@@ -28,6 +30,12 @@ export class AccommodationDetailsPageComponent {
     
   
   }
+  updateClick() {
+    
+    this.callUpdateAccommodation();
+    console.log("Uslo")
+  }
+  
   getAccommodationID() {
     this.route.paramMap.subscribe((params) => {
       this.accommodationID = String(params.get('id'));
@@ -39,5 +47,11 @@ export class AccommodationDetailsPageComponent {
       this.accommodation= data;
     });
   }
+
+  callUpdateAccommodation(){
+    this.modalService.open(FormUpdateAccommodationComponent, 'Update accommodation');
+    
+  }
+
 
 }

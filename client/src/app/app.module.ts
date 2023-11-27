@@ -31,6 +31,7 @@ import { FormCreateAccommodationComponent } from './forms/form-create-accommodat
 import { AccommodationCardComponent } from './components/accommodation-card/accommodation-card.component';
 import { AccommodationDetailsPageComponent } from './pages/accommodation-details-page/accommodation-details-page.component';
 import { TopLevelInfoComponent } from './components/top-level-info/top-level-info.component';
+import { FormUpdateAccommodationComponent } from './forms/form-update-accommodation/form-update-accommodation.component';
 @NgModule({
   declarations: [
     AppComponent,
@@ -57,6 +58,7 @@ import { TopLevelInfoComponent } from './components/top-level-info/top-level-inf
     AccommodationCardComponent,
     AccommodationDetailsPageComponent,
     TopLevelInfoComponent,
+    FormUpdateAccommodationComponent,
   ],
   imports: [
     BrowserModule,

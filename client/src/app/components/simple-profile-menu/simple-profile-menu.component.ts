@@ -120,7 +120,8 @@ export class SimpleProfileMenuComponent {
   callNewAccommodation(){
     this.modalService.open(FormCreateAccommodationComponent, 'Create accommodation');
 
+  }
   callLogout() {
     this.authService.logout();
-  }
+  } 
 }
