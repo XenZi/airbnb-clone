@@ -21,24 +21,25 @@ export class ModalService {
     private injector: EnvironmentInjector
   ) {}
 
-  open<C>(vcrOrComponent: Type<C>, title: string) {
-    this.openWithComponent(vcrOrComponent);
+  open<C>(vcrOrComponent: Type<C>, title: string, inputs: Partial<C>) {
+    this.openWithComponent(vcrOrComponent, inputs);
     this.title = title;
   }
 
-  private openWithComponent(component: Type<unknown>) {
+  private openWithComponent(component: Type<unknown>, inputs: Partial<any>) {
     const newComponent = createComponent(component, {
       environmentInjector: this.injector,
     });
+    for (const key of Object.keys(inputs) as Array<keyof string>) {
+      newComponent.setInput(key as string, inputs[key as string] as unknown);
+    }
 
     this.newModalComponent = createComponent(ModalComponent, {
       environmentInjector: this.injector,
       projectableNodes: [[newComponent.location.nativeElement]],
     });
-
     document.body.appendChild(this.newModalComponent.location.nativeElement);
 
-    // Attach views to the changeDetection cycle
     this.appRef.attachView(newComponent.hostView);
     this.appRef.attachView(this.newModalComponent.hostView);
   }

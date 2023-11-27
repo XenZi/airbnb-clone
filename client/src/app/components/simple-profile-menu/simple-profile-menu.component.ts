@@ -107,15 +107,15 @@ export class SimpleProfileMenuComponent {
   }
 
   callRegister() {
-    this.modalService.open(FormRegisterComponent, 'Register');
+    this.modalService.open(FormRegisterComponent, 'Register', {});
   }
 
   callLogin() {
-    this.modalService.open(FormLoginComponent, 'Login');
+    this.modalService.open(FormLoginComponent, 'Login', {});
   }
 
   callUpdateProfile() {
-    this.modalService.open(UpdateUserComponent, 'Update your profile');
+    this.modalService.open(UpdateUserComponent, 'Update your profile', {});
   }
   callNewAccommodation(){
     this.modalService.open(FormCreateAccommodationComponent, 'Create accommodation');
