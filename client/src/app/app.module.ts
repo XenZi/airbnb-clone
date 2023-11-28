@@ -27,6 +27,7 @@ import { RoleBasedPageComponent } from './pages/role-based-page/role-based-page.
 import { UpdateUserComponent } from './components/update-user/update-user.component';
 import { FormChangePasswordComponent } from './forms/form-change-password/form-change-password.component';
 import { TokenInterceptor } from './interceptors/token.interceptor';
+import { ReservationFormComponent } from './forms/form-create-reservation/form-create-reservation.component';
 import { FormCreateAccommodationComponent } from './forms/form-create-accommodation/form-create-accommodation.component';
 import { AccommodationCardComponent } from './components/accommodation-card/accommodation-card.component';
 import { AccommodationDetailsPageComponent } from './pages/accommodation-details-page/accommodation-details-page.component';
@@ -56,6 +57,7 @@ import { FormUpdateAccommodationComponent } from './forms/form-update-accommodat
     RoleBasedPageComponent,
     UpdateUserComponent,
     FormChangePasswordComponent,
+    ReservationFormComponent,
     FormCreateAccommodationComponent,
     AccommodationCardComponent,
     AccommodationDetailsPageComponent,

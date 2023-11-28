@@ -118,7 +118,7 @@ export class SimpleProfileMenuComponent {
     this.modalService.open(UpdateUserComponent, 'Update your profile', {});
   }
   callNewAccommodation(){
-    this.modalService.open(FormCreateAccommodationComponent, 'Create accommodation');
+    this.modalService.open(FormCreateAccommodationComponent, 'Create accommodation',{});
 
   }
   callLogout() {

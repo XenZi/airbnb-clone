@@ -68,4 +68,79 @@ export class AccommodationsService {
     return this.http.get<Accommodation>(`${apiURL}/accommodations/${id}`);
   }
 
+  deleteById(
+    id:string,
+    
+    
+  ): void {
+    this.http
+      .delete(`${apiURL}/accommodations/${id}`, {
+       
+      })
+      .subscribe({
+        next: (data) => {
+          this.toastSerice.showToast(
+            'Success',
+            'Accommodation updated!',
+            ToastNotificationType.Success
+            
+          );
+          
+          
+          
+        },
+        error: (err) => {
+          this.toastSerice.showToast(
+            'Error',
+            err.error.error,
+            ToastNotificationType.Error
+            );
+          },
+        });
+        this.router.navigate(['/']);
+  }
+
+  update(
+    id:string,
+    name: string,
+    location: string,
+    conveniences: string,
+    minNumOfVisitors:number,
+    maxNumOfVisitors: number,
+    
+  ): void {
+    this.http
+      .put(`${apiURL}/accommodations/${id}`, {
+        name,
+        location,
+        conveniences,
+        minNumOfVisitors,
+        maxNumOfVisitors,
+        
+      })
+      .subscribe({
+        next: (data) => {
+          this.toastSerice.showToast(
+            'Success',
+            'Accommodation updated!',
+            ToastNotificationType.Success
+            
+          );
+          this.modalService.close();
+          window.location.reload();
+          this.router.navigate(['/accommodations',id]);
+          
+        },
+        error: (err) => {
+          this.toastSerice.showToast(
+            'Error',
+            err.error.error,
+            ToastNotificationType.Error
+          );
+        },
+      });
+  }
+
+  
+
 }
