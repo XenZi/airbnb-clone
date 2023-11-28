@@ -69,9 +69,13 @@ body {
 .visitor-info .max-visitors {
     width: 20%; /* Adjust as needed */
 }
-.update__button {
+.buttons{
     display: flex;
     justify-content: left;
+}
+.update__button {
+    
     width: 150px;
     color: #000000;
+    padding-right: 20px;
   }

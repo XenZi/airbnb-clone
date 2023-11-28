@@ -56,7 +56,7 @@ func main() {
 	deleteAccommodationsById.HandleFunc("/{id}", accommodationsHandler.DeleteAccommodationById)
 
 	headersOk := gorillaHandlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"})
-	methodsOk := gorillaHandlers.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "OPTIONS"})
+	methodsOk := gorillaHandlers.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "OPTIONS", "DELETE"})
 	originsOk := gorillaHandlers.AllowedOrigins([]string{"http://localhost:4200"})
 
 	server := http.Server{
