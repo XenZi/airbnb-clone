@@ -51,8 +51,16 @@ export class UserProfilePageComponent {
     this.callUpdateProfile();
   }
 
+  deleteClick(){
+    this.callDeleteProfile();
+  }
+
   callUpdateProfile() {
     this.modalService.open(FormUpdateUserProfileComponent, 'Update Profile', {"user": this.user});
+  }
+
+  callDeleteProfile(){
+    this.profileService.delete(this.profileID as string)
   }
 
   getUserID() {

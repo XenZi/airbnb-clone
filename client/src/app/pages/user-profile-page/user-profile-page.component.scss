@@ -46,8 +46,9 @@ body {
 }
 
 .update__button {
-    display: flex;
-    justify-content: center;
+    padding-top: 30px;
+    display: block;
+    margin: 0 auto;
     width: 150px;
     color: #000000;
-  }
+}

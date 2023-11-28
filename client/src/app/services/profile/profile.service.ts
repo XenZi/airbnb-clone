@@ -36,7 +36,7 @@ export class ProfileService {
     
   ): void {
     this.http
-      .post(`${apiURL}/profile/`, {
+      .post(`${apiURL}/users/`, {
         id,
         firstName,
         lastName,
@@ -65,6 +65,82 @@ export class ProfileService {
           );
         },
       });
+  }
+
+  delete(
+    id:string
+  ):void {
+    console.log("delete sent to ", `${apiURL}/users/${id}`)
+    this.http.delete(`${apiURL}/users/${id}`, {})
+    .subscribe({
+      next: (data) => {
+        this.toastSerice.showToast(
+          'Yay',
+          'You have been Erased',
+          ToastNotificationType.Success
+        );
+        this.router.navigate(['/'])
+      },
+      error: (err) => {
+        this.toastSerice.showToast(
+          'Error',
+          err.error.error,
+          ToastNotificationType.Error
+        )
+      }
+    });
+    
+  }
+
+  update(
+    id: string,
+    firstName: string,
+    lastName: string,
+    email: string,
+    residence: string,
+    role: Role,
+    username: string,
+    age: number,
+
+  ): void {
+    console.log({
+      id,
+      firstName,
+      lastName,
+      email,
+      residence,
+      role,
+      username,
+      age
+    })
+    this.http.put(`${apiURL}/users/${id}`, {
+      id,
+      firstName,
+      lastName,
+      email,
+      residence,
+      role,
+      username,
+      age
+    }).subscribe({
+      next: (data) => {
+        this.toastSerice.showToast(
+          'Congration',
+           'you done it!',
+            ToastNotificationType.Success
+            );
+            this.modalService.close();
+            window.location.reload();
+            this.router.navigate(['/profile', id])      
+      },
+      error: (err) => {
+        this.toastSerice.showToast(
+          'Uh Uh Uh, you didnt say the magic word',
+          err.error.error,
+          ToastNotificationType.Error
+        )
+      }
+    })
   }
 
   
