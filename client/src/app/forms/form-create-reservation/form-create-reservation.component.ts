@@ -30,7 +30,7 @@ export class ReservationFormComponent implements OnInit {
   submitReservation() {
     if (this.reservationForm.valid) {
       const reservationData = this.reservationForm.value;
-      console.log(reservationData)
+     
       this.reservationService.createReservation(reservationData).subscribe(
         (response: any) => {
           console.log('Reservation created successfully:', response); 

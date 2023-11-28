@@ -35,6 +35,12 @@ export class AccommodationDetailsPageComponent {
     this.callUpdateAccommodation();
     console.log("Uslo")
   }
+
+  deleteClick() {
+    
+    this.callDeleteAccommodation();
+    console.log("Uslo")
+  }
   
   getAccommodationID() {
     this.route.paramMap.subscribe((params) => {
@@ -49,7 +55,14 @@ export class AccommodationDetailsPageComponent {
   }
 
   callUpdateAccommodation(){
-    this.modalService.open(FormUpdateAccommodationComponent, 'Update accommodation',{});
+    this.modalService.open(FormUpdateAccommodationComponent, 'Update accommodation',{
+      accommodationID:this.accommodationID
+    });
+    
+  }
+
+  callDeleteAccommodation(){
+    this.accommodationsService.deleteById(this.accommodationID as string);
     
   }
 
