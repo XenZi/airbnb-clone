@@ -20,7 +20,7 @@ body {
 }
 
 .profile__header {
-    text-align: center;
+    text-align: left;
 }
 
 
@@ -44,3 +44,10 @@ body {
 .profile__value {
     color: #333;
 }
+
+.update__button {
+    display: flex;
+    justify-content: center;
+    width: 150px;
+    color: #000000;
+  }
