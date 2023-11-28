@@ -100,6 +100,8 @@ export class AccommodationsService {
           },
         });
         this.router.navigate(['/']);
+        window.location.reload();
+
   }
 
   update(

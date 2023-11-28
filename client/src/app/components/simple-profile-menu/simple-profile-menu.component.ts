@@ -41,12 +41,6 @@ export class SimpleProfileMenuComponent {
       action: () => {
         this.callUpdateProfile();
       },
-    },{
-      icon: 'fa-solid fa-user',
-      title: 'Add accommodation',
-      action: () => {
-        this.callNewAccommodation();
-      },
     },
     {
       icon: 'fa-solid fa-door-open',
@@ -59,16 +53,24 @@ export class SimpleProfileMenuComponent {
   hostItems: SimpleProfileMenuItem[] = [
     {
       icon: 'fa-solid fa-user',
-      title: 'GGGGG',
+      title: 'Host',
       action: () => {
         this.callUpdateProfile();
       },
+      
     },
+    {
+      icon: 'fa-solid fa-user',
+      title: 'Add accommodation',
+      action: () => {
+        this.callNewAccommodation();
+      },
+    }
   ];
   guestItems: SimpleProfileMenuItem[] = [
     {
       icon: 'fa-solid fa-user',
-      title: 'HHHHHH',
+      title: 'Guest',
       action: () => {
         console.log('SADSAD');
       },
