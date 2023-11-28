@@ -45,12 +45,10 @@ export class AccommodationsService {
           this.toastSerice.showToast(
             'Success',
             'Accommodation created!',
-            ToastNotificationType.Success 
-            );
-            this.modalService.close();
-            this.router.navigate(['/']);
-            window.location.reload();
-
+            ToastNotificationType.Success
+            
+          );
+          this.router.navigate(['/']);
         },
         error: (err) => {
           this.toastSerice.showToast(

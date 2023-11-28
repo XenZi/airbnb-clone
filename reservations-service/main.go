@@ -48,11 +48,12 @@ func main() {
 	router.HandleFunc("/user/{userId}", reservationsHandler.GetReservationsByUser).Methods("GET")
 	router.HandleFunc("/{userId}/{id}", reservationsHandler.DeleteReservationById).Methods("DELETE")
 
-	cors := gorillaHandlers.CORS(gorillaHandlers.AllowedOrigins([]string{"*"}))
-
+	headersOk := gorillaHandlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"})
+	methodsOk := gorillaHandlers.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "OPTIONS", "DELETE"})
+	originsOk := gorillaHandlers.AllowedOrigins([]string{"http://localhost:4200"})
 	server := http.Server{
 		Addr:         ":" + port,
-		Handler:      cors(router),
+		Handler:      gorillaHandlers.CORS(headersOk, methodsOk, originsOk)(router),
 		IdleTimeout:  120 * time.Second,
 		ReadTimeout:  1 * time.Second,
 		WriteTimeout: 1 * time.Second,

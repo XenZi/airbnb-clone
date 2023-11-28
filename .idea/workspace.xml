@@ -10,6 +10,8 @@
       <change beforePath="$PROJECT_DIR$/accommodations-service/middlewares/jwt-role-validator.middleware.go" beforeDir="false" afterPath="$PROJECT_DIR$/accommodations-service/middlewares/jwt-role-validator.middleware.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/client/src/app/components/simple-profile-menu/simple-profile-menu.component.ts" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/app/components/simple-profile-menu/simple-profile-menu.component.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/client/src/app/services/accommodations-service/accommodations.service.ts" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/app/services/accommodations-service/accommodations.service.ts" afterDir="false" />
+    <list default="true" id="5c56ccc7-9796-495b-9fc2-71676c9bc1a3" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/client/src/app/pages/user-profile-page/user-profile-page.component.scss" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/app/pages/user-profile-page/user-profile-page.component.scss" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
