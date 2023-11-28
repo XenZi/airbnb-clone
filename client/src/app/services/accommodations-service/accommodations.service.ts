@@ -48,6 +48,7 @@ export class AccommodationsService {
             ToastNotificationType.Success
             
           );
+          this.modalService.close();
           this.router.navigate(['/']);
         },
         error: (err) => {
@@ -58,6 +59,8 @@ export class AccommodationsService {
           );
         },
       });
+      this.router.navigate(['/']);
+      window.location.reload();
   }
 
   public loadAccommodations():Observable<Accommodation[]>{
@@ -85,8 +88,8 @@ export class AccommodationsService {
             ToastNotificationType.Success
             
           );
-          
-          
+          this.router.navigate(['/'])
+          window.location.reload();
           
         },
         error: (err) => {
