@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, Input } from '@angular/core';
 import {
   AbstractControl,
   FormBuilder,
@@ -89,26 +89,4 @@ export class FormRegisterComponent {
       this.registerForm.value.username
     );
   }
-
-  // customPasswordStrengthValidator(): ValidatorFn {
-  //   return (control: AbstractControl): ValidationErrors | null => {
-  //     const value = control.value;
-  //     console.log(value);
-  //     if (!value) {
-  //       return null;
-  //     }
-
-  //     const hasUpperCase = /[A-Z]+/.test(value);
-  //     const hasNumeric = /[0-9]+/.test(value);
-  //     const hasSpecialChars = /[!@#$%^&*()_+\?><>:';\]\[']/.test(value);
-  //     const minLength = (value as string).length >= 8;
-  //     const passwordValid =
-  //       hasUpperCase && hasNumeric && hasSpecialChars && minLength;
-  //     console.log(hasUpperCase);
-  //     console.log(hasNumeric);
-  //     console.log(hasSpecialChars);
-  //     console.log(minLength);
-  //     return !passwordValid ? { passwordStrength: true } : null;
-  //   };
-  // }
 }

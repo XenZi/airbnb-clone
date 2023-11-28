@@ -30,15 +30,19 @@ export class ReservationFormComponent implements OnInit {
   submitReservation() {
     if (this.reservationForm.valid) {
       const reservationData = this.reservationForm.value;
+      console.log(reservationData)
       this.reservationService.createReservation(reservationData).subscribe(
-        (response) => {
-          console.log('Reservation created successfully:', response);
+        (response: any) => {
+          console.log('Reservation created successfully:', response); 
         },
-        (error) => {
+        (error: any) => {
           console.error('Error creating reservation:', error);
+      
         }
       );
     } else {
+      console.log('Form is not valid. Please check the input fields.');
     }
   }
+  
 }

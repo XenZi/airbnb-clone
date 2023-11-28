@@ -5,19 +5,14 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="8cc95ec9-a844-44d5-ba6e-119e8270bf9a" name="Changes" comment="">
-<<<<<<< HEAD
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/accommodations-service/Dockerfile" beforeDir="false" afterPath="$PROJECT_DIR$/accommodations-service/Dockerfile" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/accommodations-service/docker-compose.yml" beforeDir="false" afterPath="$PROJECT_DIR$/accommodations-service/docker-compose.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/accommodations-service/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/accommodations-service/main.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/accommodations-service/repository/accommodationRepo.go" beforeDir="false" afterPath="$PROJECT_DIR$/accommodations-service/repository/accommodationRepo.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/accommodations-service/utils/validator.go" beforeDir="false" afterPath="$PROJECT_DIR$/accommodations-service/utils/validator.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/api-gateway/api-gateway.conf" beforeDir="false" afterPath="$PROJECT_DIR$/api-gateway/api-gateway.conf" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docker-compose.yml" beforeDir="false" afterPath="$PROJECT_DIR$/docker-compose.yml" afterDir="false" />
-=======
-      <change afterPath="$PROJECT_DIR$/mail-service/services/mail.service.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
->>>>>>> c5f7af79a3f34cb638c8d71c724ad4a5a7a7c225
+      <change beforePath="$PROJECT_DIR$/client/src/app/app.module.ts" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/app/app.module.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/src/app/components/button/button.component.scss" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/app/components/button/button.component.scss" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/src/app/components/simple-profile-menu/simple-profile-menu.component.ts" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/app/components/simple-profile-menu/simple-profile-menu.component.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/src/app/domains/entity/accommodation-model.ts" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/app/domains/entity/accommodation-model.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/src/app/pages/accommodation-details-page/accommodation-details-page.component.html" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/app/pages/accommodation-details-page/accommodation-details-page.component.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/src/app/pages/accommodation-details-page/accommodation-details-page.component.scss" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/app/pages/accommodation-details-page/accommodation-details-page.component.scss" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/src/app/pages/accommodation-details-page/accommodation-details-page.component.ts" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/app/pages/accommodation-details-page/accommodation-details-page.component.ts" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -31,7 +26,7 @@
       </list>
     </option>
   </component>
-  <component name="GOROOT" url="file:///usr/local/go" />
+  <component name="GOROOT" url="file://$PROJECT_DIR$/../../../../../Program Files/Go" />
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
@@ -49,35 +44,35 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-<<<<<<< HEAD
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD
 =======
-    "DefaultGoTemplateProperty": "Go File",
->>>>>>> c5f7af79a3f34cb638c8d71c724ad4a5a7a7c225
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.go.formatter.settings.were.checked": "true",
-    "RunOnceActivity.go.migrated.go.modules.settings": "true",
-    "RunOnceActivity.go.modules.automatic.dependencies.download": "true",
-    "RunOnceActivity.go.modules.go.list.on.any.changes.was.set": "true",
-    "WebServerToolWindowFactoryState": "false",
-<<<<<<< HEAD
-    "git-widget-placeholder": "feature/accommodations-service",
-    "go.import.settings.migrated": "true",
-    "go.sdk.automatically.set": "true",
-    "last_opened_file_path": "C:/Users/Aco",
+    &quot;DefaultGoTemplateProperty&quot;: &quot;Go File&quot;,
+&gt;&gt;&gt;&gt;&gt;&gt;&gt; c5f7af79a3f34cb638c8d71c724ad4a5a7a7c225
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.go.formatter.settings.were.checked&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.go.migrated.go.modules.settings&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.go.modules.automatic.dependencies.download&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.go.modules.go.list.on.any.changes.was.set&quot;: &quot;true&quot;,
+    &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
+&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD
+    &quot;git-widget-placeholder&quot;: &quot;feature/accommodations-service&quot;,
+    &quot;go.import.settings.migrated&quot;: &quot;true&quot;,
+    &quot;go.sdk.automatically.set&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/Aco&quot;,
 =======
-    "git-widget-placeholder": "feature/mail-service",
-    "go.import.settings.migrated": "true",
-    "go.sdk.automatically.set": "true",
-    "last_opened_file_path": "/Users/matejarilak/Documents/airbnb-clone/auth-service",
->>>>>>> c5f7af79a3f34cb638c8d71c724ad4a5a7a7c225
-    "node.js.detected.package.eslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm"
+    &quot;git-widget-placeholder&quot;: &quot;feature/mail-service&quot;,
+    &quot;go.import.settings.migrated&quot;: &quot;true&quot;,
+    &quot;go.sdk.automatically.set&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/Users/matejarilak/Documents/airbnb-clone/auth-service&quot;,
+&gt;&gt;&gt;&gt;&gt;&gt;&gt; c5f7af79a3f34cb638c8d71c724ad4a5a7a7c225
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/auth-service" />

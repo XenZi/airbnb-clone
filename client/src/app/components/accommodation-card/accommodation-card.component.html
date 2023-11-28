@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Airbnb-like Card</title>
+  
+  
+</head>
+<body>
+<div class="container">
+  <div class="accommodation-card"  *ngFor="let accommodation of (accommodations|async) " >
+    <a href="http://localhost:4200/accommodations/{{accommodation.id}}">
+    <div class="accommodation-card__image">
+      
+      <img src="\assets\pictures\air.png" alt="Image" class="accommodation-card__image-item">
+    </div>
+    <div class="accommodation-card__details">
+      <h2 class="accommodation-card__title">{{accommodation.name}}</h2>
+      <p class="accommodation-card__location">{{accommodation.location}}</p>
+      
+      
+      <div class="accommodation-card__price">
+        <p class="accommodation-card__price-value">$143 per night</p>
+      </div>
+      
+    
+    </div>
+  </a>
+  </div>
+  
+</div>
+
+</body>
+</html>

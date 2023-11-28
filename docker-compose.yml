@@ -135,6 +135,43 @@ services:
     networks:
       - network
 
+  user-service:
+    image: user-service
+    build:
+      context: .
+      dockerfile: ./user-service/Dockerfile
+    restart: always
+    container_name: "user-service"
+    hostname: "user-service"
+    environment:
+      - PORT=8080
+      - MONGO_DB_URI=mongodb://root:pass@user-db:27017
+    networks:
+      - network
+    depends_on:
+      user-db:
+        condition: service_healthy
+
+  user-db:
+    image: mongo
+    restart: always
+    ports:
+      - "27019:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: pass
+      MONGO_INITDB_DATABASE: mongoDemo
+    # Docker healtcheck - checks if database is "alive"
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok'
+      interval: 15s
+      timeout: 15s
+      retries: 10
+    volumes:
+      - user-db_store:/data/db
+    networks:
+      - network
+
   api-gateway:
     build:
       context: ./api-gateway/
@@ -148,6 +185,7 @@ services:
       - auth-service
       - accommodations-service
       - reservations-service
+      - user-service
     networks:
       - network
 
@@ -160,3 +198,4 @@ volumes:
   auth-db_store:
   accommodation-db_store:
   cass_store:
+  user-db_store:

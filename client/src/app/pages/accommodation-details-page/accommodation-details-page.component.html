@@ -1,0 +1,56 @@
+<app-header></app-header>
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Information</title>
+    
+</head>
+
+<body>
+    <div class="container">
+        <div class="name">
+            <h1><strong>{{accommodation.name}}</strong></h1>
+        </div>
+        
+        <div class="picture">
+            <!-- Replace 'image_url_here' with the actual URL of the picture -->
+            <img src="\assets\pictures\air.png" alt="Picture">
+            <img src="\assets\pictures\air.png" alt="Picture">
+            <img src="\assets\pictures\air.png" alt="Picture">
+        </div>
+
+        <div class="location">
+            <h2>Location:</h2>
+            <p>{{accommodation.location}}</p>
+        </div>
+
+        <div class="conveniences">
+            <h2>Conveniences:</h2>
+            <p>
+                {{accommodation.conveniences}}
+            </p>
+        </div>
+
+        <div class="visitor-info">
+            <div class="min-max-visitors">
+                <div class="min-visitors">
+                    <h2>Minimum number of visitors: {{accommodation.minNumOfVisitors}}</h2>
+                    
+                </div>
+                <div class="max-visitors">
+                    <h2>Maximum number of visitors: {{accommodation.maxNumOfVisitors}}</h2>
+                    
+                </div>
+            </div>
+        </div>
+        <app-button size="md" color="blue" class="update__button" type="submit" (click)="updateClick()">
+            Update Accommodation
+        </app-button
+        >
+    </div>
+</body>
+
+</html>

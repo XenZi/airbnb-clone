@@ -1,6 +1,26 @@
 
 <form [formGroup]="reservationForm" (ngSubmit)="submitReservation()" class="form">
-
+  <div class="form__group">
+    <label for="accommodationId" class="form__label">Accommodation ID</label>
+    <input
+      type="text"
+      id="accommodationId"
+      class="form__input"
+      placeholder="Enter accommodation ID"
+      formControlName="accommodationId"
+    />
+    <div class="form__error-container">
+      <p
+        *ngIf="
+          reservationForm.get('accommodationId')?.hasError('required') &&
+          reservationForm.get('accommodationId')?.touched
+        "
+        class="form__error"
+      >
+        Accommodation ID is required.
+      </p>
+    </div>
+  </div>
   <div class="form__group">
     <label for="startDate" class="form__label">Start Date</label>
     <input
