@@ -38,7 +38,7 @@ const routes: Routes = [
     path: 'profile/:id',
     component: UserProfilePageComponent,
   },
-  
+
   { path: 'create-reservation', component: ReservationFormComponent },
 ];
 
