@@ -15,14 +15,14 @@ import { formatErrors } from 'src/app/utils/formatter.utils';
 @Component({
   selector: 'app-form-update-user-profile',
   templateUrl: './form-update-user-profile.component.html',
-  styleUrls: ['./form-update-user-profile.component.scss']
+  styleUrls: ['./form-update-user-profile.component.scss'],
 })
 export class FormUpdateUserProfileComponent {
-  @Input() userID!:string
+  @Input() userID!: string;
 
   updateProfileForm: FormGroup;
-  loggedUser!: UserAuth | null
-  user!: User
+  loggedUser!: UserAuth | null;
+  @Input() user!: User;
   errors: string = '';
   isCaptchaValidated: boolean = false;
 
@@ -31,7 +31,7 @@ export class FormUpdateUserProfileComponent {
     private formBuilder: FormBuilder,
     private toastService: ToastService,
     private userService: UserService
-  ){
+  ) {
     this.updateProfileForm = this.formBuilder.group({
       firstName: [''],
       lastName: [''],
@@ -39,58 +39,70 @@ export class FormUpdateUserProfileComponent {
       residence: [''],
       username: [''],
       age: [''],
-    })
+    });
   }
-  ngOnInit(){
-
+  ngOnInit() {
+    console.log(this.user);
     this.getUserInfo();
-    setTimeout(() => {
-      this.updateProfileForm = this.formBuilder.group({
-        firstName: [this.user.firstName, Validators.required],
-        lastName: [this.user.lastName, Validators.required],
-        email: [this.user.email, Validators.required],
-        residence: [this.user.residence, Validators.required],
-        username: [this.user.username, Validators.required],
-        age: [this.user.age, Validators.required]
-      });
-    }, 300);
-
+    // setTimeout(() => {
+    //   this.updateProfileForm = this.formBuilder.group({
+    //     firstName: [this.user.firstName, Validators.required],
+    //     lastName: [this.user.lastName, Validators.required],
+    //     email: [this.user.email, Validators.required],
+    //     residence: [this.user.residence, Validators.required],
+    //     username: [this.user.username, Validators.required],
+    //     age: [this.user.age, Validators.required],
+    //   });
+    // }, 300);
   }
 
-  getUserInfo(){
-   this.loggedUser = this.userService.getLoggedUser()
-   this.profileService.getUserById(this.loggedUser?.id as string).subscribe((data) => {
-    this.user = data
-   })
-   if (this.user === undefined){
-    this.user = {
-      id: "id ssl mock",
-      firstName: "ime ssl mock",
-      lastName: "prezime ssl mock",
-      email: "mail ssl mock",
-      residence: "rezidencija ssl mock",
-      role: Role.Guest,
-      username: "username ssl mock",
-      age: 25,
+  getUserInfo() {
+    console.log('asdsdadas');
+    this.loggedUser = this.userService.getLoggedUser();
+    console.log('asdsdadas');
+    this.profileService.getUserById(this.user.id as string).subscribe({
+      next: (data) => {
+        console.log(data.data);
+        this.user = data.data;
+        this.updateProfileForm = this.formBuilder.group({
+          firstName: [this.user.firstName, Validators.required],
+          lastName: [this.user.lastName, Validators.required],
+          email: [this.user.email, Validators.required],
+          residence: [this.user.residence, Validators.required],
+          username: [this.user.username, Validators.required],
+          age: [this.user.age, Validators.required],
+        });
+      },
+    });
+    if (this.user === undefined) {
+      this.user = {
+        id: 'id ssl mock',
+        firstName: 'ime ssl mock',
+        lastName: 'prezime ssl mock',
+        email: 'mail ssl mock',
+        residence: 'rezidencija ssl mock',
+        role: Role.Guest,
+        username: 'username ssl mock',
+        age: 25,
+      };
+      this.loggedUser = {
+        id: 'id ssl mock',
+        email: 'mail ssl mock',
+        role: Role.Guest,
+        username: 'username ssl mock',
+        confirmed: true,
+      };
     }
-    this.loggedUser ={
-      id: "id ssl mock",
-      email: "mail ssl mock",
-      role: Role.Guest,
-      username: "username ssl mock",
-      confirmed: true
-    }
-  } 
   }
 
-  onSubmit(e: Event){
-    e.preventDefault()
+  onSubmit(e: Event) {
+    e.preventDefault();
 
-    if (!this.updateProfileForm.valid){
-      console.log("yee")
-      Object.keys(this.updateProfileForm.controls).forEach((key) =>{
+    if (!this.updateProfileForm.valid) {
+      console.log('yee');
+      Object.keys(this.updateProfileForm.controls).forEach((key) => {
         const controlErrors = this.updateProfileForm.get(key)?.errors;
-        if (controlErrors){
+        if (controlErrors) {
           this.errors += formatErrors(key);
         }
       });
@@ -110,17 +122,7 @@ export class FormUpdateUserProfileComponent {
       this.updateProfileForm.value.residence,
       this.user.role,
       this.updateProfileForm.value.username,
-      this.updateProfileForm.value.age,
-
-    )
-    
-
-
-
+      this.updateProfileForm.value.age
+    );
   }
-
-
-
-
 }
-

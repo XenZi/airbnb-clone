@@ -11,10 +11,9 @@ import { Observable } from 'rxjs';
 import { Accommodation } from 'src/app/domains/entity/accommodation-model';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class AccommodationsService {
-
   constructor(
     private localStorageService: LocalStorageService,
     private http: HttpClient,
@@ -28,8 +27,7 @@ export class AccommodationsService {
     location: string,
     conveniences: string,
     minNumOfVisitors: string,
-    maxNumOfVisitors: string,
-    
+    maxNumOfVisitors: string
   ): void {
     this.http
       .post(`${apiURL}/accommodations/`, {
@@ -38,7 +36,6 @@ export class AccommodationsService {
         conveniences,
         minNumOfVisitors,
         maxNumOfVisitors,
-        
       })
       .subscribe({
         next: (data) => {
@@ -46,12 +43,12 @@ export class AccommodationsService {
             'Success',
             'Accommodation created!',
             ToastNotificationType.Success
-            
           );
           this.modalService.close();
           this.router.navigate(['/']);
         },
         error: (err) => {
+          console.log(err);
           this.toastSerice.showToast(
             'Error',
             err.error.error,
@@ -59,60 +56,46 @@ export class AccommodationsService {
           );
         },
       });
-      this.router.navigate(['/']);
-      window.location.reload();
+    // this.router.navigate(['/']);
+    // window.location.reload();
   }
 
-  public loadAccommodations():Observable<Accommodation[]>{
-    return this.http.get<Accommodation[]>(`${apiURL}/accommodations/`)
+  public loadAccommodations(): Observable<Accommodation[]> {
+    return this.http.get<Accommodation[]>(`${apiURL}/accommodations/`);
   }
 
   public getAccommodationById(id: string): Observable<Accommodation> {
     return this.http.get<Accommodation>(`${apiURL}/accommodations/${id}`);
   }
 
-  deleteById(
-    id:string,
-    
-    
-  ): void {
-    this.http
-      .delete(`${apiURL}/accommodations/${id}`, {
-       
-      })
-      .subscribe({
-        next: (data) => {
-          this.toastSerice.showToast(
-            'Success',
-            'Accommodation updated!',
-            ToastNotificationType.Success
-            
-          );
-          this.router.navigate(['/'])
-          window.location.reload();
-          
-        },
-        error: (err) => {
-          this.toastSerice.showToast(
-            'Error',
-            err.error.error,
-            ToastNotificationType.Error
-            );
-          },
-        });
+  deleteById(id: string): void {
+    this.http.delete(`${apiURL}/accommodations/${id}`, {}).subscribe({
+      next: (data) => {
+        this.toastSerice.showToast(
+          'Success',
+          'Accommodation updated!',
+          ToastNotificationType.Success
+        );
         this.router.navigate(['/']);
         window.location.reload();
-
+      },
+      error: (err) => {
+        this.toastSerice.showToast(
+          'Error',
+          err.error.error,
+          ToastNotificationType.Error
+        );
+      },
+    });
   }
 
   update(
-    id:string,
+    id: string,
     name: string,
     location: string,
     conveniences: string,
-    minNumOfVisitors:number,
-    maxNumOfVisitors: number,
-    
+    minNumOfVisitors: number,
+    maxNumOfVisitors: number
   ): void {
     this.http
       .put(`${apiURL}/accommodations/${id}`, {
@@ -121,7 +104,6 @@ export class AccommodationsService {
         conveniences,
         minNumOfVisitors,
         maxNumOfVisitors,
-        
       })
       .subscribe({
         next: (data) => {
@@ -129,12 +111,10 @@ export class AccommodationsService {
             'Success',
             'Accommodation updated!',
             ToastNotificationType.Success
-            
           );
           this.modalService.close();
           window.location.reload();
-          this.router.navigate(['/accommodations',id]);
-          
+          this.router.navigate(['/accommodations', id]);
         },
         error: (err) => {
           this.toastSerice.showToast(
@@ -145,7 +125,4 @@ export class AccommodationsService {
         },
       });
   }
-
-  
-
 }
