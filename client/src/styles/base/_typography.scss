@@ -22,10 +22,6 @@ p {
   font-size: $font-size-sm;
 }
 
-.text__bold {
-  font-weight: bold;
-}
-
 .text--white {
   color: #fff; /* --white */
 }
@@ -56,4 +52,12 @@ p {
 
 .text--black {
   color: #212529; /* --black */
+}
+
+.text--light {
+  font-weight: 400;
+}
+
+.text--bold {
+  font-weight: 600;
 }

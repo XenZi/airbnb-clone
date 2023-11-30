@@ -34,6 +34,9 @@ import { TopLevelInfoComponent } from './components/top-level-info/top-level-inf
 import { UserProfilePageComponent } from './pages/user-profile-page/user-profile-page.component';
 import { FormUpdateUserProfileComponent } from './forms/form-update-user-profile/form-update-user-profile.component';
 import { FormUpdateAccommodationComponent } from './forms/form-update-accommodation/form-update-accommodation.component';
+import { AccommodationPhotosComponent } from './components/accommodation-photos/accommodation-photos.component';
+import { AccommodationDetailsComponent } from './components/accommodation-details/accommodation-details.component';
+import { ReservationComponent } from './components/reservation/reservation.component';
 @NgModule({
   declarations: [
     AppComponent,
@@ -63,6 +66,9 @@ import { FormUpdateAccommodationComponent } from './forms/form-update-accommodat
     UserProfilePageComponent,
     FormUpdateUserProfileComponent,
     FormUpdateAccommodationComponent,
+    AccommodationPhotosComponent,
+    AccommodationDetailsComponent,
+    ReservationComponent,
   ],
   imports: [
     BrowserModule,
