@@ -15,6 +15,7 @@ import { ProfileService } from 'src/app/services/profile/profile.service';
 export class UserProfilePageComponent {
   profileID: string | undefined
   user!: User
+  
 
   constructor(
     private route: ActivatedRoute,

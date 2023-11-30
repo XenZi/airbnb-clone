@@ -59,7 +59,7 @@ export class FormUpdateUserProfileComponent {
 
   getUserInfo(){
    this.loggedUser = this.userService.getLoggedUser()
-   this.profileService.getUserById(this.loggedUser?.id as string).subscribe((data) => {
+   this.profileService.getUserById(this.user.id as string).subscribe((data) => {
     this.user = data
    })
    if (this.user === undefined){
