@@ -37,6 +37,8 @@ import { FormUpdateAccommodationComponent } from './forms/form-update-accommodat
 import { AccommodationPhotosComponent } from './components/accommodation-photos/accommodation-photos.component';
 import { AccommodationDetailsComponent } from './components/accommodation-details/accommodation-details.component';
 import { ReservationComponent } from './components/reservation/reservation.component';
+import { CalendarComponent } from './components/calendar/calendar.component';
+import { CalendarModule } from '@syncfusion/ej2-angular-calendars';
 @NgModule({
   declarations: [
     AppComponent,
@@ -69,6 +71,7 @@ import { ReservationComponent } from './components/reservation/reservation.compo
     AccommodationPhotosComponent,
     AccommodationDetailsComponent,
     ReservationComponent,
+    CalendarComponent,
   ],
   imports: [
     BrowserModule,
@@ -78,6 +81,7 @@ import { ReservationComponent } from './components/reservation/reservation.compo
     ReactiveFormsModule,
     RecaptchaModule,
     RecaptchaFormsModule,
+    CalendarModule,
   ],
   providers: [
     {

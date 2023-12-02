@@ -1,0 +1,12 @@
+.cal-open-day-events,
+.cal-drag-over {
+  visibility: hidden !important;
+  opacity: 0 !important;
+  display: none !important;
+}
+
+.cal-month-view .cal-open-day-events {
+  display: none;
+  opacity: 0;
+  visibility: hidden;
+}
