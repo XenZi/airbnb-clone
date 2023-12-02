@@ -22,7 +22,12 @@ export class AccommodationsService {
     private router: Router
   ) {}
 
+  username=localStorage.getItem("username")
+  
+
   create(
+    userId:string,
+    username:string,
     name: string,
     location: string,
     conveniences: string,
@@ -31,6 +36,8 @@ export class AccommodationsService {
   ): void {
     this.http
       .post(`${apiURL}/accommodations/`, {
+        userId,
+        username,
         name,
         location,
         conveniences,

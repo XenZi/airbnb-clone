@@ -85,6 +85,12 @@ func (a *AccommodationsHandler) UpdateAccommodationById(rw http.ResponseWriter, 
 	decoder := json.NewDecoder(r.Body)
 	decoder.DisallowUnknownFields()
 
+	_, err := a.AccommodationService.GetAccommodationById(accommodationId)
+	if err != nil {
+		utils.WriteErrorResp(err.GetErrorMessage(), http.StatusInternalServerError, "api/accommodations/"+accommodationId, rw)
+		return
+	}
+
 	var updatedAccommodation domain.Accommodation
 	decodeErr := decoder.Decode(&updatedAccommodation)
 	if decodeErr != nil {

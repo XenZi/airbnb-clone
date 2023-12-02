@@ -15,9 +15,13 @@ export class BasePageComponent {
 
   ngOnInit() {
     this.loadAccommodations();
+    console.log(localStorage.getItem('user'))
+    
   }
 
   private loadAccommodations() {
     this.accommodations = this.accommodationService.loadAccommodations();
   }
+
+  
 }

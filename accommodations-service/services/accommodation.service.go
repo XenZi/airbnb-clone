@@ -7,7 +7,6 @@ import (
 	"accommodations-service/utils"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"log"
-	"strconv"
 )
 
 type AccommodationService struct {
@@ -35,10 +34,13 @@ func (as *AccommodationService) CreateAccommodation(accommodation domain.Accommo
 	accomm := domain.Accommodation{
 		Name:             accommodation.Name,
 		Location:         accommodation.Location,
+		UserName:         accommodation.UserName,
+		UserId:           accommodation.UserId,
 		Conveniences:     accommodation.Conveniences,
 		MinNumOfVisitors: accommodation.MinNumOfVisitors,
 		MaxNumOfVisitors: accommodation.MaxNumOfVisitors,
 	}
+	log.Println(accomm)
 	newAccommodation, foundErr := as.accommodationRepository.SaveAccommodation(accomm)
 	if foundErr != nil {
 		return nil, foundErr
@@ -48,6 +50,8 @@ func (as *AccommodationService) CreateAccommodation(accommodation domain.Accommo
 	return &domain.AccommodationDTO{
 		Id:               id,
 		Name:             accommodation.Name,
+		UserName:         accommodation.UserName,
+		UserId:           accommodation.UserId,
 		Location:         accommodation.Location,
 		Conveniences:     accommodation.Conveniences,
 		MinNumOfVisitors: accommodation.MinNumOfVisitors,
@@ -68,6 +72,8 @@ func (as *AccommodationService) GetAllAccommodations() ([]*domain.AccommodationD
 		domainAccommodations = append(domainAccommodations, &domain.AccommodationDTO{
 			Id:               id,
 			Name:             accommodation.Name,
+			UserName:         accommodation.UserName,
+			UserId:           accommodation.UserId,
 			Location:         accommodation.Location,
 			Conveniences:     accommodation.Conveniences,
 			MinNumOfVisitors: accommodation.MinNumOfVisitors,
@@ -86,6 +92,8 @@ func (as *AccommodationService) GetAccommodationById(accommodationId string) (*d
 	return &domain.Accommodation{
 		Id:               primitive.ObjectID(id),
 		Name:             accomm.Name,
+		UserName:         accomm.UserName,
+		UserId:           accomm.UserId,
 		Location:         accomm.Location,
 		Conveniences:     accomm.Conveniences,
 		MinNumOfVisitors: accomm.MinNumOfVisitors,
@@ -95,90 +103,18 @@ func (as *AccommodationService) GetAccommodationById(accommodationId string) (*d
 }
 
 func (as *AccommodationService) UpdateAccommodation(updatedAccommodation domain.Accommodation) (*domain.Accommodation, *errors.ErrorStruct) {
-	//as.validator.ValidateAccommodation(&updatedAccommodation)
-	log.Println(updatedAccommodation)
-
-	accommodation, _ := as.accommodationRepository.GetAccommodationById(updatedAccommodation.Id.Hex())
-	//Check if Name is updated
-	if len(updatedAccommodation.Name) != 0 {
-		as.validator.ValidateName(updatedAccommodation.Name)
-		validatorErrors := as.validator.GetErrors()
-		if len(validatorErrors) > 0 {
-			var constructedError string
-			for _, message := range validatorErrors {
-				constructedError += message + "\n"
-			}
-			return nil, errors.NewError(constructedError, 400)
+	as.validator.ValidateAccommodation(&updatedAccommodation)
+	validatorErrors := as.validator.GetErrors()
+	if len(validatorErrors) > 0 {
+		var constructedError string
+		for _, message := range validatorErrors {
+			constructedError += message + "\n"
 		}
-		accommodation.Name = updatedAccommodation.Name
-	}
-	//Check if location is updated
-	if len(updatedAccommodation.Location) != 0 {
-		as.validator.ValidateLocation(updatedAccommodation.Location)
-		validatorErrors := as.validator.GetErrors()
-		if len(validatorErrors) > 0 {
-			var constructedError string
-			for _, message := range validatorErrors {
-				constructedError += message + "\n"
-			}
-			return nil, errors.NewError(constructedError, 400)
-		}
-		accommodation.Location = updatedAccommodation.Location
-	}
-	//Check if conviniences are updated
-
-	if len(updatedAccommodation.Conveniences) != 0 {
-		as.validator.ValidateName(updatedAccommodation.Conveniences)
-		validatorErrors := as.validator.GetErrors()
-		if len(validatorErrors) > 0 {
-			var constructedError string
-			for _, message := range validatorErrors {
-				constructedError += message + "\n"
-			}
-			return nil, errors.NewError(constructedError, 400)
-		}
-		accommodation.Conveniences = updatedAccommodation.Conveniences
-	}
-
-	//Check if min number is updated
-	if updatedAccommodation.MinNumOfVisitors != 0 {
-		log.Println("Uslo je u min num of visitors")
-		as.validator.ValidateMinNum(strconv.Itoa(updatedAccommodation.MinNumOfVisitors))
-		validatorErrors := as.validator.GetErrors()
-		if len(validatorErrors) > 0 {
-			var constructedError string
-			for _, message := range validatorErrors {
-				constructedError += message + "\n"
-			}
-			return nil, errors.NewError(constructedError, 400)
-		}
-
-		accommodation.MinNumOfVisitors = updatedAccommodation.MinNumOfVisitors
-
-	}
-
-	//Check if max number is updated
-	if updatedAccommodation.MaxNumOfVisitors != 0 {
-		as.validator.ValidateMinNum(strconv.Itoa(updatedAccommodation.MaxNumOfVisitors))
-		validatorErrors := as.validator.GetErrors()
-		if len(validatorErrors) > 0 {
-			var constructedError string
-			for _, message := range validatorErrors {
-				constructedError += message + "\n"
-			}
-			return nil, errors.NewError(constructedError, 400)
-		}
-		accommodation.MaxNumOfVisitors = updatedAccommodation.MaxNumOfVisitors
-
-	}
-
-	if accommodation.MinNumOfVisitors > accommodation.MaxNumOfVisitors {
-
-		return nil, errors.NewError("Min number is higher than max number!", 400)
+		return nil, errors.NewError(constructedError, 400)
 	}
 
 	log.Println("Prije update")
-	_, updateErr := as.accommodationRepository.UpdateAccommodationById(*accommodation)
+	_, updateErr := as.accommodationRepository.UpdateAccommodationById(updatedAccommodation)
 	if updateErr != nil {
 		return nil, errors.NewError("Unable to update", 500)
 	}
@@ -187,6 +123,8 @@ func (as *AccommodationService) UpdateAccommodation(updatedAccommodation domain.
 	return &domain.Accommodation{
 		Id:               updatedAccommodation.Id,
 		Name:             updatedAccommodation.Name,
+		UserName:         updatedAccommodation.UserName,
+		UserId:           updatedAccommodation.UserId,
 		Location:         updatedAccommodation.Location,
 		Conveniences:     updatedAccommodation.Conveniences,
 		MinNumOfVisitors: updatedAccommodation.MinNumOfVisitors,

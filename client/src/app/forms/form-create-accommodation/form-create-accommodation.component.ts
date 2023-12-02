@@ -24,6 +24,8 @@ export class FormCreateAccommodationComponent {
   
   errors: string = '';
   isCaptchaValidated: boolean = false;
+  userId!:string ;
+  username!:string;
   
   constructor(
     private accommodationsService:AccommodationsService,
@@ -44,6 +46,24 @@ export class FormCreateAccommodationComponent {
       minNumOfVisitors: ['', [Validators.required]],
       maxNumOfVisitors: ['', [Validators.required]],
     });
+  }
+
+  ngOnInit(){
+    this.getUsernameFromLocal()
+  }
+
+  getUsernameFromLocal(){
+    const userData = localStorage.getItem('user');
+
+    if(userData) {
+      const parsedUserData = JSON.parse(userData);
+      this.userId=parsedUserData.id
+      this.username = parsedUserData.username;
+      console.log(this.username); // This will log the value of the "username" key
+    } else {
+      console.log('No user data found in localStorage');
+    }
+    
   }
 
  
@@ -69,7 +89,8 @@ export class FormCreateAccommodationComponent {
       return;
     }
     this.accommodationsService.create(
-      
+      this.userId,
+      this.username,
       this.createAccommodationForm.value.name,
       this.createAccommodationForm.value.location,
       this.createAccommodationForm.value.conveniences,

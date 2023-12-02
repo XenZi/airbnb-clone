@@ -2,6 +2,7 @@ import { ModalService } from './../../services/modal/modal.service';
 import { Component } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { Accommodation } from 'src/app/domains/entity/accommodation-model';
+import { User } from 'src/app/domains/entity/user-profile.model';
 import { FormUpdateAccommodationComponent } from 'src/app/forms/form-update-accommodation/form-update-accommodation.component';
 import { AccommodationsService } from 'src/app/services/accommodations-service/accommodations.service';
 
@@ -13,6 +14,7 @@ import { AccommodationsService } from 'src/app/services/accommodations-service/a
 export class AccommodationDetailsPageComponent {
   accommodationID!: string;
   accommodation!: Accommodation;
+  
 
   constructor(
     private route: ActivatedRoute,
@@ -39,6 +41,19 @@ export class AccommodationDetailsPageComponent {
     this.route.paramMap.subscribe((params) => {
       this.accommodationID = String(params.get('id'));
     });
+  }
+  
+  getUsernameFromLocal(){
+    const userData = localStorage.getItem('user');
+
+    if(userData) {
+      const parsedUserData = JSON.parse(userData);
+      const username = parsedUserData.username;
+      console.log(username); // This will log the value of the "username" key
+    } else {
+      console.log('No user data found in localStorage');
+    }
+    
   }
 
   getAccommodationById() {
