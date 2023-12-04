@@ -16,6 +16,7 @@ import (
 
 	gorillaHandlers "github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
+	"github.com/sony/gobreaker"
 )
 
 func main() {
@@ -30,12 +31,35 @@ func main() {
 	mailServiceHost := os.Getenv("MAIL_SERVICE_HOST")
 	mailServicePort := os.Getenv("MAIL_SERVICE_PORT")
 	port := os.Getenv("PORT")
-
+	userServiceHost := os.Getenv("USER_SERVICE_HOST")
+	userServicePort := os.Getenv("USER_SERVICE_PORT")
+	
 	// clients
 
 	customHttpMailClient := &http.Client{Timeout: time.Second * 10}
 	mailClient := client.NewMailClient(mailServiceHost, mailServicePort, customHttpMailClient)
 
+	customUserServiceClient := &http.Client{
+		Transport: &http.Transport{
+			MaxIdleConns: 10,
+			MaxIdleConnsPerHost: 10,
+			MaxConnsPerHost: 10,
+		},
+	}
+	
+	userServiceCircuitBreaker := gobreaker.NewCircuitBreaker(
+		gobreaker.Settings{
+			Name: "user-service",
+			MaxRequests: 1,
+			Timeout: 10 * time.Second,
+			Interval: 0,
+			OnStateChange: func(name string, from gobreaker.State, to gobreaker.State) {
+				log.Printf("Circuit Breaker %v: %v -> %v", name, from, to)
+			},
+		},
+	)
+
+	userClient := client.NewUserClient(userServiceHost, userServicePort, customUserServiceClient, userServiceCircuitBreaker)
 	// services
 	mongoService, err := services.New(timeoutContext, logger)
 	if err != nil {
@@ -51,7 +75,7 @@ func main() {
 	keyByte := []byte(jwtSecretKey)
 	jwtService := services.NewJWTService(keyByte)
 	encryptionService := &services.EncryptionService{SecretKey: secretKey}
-	userService := services.NewUserService(userRepo, passwordService, jwtService, validator, encryptionService, mailClient)
+	userService := services.NewUserService(userRepo, passwordService, jwtService, validator, encryptionService, mailClient, userClient)
 	authHandler := handler.AuthHandler{
 		UserService: userService,
 	}
