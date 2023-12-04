@@ -1,0 +1,37 @@
+.form__checkboxes label{
+    padding-right: 5px;
+}
+
+/* Style unchecked checkboxes with red border */
+.form__checkboxes input[type="checkbox"] {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    width: 20px; /* Adjust size as needed */
+    height: 20px; /* Adjust size as needed */
+    border: 2px solid red; /* Red border for unchecked checkboxes */
+    border-radius: 3px; /* Rounded corners */
+    outline: none;
+    cursor: pointer;
+  }
+  
+  /* Style checked checkboxes with red background and white checkmark */
+  .form__checkboxes input[type="checkbox"]:checked {
+    background-color: red; /* Red background for checked checkboxes */
+  }
+  
+  /* Hide default checkbox checkmark */
+  
+  /* Style the custom checkmark with a white checkmark */
+  .form__checkboxes input[type="checkbox"]:checked::before {
+    content: "\2713"; /* Unicode checkmark character */
+    display: flex;
+    align-items: center;
+    ; /* Match checkbox height */
+    color: white; /* White checkmark color */
+  }
+  
+  .date-price-container{
+    padding: 5px;
+    outline: 1px solid;
+  }

@@ -39,6 +39,7 @@ import { AccommodationDetailsComponent } from './components/accommodation-detail
 import { ReservationComponent } from './components/reservation/reservation.component';
 import { CalendarComponent } from './components/calendar/calendar.component';
 import { CalendarModule } from '@syncfusion/ej2-angular-calendars';
+import { FormDefineAvailabilityComponent } from './forms/form-define-availability/form-define-availability.component';
 @NgModule({
   declarations: [
     AppComponent,
@@ -72,6 +73,7 @@ import { CalendarModule } from '@syncfusion/ej2-angular-calendars';
     AccommodationDetailsComponent,
     ReservationComponent,
     CalendarComponent,
+    FormDefineAvailabilityComponent,
   ],
   imports: [
     BrowserModule,

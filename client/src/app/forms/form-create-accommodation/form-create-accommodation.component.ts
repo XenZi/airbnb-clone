@@ -42,7 +42,11 @@ export class FormCreateAccommodationComponent {
         ],
       ],
       location: ['', [Validators.required]],
-      conveniences: [''],
+        wiFi: [false],
+        kitchen: [false],
+        airConditioning: [false],
+        freeParking: [false],
+        pool: [false],
       minNumOfVisitors: ['', [Validators.required]],
       maxNumOfVisitors: ['', [Validators.required]],
     });
@@ -65,7 +69,7 @@ export class FormCreateAccommodationComponent {
     }
     
   }
-
+ 
  
 
   
@@ -88,12 +92,30 @@ export class FormCreateAccommodationComponent {
       this.errors = '';
       return;
     }
+    const conveniencesForm = this.createAccommodationForm.get('conveniences');
+
+    
+  
+      
+  
+      const wiFi = this.createAccommodationForm.value.wiFi ? 'Wi-Fi' : '';
+      const kitchen = this.createAccommodationForm.value.kitchen ? 'Kitchen' : '';
+      const airConditioning = this.createAccommodationForm.value.airConditioning ? 'Air Conditioning' : '';
+      const freeParking = this.createAccommodationForm.value.freeParking ? 'Free Parking' : '';
+      const pool = this.createAccommodationForm.value.pool ? 'Pool' : '';
+
+// Concatenate values into a CSV string
+const conveniencesCsv = [wiFi, kitchen, airConditioning, freeParking, pool].filter(Boolean).join(', ');
+
+console.log('CSV string:', conveniencesCsv);
+    
+
     this.accommodationsService.create(
       this.userId,
       this.username,
       this.createAccommodationForm.value.name,
       this.createAccommodationForm.value.location,
-      this.createAccommodationForm.value.conveniences,
+      conveniencesCsv,
       this.createAccommodationForm.value.minNumOfVisitors,
       this.createAccommodationForm.value.maxNumOfVisitors
 

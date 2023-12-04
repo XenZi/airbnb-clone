@@ -61,16 +61,26 @@
       </div>
     </div>
     <div class="form__group">
-      <label for="conveniences" class="form__label">Conveniences</label>
-      <input
-        type="text"
-        id="conveniences"
-        class="form__input"
-        placeholder="Insert your conveniences separated with comma..."
-        formControlName="conveniences"
-      />
+      <label class="form__label">Conveniences</label>
+      <div class="form__checkboxes">
+        <label>
+          <input type="checkbox" formControlName="wiFi" /> Wi-Fi
+        </label>
+        <label>
+          <input type="checkbox" formControlName="kitchen" /> Kitchen
+        </label>
+        <label>
+          <input type="checkbox" formControlName="airConditioning" /> Air conditioning
+        </label>
+        <label>
+          <input type="checkbox" formControlName="freeParking" /> Free Parking
+        </label>
+        <label>
+          <input type="checkbox" formControlName="pool" /> Pool
+        </label>
+      </div>
       <div class="form__error-container">
-        
+        <!-- Error messages can be displayed here if needed -->
       </div>
     </div>
     <div class="form__group">
@@ -115,6 +125,7 @@
           </p>
         </div>
     </div>
+    
    
     <app-button size="md" color="rose" class="form__button" type="submit">
         Create Accommodation
