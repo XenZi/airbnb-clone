@@ -1,5 +1,8 @@
-
-<form [formGroup]="reservationForm" (ngSubmit)="submitReservation()" class="form">
+<form
+  [formGroup]="reservationForm"
+  (ngSubmit)="submitReservation()"
+  class="form"
+>
   <div class="form__group">
     <label for="accommodationId" class="form__label">Accommodation ID</label>
     <input
@@ -29,8 +32,7 @@
       class="form__input"
       formControlName="startDate"
     />
-    <div class="form__error-container">
-    </div>
+    <div class="form__error-container"></div>
   </div>
 
   <div class="form__group">
@@ -41,8 +43,7 @@
       class="form__input"
       formControlName="endDate"
     />
-    <div class="form__error-container">
-    </div>
+    <div class="form__error-container"></div>
   </div>
 
   <div class="form__group">
@@ -68,7 +69,9 @@
   </div>
 
   <div class="form__group">
-    <label for="accommodationName" class="form__label">Accommodation Name</label>
+    <label for="accommodationName" class="form__label"
+      >Accommodation Name</label
+    >
     <input
       type="text"
       id="accommodationName"
@@ -76,9 +79,10 @@
       placeholder="Enter accommodation name"
       formControlName="accommodationName"
     />
-    <div class="form__error-container">
-    </div>
+    <div class="form__error-container"></div>
   </div>
-
-  <button type="submit" class="form__button">Create Reservation</button>
+  <app-calendar></app-calendar>
+  <app-button size="md" color="rose" class="form__button" type="submit"
+    >Confirm</app-button
+  >
 </form>

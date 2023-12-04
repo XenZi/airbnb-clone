@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+
 	"github.com/gorilla/mux"
 
 	gorillaHandlers "github.com/gorilla/handlers"
@@ -50,7 +51,7 @@ func main() {
 
 	headersOk := gorillaHandlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"})
 	methodsOk := gorillaHandlers.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "OPTIONS", "DELETE"})
-	originsOk := gorillaHandlers.AllowedOrigins([]string{"http://localhost:4200"})
+	originsOk := gorillaHandlers.AllowedOrigins([]string{"http://localhost:4200", "http://localhost:58495"})
 	server := http.Server{
 		Addr:         ":" + port,
 		Handler:      gorillaHandlers.CORS(headersOk, methodsOk, originsOk)(router),

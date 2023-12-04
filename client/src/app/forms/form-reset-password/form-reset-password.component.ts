@@ -14,7 +14,7 @@ import { customPasswordStrengthValidator } from 'src/app/utils/validations.utils
 })
 export class FormResetPasswordComponent {
   resetPasswordForm: FormGroup;
-  errors: string = '';
+  errors: string[] = [];
   token!: string;
   constructor(
     private formBuilder: FormBuilder,
@@ -39,19 +39,14 @@ export class FormResetPasswordComponent {
 
   onSubmit(e: Event) {
     e.preventDefault();
+    this.errors = [];
     if (!this.resetPasswordForm.valid) {
       Object.keys(this.resetPasswordForm.controls).forEach((key) => {
         const controlErrors = this.resetPasswordForm.get(key)?.errors;
         if (controlErrors) {
-          this.errors += formatErrors(key);
+          this.errors.push(formatErrors(key));
         }
       });
-      this.toastService.showToast(
-        'Error',
-        this.errors,
-        ToastNotificationType.Error
-      );
-      this.errors = '';
       return;
     }
     if (

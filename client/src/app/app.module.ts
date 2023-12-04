@@ -19,7 +19,6 @@ import { RecaptchaFormsModule, RecaptchaModule } from 'ng-recaptcha';
 import { ConfirmAccountPageComponent } from './pages/confirm-account-page/confirm-account-page.component';
 import { BasePageComponent } from './pages/base-page/base-page.component';
 import { ConfirmingAccInfoComponent } from './components/confirming-acc-info/confirming-acc-info.component';
-import { FormForgotPasswordComponent } from './forms/form-forgot-password/form-forgot-password.component';
 import { ResetPasswordPageComponent } from './pages/reset-password-page/reset-password-page.component';
 import { FormResetPasswordComponent } from './forms/form-reset-password/form-reset-password.component';
 import { FormRequestResetPasswordComponent } from './forms/form-request-reset-password/form-request-reset-password.component';
@@ -32,7 +31,14 @@ import { FormCreateAccommodationComponent } from './forms/form-create-accommodat
 import { AccommodationCardComponent } from './components/accommodation-card/accommodation-card.component';
 import { AccommodationDetailsPageComponent } from './pages/accommodation-details-page/accommodation-details-page.component';
 import { TopLevelInfoComponent } from './components/top-level-info/top-level-info.component';
+import { UserProfilePageComponent } from './pages/user-profile-page/user-profile-page.component';
+import { FormUpdateUserProfileComponent } from './forms/form-update-user-profile/form-update-user-profile.component';
 import { FormUpdateAccommodationComponent } from './forms/form-update-accommodation/form-update-accommodation.component';
+import { AccommodationPhotosComponent } from './components/accommodation-photos/accommodation-photos.component';
+import { AccommodationDetailsComponent } from './components/accommodation-details/accommodation-details.component';
+import { ReservationComponent } from './components/reservation/reservation.component';
+import { CalendarComponent } from './components/calendar/calendar.component';
+import { CalendarModule } from '@syncfusion/ej2-angular-calendars';
 @NgModule({
   declarations: [
     AppComponent,
@@ -48,7 +54,6 @@ import { FormUpdateAccommodationComponent } from './forms/form-update-accommodat
     ConfirmAccountPageComponent,
     BasePageComponent,
     ConfirmingAccInfoComponent,
-    FormForgotPasswordComponent,
     ResetPasswordPageComponent,
     FormResetPasswordComponent,
     FormRequestResetPasswordComponent,
@@ -60,7 +65,13 @@ import { FormUpdateAccommodationComponent } from './forms/form-update-accommodat
     AccommodationCardComponent,
     AccommodationDetailsPageComponent,
     TopLevelInfoComponent,
+    UserProfilePageComponent,
+    FormUpdateUserProfileComponent,
     FormUpdateAccommodationComponent,
+    AccommodationPhotosComponent,
+    AccommodationDetailsComponent,
+    ReservationComponent,
+    CalendarComponent,
   ],
   imports: [
     BrowserModule,
@@ -70,6 +81,7 @@ import { FormUpdateAccommodationComponent } from './forms/form-update-accommodat
     ReactiveFormsModule,
     RecaptchaModule,
     RecaptchaFormsModule,
+    CalendarModule,
   ],
   providers: [
     {

@@ -5,6 +5,7 @@ import { BasePageComponent } from './pages/base-page/base-page.component';
 import { ResetPasswordPageComponent } from './pages/reset-password-page/reset-password-page.component';
 import { RoleBasedPageComponent } from './pages/role-based-page/role-based-page.component';
 import { RoleGuardService } from './guards/role-guard.service';
+import { UserProfilePageComponent } from './pages/user-profile-page/user-profile-page.component';
 import { ReservationFormComponent } from './forms/form-create-reservation/form-create-reservation.component';
 import { AccommodationDetailsPageComponent } from './pages/accommodation-details-page/accommodation-details-page.component';
 
@@ -33,6 +34,11 @@ const routes: Routes = [
       allowedRoles: ['HOST', 'Host'],
     },
   },
+  {
+    path: 'profile/:id',
+    component: UserProfilePageComponent,
+  },
+
   { path: 'create-reservation', component: ReservationFormComponent },
 ];
 
