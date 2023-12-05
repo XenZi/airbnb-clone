@@ -10,7 +10,7 @@ import { HeaderComponent } from './components/header/header.component';
 import { DropdownComponent } from './components/dropdown/dropdown.component';
 import { SimpleProfileMenuComponent } from './components/simple-profile-menu/simple-profile-menu.component';
 import { ButtonComponent } from './components/button/button.component';
-import { ReactiveFormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
 import { ToastNotificationComponent } from './components/toast/toast-notification/toast-notification.component';
 import { ToastContainerComponent } from './components/toast/toast-container/toast-container.component';
@@ -38,7 +38,8 @@ import { AccommodationPhotosComponent } from './components/accommodation-photos/
 import { AccommodationDetailsComponent } from './components/accommodation-details/accommodation-details.component';
 import { ReservationComponent } from './components/reservation/reservation.component';
 import { CalendarComponent } from './components/calendar/calendar.component';
-import { CalendarModule } from '@syncfusion/ej2-angular-calendars';
+import { CalendarModule } from 'primeng/calendar';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 @NgModule({
   declarations: [
     AppComponent,
@@ -81,7 +82,9 @@ import { CalendarModule } from '@syncfusion/ej2-angular-calendars';
     ReactiveFormsModule,
     RecaptchaModule,
     RecaptchaFormsModule,
+    FormsModule,
     CalendarModule,
+    BrowserAnimationsModule,
   ],
   providers: [
     {
