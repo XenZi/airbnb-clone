@@ -13,6 +13,7 @@ import { ToastService } from 'src/app/services/toast/toast.service';
 import { ToastNotificationType } from 'src/app/domains/enums/toast-notification-type.enum';
 import { AccommodationsService } from 'src/app/services/accommodations-service/accommodations.service';
 import { formatErrors } from 'src/app/utils/formatter.utils';
+import { DateAvailability } from 'src/app/domains/entity/date-availability.model';
 @Component({
   selector: 'app-form-create-accommodation',
   templateUrl: './form-create-accommodation.component.html',
@@ -21,16 +22,22 @@ import { formatErrors } from 'src/app/utils/formatter.utils';
 export class FormCreateAccommodationComponent {
 
   createAccommodationForm: FormGroup;
+  availabilityForm:FormGroup;
   
   errors: string = '';
   isCaptchaValidated: boolean = false;
   userId!:string ;
   username!:string;
+  availabilityPriceInstances: any[] = [];
+  AvailableAccommodationDates: DateAvailability[] = [];
+
+
   
   constructor(
     private accommodationsService:AccommodationsService,
     private formBuilder: FormBuilder,
     private toastService: ToastService
+
   ) {
     this.createAccommodationForm = this.formBuilder.group({
       name: [
@@ -47,13 +54,20 @@ export class FormCreateAccommodationComponent {
         airConditioning: [false],
         freeParking: [false],
         pool: [false],
-      minNumOfVisitors: ['', [Validators.required]],
+      minNumOfVisitors: ['', ],
       maxNumOfVisitors: ['', [Validators.required]],
+      
     });
+    this.availabilityForm=this.formBuilder.group({
+      startDate: ['',[Validators.required]],
+      endDate: ['',[Validators.required]],
+      price: ['' ,],
+    })
   }
 
   ngOnInit(){
     this.getUsernameFromLocal()
+    this.availabilityPriceInstances.push({})
   }
 
   getUsernameFromLocal(){
@@ -72,7 +86,27 @@ export class FormCreateAccommodationComponent {
  
  
 
-  
+  addAvailabilityPriceInstance() {
+    // Handle the action when "Submit Date" button is clicked
+    
+
+    if (this.availabilityForm.valid) {
+
+      this.availabilityPriceInstances.push(this.availabilityForm);
+      
+      console.log(this.availabilityPriceInstances)
+
+      const formData = this.availabilityForm.value as DateAvailability;
+      this.AvailableAccommodationDates.push(formData);
+      
+      //  this.availabilityForm.reset(); // Optional: Clear the form after adding data
+      console.log(this.AvailableAccommodationDates) 
+    } else {
+      console.log("Invalid")
+    }
+  }
+
+
   onSubmit(e: Event) {
     e.preventDefault();
     
@@ -117,7 +151,8 @@ console.log('CSV string:', conveniencesCsv);
       this.createAccommodationForm.value.location,
       conveniencesCsv,
       this.createAccommodationForm.value.minNumOfVisitors,
-      this.createAccommodationForm.value.maxNumOfVisitors
+      this.createAccommodationForm.value.maxNumOfVisitors,
+      this.AvailableAccommodationDates
 
     );
     

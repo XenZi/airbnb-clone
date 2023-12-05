@@ -11,7 +11,7 @@ export class FormDefineAvailabilityComponent {
   @Input() accommodationID!:string
   availableDatesAndPrice: DateAvailability[] = [];
   availabilityForm!: FormGroup ;
-
+  availabilityPriceInstances: any[] = [];
   constructor(private formBuilder: FormBuilder) {
     this.createForm();
   }
@@ -25,16 +25,15 @@ export class FormDefineAvailabilityComponent {
   }
 
   onSubmit() {
-    if (this.availabilityForm.valid) {
-      const newAvailabilityObject: DateAvailability = this.availabilityForm.value;
-      newAvailabilityObject.accommodationId=this.accommodationID
-      this.availableDatesAndPrice.push(newAvailabilityObject);
+    
 
-      // Clear the form after submission (if needed)
-      console.log(this.availableDatesAndPrice)
-    } else {
-      // Handle invalid form submission, if necessary
-    }
+      this.availabilityPriceInstances.push({});
+      console.log(this.availabilityPriceInstances)
+
+     
+      
+    
+      
   }
 
 }

@@ -1,3 +1,5 @@
+import { DateAvailability } from "./date-availability.model";
+
 export interface Accommodation {
     id: string;
     name: string;
@@ -7,4 +9,5 @@ export interface Accommodation {
     conveniences: string;
     minNumOfVisitors: number;
     maxNumOfVisitors:number;
+    AvailableAccommodationDates:DateAvailability[];
   }

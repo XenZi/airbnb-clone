@@ -1,41 +1,41 @@
 <form [formGroup]="availabilityForm" (ngSubmit)="onSubmit()" class="form">
-    <!-- ... Your existing form code ... -->
-  
-    <!-- New section for start date, end date, price, and submit button -->
-    <div class="form__group">
-      <label for="startDate" class="form__label">Start Date</label>
-      <input
-        type="date"
-        id="startDate"
-        class="form__input"
-        formControlName="startDate"
-      />
-    </div>
-    <div class="form__group">
-      <label for="endDate" class="form__label">End Date</label>
-      <input
-        type="date"
-        id="endDate"
-        class="form__input"
-        formControlName="endDate"
-      />
-    </div>
-    <div class="form__group">
-      <label for="price" class="form__label">Price</label>
-      <input
-        type="number"
-        id="price"
-        class="form__input"
-        placeholder="Enter price..."
-        formControlName="price"
-      />
-      <div class="form__error-container">
-        <!-- Error messages for price can be displayed here if needed -->
+    <div *ngFor="let instance of availabilityPriceInstances" class="availability-price">
+
+        <div class="form__group">
+          <label for="startDate" class="form__label">Start Date</label>
+          <input
+            type="date"
+            id="startDate"
+            class="form__input"
+            formControlName="startDate"
+          />
+        </div>
+        <div class="form__group">
+          <label for="endDate" class="form__label">End Date</label>
+          <input
+            type="date"
+            id="endDate"
+            class="form__input"
+            formControlName="endDate"
+          />
+        </div>
+        <div class="form__group">
+          <label for="price" class="form__label">Price</label>
+          <input
+            type="number"
+            id="price"
+            class="form__input"
+            placeholder="Enter price..."
+            formControlName="price"
+          />
+          <div class="form__error-container">
+            <!-- Error messages for price can be displayed here if needed -->
+          </div>
+        </div>
+        <div class="form__group">
+          <app-button size="md" color="rose" class="form__button" type="submit" >
+            Submit Date
+          </app-button>
+        </div>
       </div>
-    </div>
-    <div class="form__group">
-      <app-button size="md" color="rose" class="form__button" type="submit">
-        Submit Date
-      </app-button>
-    </div>
   </form>

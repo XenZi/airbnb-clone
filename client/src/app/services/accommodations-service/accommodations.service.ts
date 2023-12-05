@@ -9,6 +9,7 @@ import { ToastNotificationType } from 'src/app/domains/enums/toast-notification-
 import { Router } from '@angular/router';
 import { Observable } from 'rxjs';
 import { Accommodation } from 'src/app/domains/entity/accommodation-model';
+import { DateAvailability } from 'src/app/domains/entity/date-availability.model';
 
 @Injectable({
   providedIn: 'root',
@@ -32,7 +33,8 @@ export class AccommodationsService {
     location: string,
     conveniences: string,
     minNumOfVisitors: string,
-    maxNumOfVisitors: string
+    maxNumOfVisitors: string,
+    availableAccommodationDates:DateAvailability[]
   ): void {
     this.http
       .post(`${apiURL}/accommodations/`, {
@@ -43,6 +45,7 @@ export class AccommodationsService {
         conveniences,
         minNumOfVisitors,
         maxNumOfVisitors,
+        availableAccommodationDates
       })
       .subscribe({
         next: (data) => {
