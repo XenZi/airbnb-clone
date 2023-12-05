@@ -45,6 +45,7 @@ export class FormRegisterComponent {
       lastName: ['', [Validators.required, Validators.minLength(2)]],
       currentPlace: ['', [Validators.required, Validators.minLength(2)]],
       password: ['', [Validators.required, customPasswordStrengthValidator()]],
+      age: ['', [Validators.required]],
       role: ['Guest', Validators.required],
     });
   }
@@ -82,7 +83,8 @@ export class FormRegisterComponent {
       this.registerForm.value.currentPlace,
       this.registerForm.value.password,
       this.registerForm.value.role,
-      this.registerForm.value.username
+      this.registerForm.value.username,
+      this.registerForm.value.age as number
     );
   }
 }
