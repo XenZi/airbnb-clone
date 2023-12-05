@@ -151,6 +151,27 @@
     </div>
   </div>
   <div class="form__group">
+    <label for="currentPlace" class="form__label">Age</label>
+    <input
+      type="number"
+      id="age"
+      class="form__input"
+      placeholder="Write down your age..."
+      formControlName="age"
+    />
+    <div class="form__error-container">
+      <p
+        *ngIf="
+          registerForm.get('age')?.hasError('required') &&
+          registerForm.get('age')?.touched
+        "
+        class="form__error"
+      >
+        Age is required.
+      </p>
+    </div>
+  </div>
+  <div class="form__group">
     <label class="form__label">I want to register as</label>
 
     <div class="form__radio-group" *ngFor="let roleName of roles; index as i">

@@ -70,7 +70,7 @@ func (u *UserService) CreateUser(registerUser domains.RegisterUser) (*domains.Us
 	if encError != nil {
 		return nil, encError
 	}
-
+	log.Println(registerUser.Age)
 	go func() {
 		u.mailClient.SendAccountConfirmationEmail(registerUser.Email, token)
 	}()

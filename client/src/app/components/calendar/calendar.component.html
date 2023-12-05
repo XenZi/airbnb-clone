@@ -1,5 +1,6 @@
-<ejs-calendar
-  [value]="dateValue"
-  (renderDayCell)="disabledDate($event)"
-  [isMultiSelection]="true"
-></ejs-calendar>
+<p-calendar
+  [(ngModel)]="rangeDates"
+  selectionMode="range"
+  [readonlyInput]="true"
+  [disabledDates]="invalidDates"
+></p-calendar>
