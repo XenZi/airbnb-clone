@@ -26,31 +26,7 @@ func NewUserClient(host, port string, client *http.Client, circuitBreaker *gobre
     }
 }
 
-// func (uc *UserClient) DoRequest(method, path string, body io.Reader, fallbackFunc func(error) (*http.Response, error)) (*http.Response, error) {
-//     requestFunc := func() (interface{}, error) {
-//         req, err := http.NewRequest(method, uc.address+path, body)
-//         if err != nil {
-//             return nil, err
-//         }
-
-//         resp, err := uc.client.Do(req)
-//         if err != nil {
-//             return nil, err
-//         }
-
-//         return resp, nil
-//     }
-
-//     result, err := uc.circuitBreaker.Execute(requestFunc)
-//     if err != nil {
-//         return fallbackFunc(err)
-//     }
-
-//     return result.(*http.Response), nil
-// }
-
 func (uc UserClient) SendCreatedUser(ctx context.Context, id string, user domains.RegisterUser) error {
-
 	userForUserService := struct {
 		ID        string `json:"id"`
 		FirstName string `json:"firstName"`
@@ -75,7 +51,6 @@ func (uc UserClient) SendCreatedUser(ctx context.Context, id string, user domain
 		return fmt.Errorf("error marshalling user data: %v", err)
 	}
 	requestBody := bytes.NewReader(jsonData)
-	log.Println("HOST, PORT, ADDRESS", uc.address)
 	cbResp, err := uc.circuitBreaker.Execute(func() (interface{}, error) {
 		req, err := http.NewRequestWithContext(ctx, http.MethodPost, uc.address + "/create", requestBody)
 		if err != nil {
@@ -85,7 +60,7 @@ func (uc UserClient) SendCreatedUser(ctx context.Context, id string, user domain
 	})
 
 	if err != nil {
-		log.Println(err)
+		log.Println("ERR FROM GGG ", err)
 		return err
 	}
 	resp := cbResp.(*http.Response)
@@ -104,6 +79,6 @@ func (uc UserClient) SendCreatedUser(ctx context.Context, id string, user domain
 	if err != nil {
 		return err
 	}
-	log.Println(resp)
+	log.Println(anResp)
 	return nil
 }
