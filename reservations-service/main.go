@@ -45,6 +45,7 @@ func main() {
 	}
 	router := mux.NewRouter()
 	router.HandleFunc("/", reservationsHandler.CreateReservation).Methods("POST")
+	router.HandleFunc("/availability", reservationsHandler.CreateAvailability).Methods("POST")
 	router.HandleFunc("/user/{userId}", reservationsHandler.GetReservationsByUser).Methods("GET")
 	router.HandleFunc("/{id}", reservationsHandler.DeleteReservationById).Methods("DELETE")
 

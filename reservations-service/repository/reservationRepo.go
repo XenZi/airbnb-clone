@@ -6,8 +6,10 @@ import (
 	"os"
 	"reservation-service/domain"
 	"reservation-service/errors"
+	"strings"
 
 	"github.com/gocql/gocql"
+	"github.com/pariz/gountries"
 )
 
 type ReservationRepo struct {
@@ -85,7 +87,7 @@ func (rr *ReservationRepo) CreateTables() {
 	*/
 	err = rr.session.Query(
 		fmt.Sprintf(`CREATE TABLE IF NOT EXISTS %s
-			(id UUID, accommodation_id string, start_date text, end_date text, location text, price int, continent text,
+			(id UUID, accommodation_id text, start_date text, end_date text, location text, price int, continent text,
 			 PRIMARY KEY((continent), id))
 			WITH CLUSTERING ORDER BY(id ASC)`, "free_accommodation")).Exec()
 
@@ -154,6 +156,36 @@ func (rr *ReservationRepo) GetReservationsByUser(id string) ([]domain.Reservatio
 	return reservations, nil
 }
 
+func (rr *ReservationRepo) InsertAvailability(reservation *domain.FreeReservation) (*domain.FreeReservation, error) {
+	Id, _ := gocql.RandomUUID()
+	countryData := gountries.New()
+	locationParts := strings.Split(reservation.Location, ",")
+	if len(locationParts) < 2 {
+		return nil, errors.NewReservationError(400, "Invalid location format: %s")
+	}
+
+	country := locationParts[1]
+	result, err := countryData.FindCountryByName(country)
+	if err != nil {
+		return nil, errors.NewReservationError(500, err.Error())
+	}
+
+	continent := result.Continent
+
+	err = rr.session.Query(`
+		INSERT INTO free_accommodation (id, accommodation_id, start_date, end_date, location, price, continent)
+		VALUES(?, ?, ?, ?, ?, ?, ?)
+	`, Id, reservation.AccommodationID, reservation.StartDate, reservation.EndDate, reservation.Location, reservation.Price, continent).Exec()
+	if err != nil {
+		rr.logger.Println(err)
+		return nil, err
+	}
+
+	reservation.Id = Id
+	reservation.Continent = continent
+	return reservation, nil
+}
+
 func (rr *ReservationRepo) AvailableDates(accommodationID, startDate, endDate string) (bool, *errors.ReservationError) {
 	query := `
     SELECT id, accommodation_id, start_date, end_date, location,price
@@ -176,23 +208,6 @@ func (rr *ReservationRepo) AvailableDates(accommodationID, startDate, endDate st
 	return true, nil
 }
 
-/*
-	func (rr *ReservationRepo) InsertReservationByDate(reservation *domain.Reservation) (*domain.Reservation, error) {
-		Id, _ := gocql.RandomUUID()
-		Quartal, err := utils.GetQuarter(reservation.StartDate)
-		if err != nil {
-			return nil, err
-		}
-		err = rr.session.Query(`INSERT INTO reservation_by_date(id,start_date, end_date, quartal, username, accomodation_name) VALUES(?,?,?,?,?,?)`,
-			Id, reservation.StartDate, reservation.EndDate, Quartal, reservation.Username, reservation.AccommodationName).Exec()
-		if err != nil {
-			return nil, err
-		}
-		reservation.Id = Id
-		rr.logger.Println(reservation)
-		return reservation, nil
-	}
-*/
 func (rr *ReservationRepo) InsertReservation(reservation *domain.Reservation) (*domain.Reservation, error) {
 	Id, _ := gocql.RandomUUID()
 	err := rr.session.Query(`INSERT INTO reservations (id,user_id,accommodation_id,start_date,end_date,username,accommodation_name,location,price,num_of_days,continent)

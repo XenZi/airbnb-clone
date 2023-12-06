@@ -10,6 +10,7 @@ require (
 	github.com/hashicorp/golang-lru v0.5.4 // indirect
 	github.com/konsorten/go-windows-terminal-sequences v1.0.3 // indirect
 	github.com/mattn/go-isatty v0.0.3 // indirect
+	github.com/pariz/gountries v0.1.6 // indirect
 	github.com/sirupsen/logrus v1.6.0 // indirect
 	golang.org/x/arch v0.0.0-20190927153633-4e8777c89be4 // indirect
 	golang.org/x/exp v0.0.0-20230224173230-c95f2b4c22f2 // indirect
