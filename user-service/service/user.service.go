@@ -40,6 +40,7 @@ func (u *UserService) CreateUser(createUser domain.CreateUser) (*domain.User, *e
 		LastName:  createUser.LastName,
 		Residence: createUser.Residence,
 		Age:       createUser.Age,
+		Rating:    createUser.Rating,
 	}
 	newUser, foundErr := u.userRepository.CreatUser(user)
 	if foundErr != nil {
@@ -72,6 +73,7 @@ func (u *UserService) UpdateUser(updateUser domain.CreateUser) (*domain.User, *e
 		LastName:  updateUser.LastName,
 		Residence: updateUser.Residence,
 		Age:       updateUser.Age,
+		Rating:    updateUser.Rating,
 	}
 	newUser, foundErr := u.userRepository.UpdateUser(user)
 	if foundErr != nil {

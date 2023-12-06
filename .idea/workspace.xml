@@ -6,7 +6,10 @@
   <component name="ChangeListManager">
     <list default="true" id="5c56ccc7-9796-495b-9fc2-71676c9bc1a3" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/client/src/app/forms/form-update-user-profile/form-update-user-profile.component.ts" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/app/forms/form-update-user-profile/form-update-user-profile.component.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/user-service/domain/create-user.model.go" beforeDir="false" afterPath="$PROJECT_DIR$/user-service/domain/create-user.model.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/user-service/domain/user.model.go" beforeDir="false" afterPath="$PROJECT_DIR$/user-service/domain/user.model.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/user-service/repository/user.repository.go" beforeDir="false" afterPath="$PROJECT_DIR$/user-service/repository/user.repository.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/user-service/service/user.service.go" beforeDir="false" afterPath="$PROJECT_DIR$/user-service/service/user.service.go" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

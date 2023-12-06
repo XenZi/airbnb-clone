@@ -12,6 +12,7 @@ type User struct {
 	LastName  string `json:"lastName" bson:"lastName"`
 	Residence string `json:"residence" bson:"residence"`
 	Age       int    `json:"age" bson:"age"`
+	Rating    int    `json:"rating"`
 }
 
 //Optional for later use
