@@ -26,20 +26,34 @@ func (r ReservationService) CreateReservation(reservation domain.Reservation) (*
 		return nil, errors.NewReservationError(400, "Validation failed")
 	}
 
-	available, err := r.AvailableDates(reservation.AccommodationID, reservation.StartDate, reservation.EndDate)
-	if err != nil {
-		return nil, err
-	}
+	/*	available, err := r.AvailableDates(reservation.AccommodationID, reservation.StartDate, reservation.EndDate)
+		if err != nil {
+			return nil, err
+		}
 
-	if !available {
-		return nil, errors.NewReservationError(400, "Accommodation not available for the specified date range")
-	}
+			if !available {
+			return nil, errors.NewReservationError(400, "Accommodation not available for the specified date range")
+		} */
 	createdReservation, insertErr := r.repo.InsertReservation(&reservation)
 	if insertErr != nil {
 		return nil, errors.NewReservationError(500, "Unable to create reservation: "+insertErr.Error())
 	}
 
 	return createdReservation, nil
+}
+
+func (r ReservationService) CreateAvailability(reservation domain.FreeReservation) (*domain.FreeReservation, *errors.ReservationError) {
+	r.validator.ValidateAvailability(&reservation)
+	validationErrors := r.validator.GetErrors()
+
+	if len(validationErrors) > 0 {
+		return nil, errors.NewReservationError(400, "Validation failed")
+	}
+	createdAvailability, insertErr := r.repo.InsertAvailability(&reservation)
+	if insertErr != nil {
+		return nil, errors.NewReservationError(500, "Unable to create availability: "+insertErr.Error())
+	}
+	return createdAvailability, nil
 }
 
 func (s *ReservationService) GetReservationsByUser(userID string) ([]domain.Reservation, *errors.ReservationError) {
