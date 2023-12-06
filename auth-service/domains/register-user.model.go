@@ -8,5 +8,5 @@ type RegisterUser struct {
 	Password     string `json:"password"`
 	Role         string `json:"role"`
 	Username     string `json:"username"`
-	Age			 int32  `json:"age"`
+	Age          int    `json:"age"`
 }

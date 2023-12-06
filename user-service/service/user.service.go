@@ -32,7 +32,12 @@ func (u *UserService) CreateUser(createUser domain.CreateUser) (*domain.User, *e
 		}
 		return nil, errors.NewError(constructedError, 400)
 	}
+	foundId, erro := primitive.ObjectIDFromHex(createUser.ID)
+	if erro != nil {
+		return nil, errors.NewError(erro.Error(), 500)
+	}
 	user := domain.User{
+		ID:        foundId,
 		Username:  createUser.Username,
 		Email:     createUser.Email,
 		Role:      createUser.Role,
