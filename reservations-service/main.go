@@ -44,9 +44,9 @@ func main() {
 		ReservationService: reservationService,
 	}
 	router := mux.NewRouter()
-	router.HandleFunc("/", reservationsHandler.CreateReservationByUser).Methods("POST")
+	router.HandleFunc("/", reservationsHandler.CreateReservation).Methods("POST")
 	router.HandleFunc("/user/{userId}", reservationsHandler.GetReservationsByUser).Methods("GET")
-	router.HandleFunc("/{userId}/{id}", reservationsHandler.DeleteReservationById).Methods("DELETE")
+	router.HandleFunc("/{id}", reservationsHandler.DeleteReservationById).Methods("DELETE")
 
 	headersOk := gorillaHandlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"})
 	methodsOk := gorillaHandlers.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "OPTIONS", "DELETE"})
