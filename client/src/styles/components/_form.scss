@@ -116,3 +116,68 @@
     margin-bottom: 0px;
   }
 }
+
+/* Checkbox Styles */
+.form__checkbox-group {
+  margin: 10px 0;
+}
+
+.form__checkbox-input {
+  display: none; /* hide the default checkbox */
+}
+
+.form__checkbox-label {
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  position: relative;
+  padding-left: 30px; /* space for the custom checkbox */
+}
+
+.form__checkbox-label::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(0%);
+  width: 20px;
+  height: 20px;
+  border: 2px solid #333;
+  background-color: #fff;
+  border-radius: 4px; /* slightly rounded corners for the checkbox */
+  transition: background-color 0.3s, border-color 0.3s;
+}
+
+.form__checkbox-input:checked + .form__checkbox-label::before {
+  background-color: #ff5977; /* color when checkbox is checked */
+  border-color: #ff5977;
+}
+
+.form__checkbox-label::after {
+  content: "";
+  position: absolute;
+  left: 4px;
+  top: 9px;
+  width: 12px;
+  height: 6px;
+  border-left: 2px solid #fff;
+  border-bottom: 2px solid #fff;
+  transform: rotate(-45deg);
+  opacity: 0; /* initially hidden */
+  transition: opacity 0.3s;
+}
+
+.form__checkbox-input:checked + .form__checkbox-label::after {
+  opacity: 1;
+}
+
+/* Additional styles for focus indication */
+.form__checkbox-input:focus + .form__checkbox-label::before {
+  box-shadow: 0 0 0 3px rgba(255, 89, 119, 0.6);
+}
+
+.form__group-title {
+  font-size: 16px;
+  text-align: center;
+}

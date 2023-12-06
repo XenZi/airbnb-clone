@@ -23,18 +23,17 @@ export class AccommodationsService {
     private router: Router
   ) {}
 
-  username=localStorage.getItem("username")
-  
+  username = localStorage.getItem('username');
 
   create(
-    userId:string,
-    username:string,
+    userId: string,
+    username: string,
     name: string,
     location: string,
-    conveniences: string,
-    minNumOfVisitors: string,
-    maxNumOfVisitors: string,
-    availableAccommodationDates:DateAvailability[]
+    conveniences: string[],
+    minNumOfVisitors: number,
+    maxNumOfVisitors: number,
+    availableAccommodationDates: DateAvailability[]
   ): void {
     this.http
       .post(`${apiURL}/accommodations/`, {
@@ -43,9 +42,9 @@ export class AccommodationsService {
         name,
         location,
         conveniences,
-        minNumOfVisitors,
-        maxNumOfVisitors,
-        availableAccommodationDates
+        minNumOfVisitors: Number(minNumOfVisitors),
+        maxNumOfVisitors: Number(maxNumOfVisitors),
+        availableAccommodationDates,
       })
       .subscribe({
         next: (data) => {

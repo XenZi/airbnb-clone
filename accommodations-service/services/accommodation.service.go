@@ -5,8 +5,9 @@ import (
 	"accommodations-service/errors"
 	"accommodations-service/repository"
 	"accommodations-service/utils"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"log"
+
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type AccommodationService struct {
@@ -21,16 +22,7 @@ func NewAccommodationService(accommodationRepo *repository.AccommodationRepo, va
 	}
 }
 
-func (as *AccommodationService) CreateAccommodation(accommodation domain.Accommodation) (*domain.AccommodationDTO, *errors.ErrorStruct) {
-	as.validator.ValidateAccommodation(&accommodation)
-	validatorErrors := as.validator.GetErrors()
-	if len(validatorErrors) > 0 {
-		var constructedError string
-		for _, message := range validatorErrors {
-			constructedError += message + "\n"
-		}
-		return nil, errors.NewError(constructedError, 400)
-	}
+func (as *AccommodationService) CreateAccommodation(accommodation domain.CreateAccommodation) (*domain.AccommodationDTO, *errors.ErrorStruct) {
 	accomm := domain.Accommodation{
 		Name:             accommodation.Name,
 		Location:         accommodation.Location,
@@ -39,6 +31,15 @@ func (as *AccommodationService) CreateAccommodation(accommodation domain.Accommo
 		Conveniences:     accommodation.Conveniences,
 		MinNumOfVisitors: accommodation.MinNumOfVisitors,
 		MaxNumOfVisitors: accommodation.MaxNumOfVisitors,
+	}
+	as.validator.ValidateAccommodation(&accomm)
+	validatorErrors := as.validator.GetErrors()
+	if len(validatorErrors) > 0 {
+		var constructedError string
+		for _, message := range validatorErrors {
+			constructedError += message + "\n"
+		}
+		return nil, errors.NewError(constructedError, 400)
 	}
 	log.Println(accomm)
 	newAccommodation, foundErr := as.accommodationRepository.SaveAccommodation(accomm)

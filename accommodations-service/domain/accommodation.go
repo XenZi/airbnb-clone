@@ -10,7 +10,7 @@ type Accommodation struct {
 	UserName         string             `json:"username" bson:"username"`
 	Name             string             `json:"name" bson:"name"`
 	Location         string             `json:"location" bson:"location"`
-	Conveniences     string             `json:"conveniences" bson:"conveniences"`
+	Conveniences     []string             `json:"conveniences" bson:"conveniences"`
 	MinNumOfVisitors int                `json:"minNumOfVisitors" bson:"minNumOfVisitors"`
 	MaxNumOfVisitors int                `json:"maxNumOfVisitors" bson:"maxNumOfVisitors"`
 }
@@ -21,7 +21,7 @@ type CreateAccommodation struct {
 	UserName                    string             `json:"username" bson:"username"`
 	Name                        string             `json:"name" bson:"name"`
 	Location                    string             `json:"location" bson:"location"`
-	Conveniences                string             `json:"conveniences" bson:"conveniences"`
+	Conveniences                []string           `json:"conveniences" bson:"conveniences"`
 	MinNumOfVisitors            int                `json:"minNumOfVisitors" bson:"minNumOfVisitors"`
 	MaxNumOfVisitors            int                `json:"maxNumOfVisitors" bson:"maxNumOfVisitors"`
 	AvailableAccommodationDates []AvailableAccommodationDates
@@ -38,7 +38,7 @@ type AccommodationDTO struct {
 	UserName         string `json:"username" `
 	Name             string `json:"name" `
 	Location         string `json:"location" `
-	Conveniences     string `json:"conveniences" `
+	Conveniences     []string `json:"conveniences" `
 	MinNumOfVisitors int    `json:"minNumOfVisitors" `
 	MaxNumOfVisitors int    `json:"maxNumOfVisitors" `
 }

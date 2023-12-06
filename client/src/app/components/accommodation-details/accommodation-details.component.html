@@ -1,17 +1,19 @@
-<div class="accommodation-details">
-  <h3 class="accommodation-details__location text--light">{{accommodation.location}}</h3>
+<div class="accommodation-details" *ngIf="accommodation">
+  <h3 class="accommodation-details__location text--light">
+    {{ accommodation.location }}
+  </h3>
   <p class="accommodation-details__adults text--dark-gray">
-    {{accommodation.minNumOfVisitors}} guest minimum, {{accommodation.maxNumOfVisitors}} guests maximum
-   
+    {{ accommodation.minNumOfVisitors }} guest minimum,
+    {{ accommodation.maxNumOfVisitors }} guests maximum
   </p>
-  <p> Conveniences:{{accommodation.conveniences}}</p>
+  <p>Conveniences:{{ accommodation.conveniences }}</p>
   <div class="accommodation-details__user flex-row items-center">
     <div class="accommodation-details__icon">
       <i class="fa-regular fa-user"></i>
     </div>
     <div class="flex-col">
       <p class="text--light text--gray">Hosted by</p>
-      <h3 class="text--bold text--black">{{accommodation.username}}</h3>
+      <h3 class="text--bold text--black">{{ accommodation.username }}</h3>
     </div>
   </div>
 </div>

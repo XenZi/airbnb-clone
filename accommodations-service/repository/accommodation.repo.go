@@ -4,10 +4,11 @@ import (
 	do "accommodations-service/domain"
 	"accommodations-service/errors"
 	"context"
+	"log"
+
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
-	"log"
 )
 
 type AccommodationRepo struct {
