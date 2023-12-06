@@ -70,7 +70,8 @@ export class AuthService {
     currentPlace: string,
     password: string,
     role: string,
-    username: string
+    username: string,
+    age: number
   ): void {
     this.http
       .post(`${apiURL}/auth/register`, {
@@ -81,6 +82,7 @@ export class AuthService {
         password,
         role,
         username,
+        age,
       })
       .subscribe({
         next: (data) => {

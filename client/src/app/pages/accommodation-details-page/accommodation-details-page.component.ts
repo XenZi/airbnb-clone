@@ -8,40 +8,33 @@ import { AccommodationsService } from 'src/app/services/accommodations-service/a
 @Component({
   selector: 'app-accommodation-details-page',
   templateUrl: './accommodation-details-page.component.html',
-  styleUrls: ['./accommodation-details-page.component.scss']
+  styleUrls: ['./accommodation-details-page.component.scss'],
 })
 export class AccommodationDetailsPageComponent {
-  accommodationID:string | undefined 
-  accommodation!:Accommodation;
+  accommodationID!: string;
+  accommodation!: Accommodation;
 
   constructor(
     private route: ActivatedRoute,
-    private modalService:ModalService,
-    private accommodationsService: AccommodationsService,
-    
-    
-    
+    private modalService: ModalService,
+    private accommodationsService: AccommodationsService
   ) {}
 
-  ngOnInit(){
-
+  ngOnInit() {
     this.getAccommodationID();
     this.getAccommodationById();
-    
-  
   }
+
   updateClick() {
-    
     this.callUpdateAccommodation();
-    console.log("Uslo")
+    console.log('Uslo');
   }
 
   deleteClick() {
-    
     this.callDeleteAccommodation();
-    console.log("Uslo")
+    console.log('Uslo');
   }
-  
+
   getAccommodationID() {
     this.route.paramMap.subscribe((params) => {
       this.accommodationID = String(params.get('id'));
@@ -49,22 +42,24 @@ export class AccommodationDetailsPageComponent {
   }
 
   getAccommodationById() {
-    this.accommodationsService.getAccommodationById(this.accommodationID as string).subscribe((data) => {
-      this.accommodation= data;
-    });
+    this.accommodationsService
+      .getAccommodationById(this.accommodationID as string)
+      .subscribe((data) => {
+        this.accommodation = data;
+      });
   }
 
-  callUpdateAccommodation(){
-    this.modalService.open(FormUpdateAccommodationComponent, 'Update accommodation',{
-      accommodationID:this.accommodationID
-    });
-    
+  callUpdateAccommodation() {
+    this.modalService.open(
+      FormUpdateAccommodationComponent,
+      'Update accommodation',
+      {
+        accommodationID: this.accommodationID,
+      }
+    );
   }
 
-  callDeleteAccommodation(){
+  callDeleteAccommodation() {
     this.accommodationsService.deleteById(this.accommodationID as string);
-    
   }
-
-
 }

@@ -4,6 +4,12 @@
     <option name="autoReloadType" value="ALL" />
   </component>
   <component name="ChangeListManager">
+    <list default="true" id="8cc95ec9-a844-44d5-ba6e-119e8270bf9a" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/accommodations-service/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/accommodations-service/main.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/accommodations-service/middlewares/jwt-role-validator.middleware.go" beforeDir="false" afterPath="$PROJECT_DIR$/accommodations-service/middlewares/jwt-role-validator.middleware.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/src/app/components/simple-profile-menu/simple-profile-menu.component.ts" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/app/components/simple-profile-menu/simple-profile-menu.component.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/src/app/services/accommodations-service/accommodations.service.ts" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/app/services/accommodations-service/accommodations.service.ts" afterDir="false" />
     <list default="true" id="5c56ccc7-9796-495b-9fc2-71676c9bc1a3" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/user-service/domain/create-user.model.go" beforeDir="false" afterPath="$PROJECT_DIR$/user-service/domain/create-user.model.go" afterDir="false" />

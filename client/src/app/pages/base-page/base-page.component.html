@@ -1,4 +1,11 @@
 <app-header></app-header>
-<div class="wrapper">
-<app-accommodation-card></app-accommodation-card>
+<div class="base-page">
+  <div class="wrapper">
+    <div class="base-page__container">
+      <app-accommodation-card
+        *ngFor="let accommodation of accommodations | async"
+        [accommodation]="accommodation"
+      ></app-accommodation-card>
+    </div>
+  </div>
 </div>

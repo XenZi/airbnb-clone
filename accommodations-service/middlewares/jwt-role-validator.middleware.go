@@ -39,7 +39,7 @@ func ValidateRoleJWT(next http.HandlerFunc) http.HandlerFunc {
 			return
 		}
 
-		if role != "HOST" {
+		if role != "host" {
 			http.Error(w, "Forbidden - Insufficient privileges", http.StatusForbidden)
 			return
 		}

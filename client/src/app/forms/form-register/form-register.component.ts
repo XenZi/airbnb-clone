@@ -24,8 +24,8 @@ import { formatErrors } from 'src/app/utils/formatter.utils';
 export class FormRegisterComponent {
   registerForm: FormGroup;
   roles: string[] = [Role.Guest, Role.Host];
-  errors: string = '';
-  isCaptchaValidated: boolean = false;
+  errors: string[] = [];
+  isCaptchaValidated: boolean = true;
   constructor(
     private authService: AuthService,
     private formBuilder: FormBuilder,
@@ -45,6 +45,7 @@ export class FormRegisterComponent {
       lastName: ['', [Validators.required, Validators.minLength(2)]],
       currentPlace: ['', [Validators.required, Validators.minLength(2)]],
       password: ['', [Validators.required, customPasswordStrengthValidator()]],
+      age: ['', [Validators.required]],
       role: ['Guest', Validators.required],
     });
   }
@@ -56,6 +57,7 @@ export class FormRegisterComponent {
   onErrorCaptcha(errorDetails: RecaptchaErrorParameters) {}
   onSubmit(e: Event) {
     e.preventDefault();
+    this.errors = [];
     if (!this.isCaptchaValidated) {
       this.toastService.showToast(
         'reCaptcha Error',
@@ -68,15 +70,10 @@ export class FormRegisterComponent {
       Object.keys(this.registerForm.controls).forEach((key) => {
         const controlErrors = this.registerForm.get(key)?.errors;
         if (controlErrors) {
-          this.errors += formatErrors(key);
+          this.errors.push(formatErrors(key));
         }
       });
-      this.toastService.showToast(
-        'Error',
-        this.errors,
-        ToastNotificationType.Error
-      );
-      this.errors = '';
+
       return;
     }
     this.authService.register(
@@ -86,7 +83,8 @@ export class FormRegisterComponent {
       this.registerForm.value.currentPlace,
       this.registerForm.value.password,
       this.registerForm.value.role,
-      this.registerForm.value.username
+      this.registerForm.value.username,
+      this.registerForm.value.age as number
     );
   }
 }
