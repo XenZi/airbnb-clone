@@ -5,9 +5,10 @@ import (
 	"accommodations-service/services"
 	"accommodations-service/utils"
 	"encoding/json"
+	"net/http"
+
 	"github.com/gorilla/mux"
 	"go.mongodb.org/mongo-driver/bson/primitive"
-	"net/http"
 )
 
 type AccommodationsHandler struct {
@@ -17,7 +18,7 @@ type AccommodationsHandler struct {
 func (a *AccommodationsHandler) CreateAccommodationById(rw http.ResponseWriter, h *http.Request) {
 	decoder := json.NewDecoder(h.Body)
 	decoder.DisallowUnknownFields()
-	var accomm domain.Accommodation
+	var accomm domain.CreateAccommodation
 	if err := decoder.Decode(&accomm); err != nil {
 		utils.WriteErrorResp(err.Error(), 500, "api/accommodations", rw)
 		return
@@ -84,6 +85,12 @@ func (a *AccommodationsHandler) UpdateAccommodationById(rw http.ResponseWriter, 
 	accommodationId := vars["id"]
 	decoder := json.NewDecoder(r.Body)
 	decoder.DisallowUnknownFields()
+
+	_, err := a.AccommodationService.GetAccommodationById(accommodationId)
+	if err != nil {
+		utils.WriteErrorResp(err.GetErrorMessage(), http.StatusInternalServerError, "api/accommodations/"+accommodationId, rw)
+		return
+	}
 
 	var updatedAccommodation domain.Accommodation
 	decodeErr := decoder.Decode(&updatedAccommodation)

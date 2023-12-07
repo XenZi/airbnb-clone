@@ -9,6 +9,7 @@ import { ToastNotificationType } from 'src/app/domains/enums/toast-notification-
 import { Router } from '@angular/router';
 import { Observable } from 'rxjs';
 import { Accommodation } from 'src/app/domains/entity/accommodation-model';
+import { DateAvailability } from 'src/app/domains/entity/date-availability.model';
 
 @Injectable({
   providedIn: 'root',
@@ -22,20 +23,32 @@ export class AccommodationsService {
     private router: Router
   ) {}
 
+  username = localStorage.getItem('username');
+
   create(
+    userId: string,
+    username: string,
     name: string,
-    location: string,
-    conveniences: string,
-    minNumOfVisitors: string,
-    maxNumOfVisitors: string
+    address: string,
+    city:string,
+    country:string,
+    conveniences: string[],
+    minNumOfVisitors: number,
+    maxNumOfVisitors: number,
+    availableAccommodationDates: DateAvailability[]
   ): void {
     this.http
       .post(`${apiURL}/accommodations/`, {
+        userId,
+        username,
         name,
-        location,
+        address,
+        city,
+        country,
         conveniences,
-        minNumOfVisitors,
-        maxNumOfVisitors,
+        minNumOfVisitors: Number(minNumOfVisitors),
+        maxNumOfVisitors: Number(maxNumOfVisitors),
+        availableAccommodationDates,
       })
       .subscribe({
         next: (data) => {
@@ -92,15 +105,19 @@ export class AccommodationsService {
   update(
     id: string,
     name: string,
-    location: string,
+    address: string,
+    city:string,
+    country:string,
     conveniences: string,
     minNumOfVisitors: number,
-    maxNumOfVisitors: number
+    maxNumOfVisitors: number,
   ): void {
     this.http
       .put(`${apiURL}/accommodations/${id}`, {
         name,
-        location,
+        address,
+        city,
+        country,
         conveniences,
         minNumOfVisitors,
         maxNumOfVisitors,

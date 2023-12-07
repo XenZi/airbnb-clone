@@ -1,5 +1,5 @@
 <app-header></app-header>
-<div class="accommodation-details">
+<div class="accommodation-details" *ngIf="accommodation">
   <div class="wrapper">
     <div class="accommodation-details__container flex-col">
       <h1 class="accommodation-details__title">
@@ -7,7 +7,9 @@
       </h1>
       <app-accommodation-photos></app-accommodation-photos>
       <div class="accommodation-details__row flex-row justify-between">
-        <app-accommodation-details></app-accommodation-details>
+        <app-accommodation-details
+          [accommodation]="accommodation"
+        ></app-accommodation-details>
         <app-reservation></app-reservation>
       </div>
     </div>

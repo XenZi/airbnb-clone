@@ -79,8 +79,9 @@ func MinLength(minLength int) ValidationRule {
 
 func (v *Validator) ValidateAccommodation(accommodation *domain.Accommodation) {
 	v.ValidateField("Name", accommodation.Name, MinLength(2), IsName)
-	v.ValidateField("Location", accommodation.Location, MinLength(2), IsLocationOrConvenience)
-	v.ValidateField("Conveniences", accommodation.Conveniences, MinLength(2), IsLocationOrConvenience)
+	v.ValidateField("Address", accommodation.Address, MinLength(2))
+	v.ValidateField("City", accommodation.City, MinLength(2), IsLocationOrConvenience)
+	v.ValidateField("Country", accommodation.Country, MinLength(2), IsLocationOrConvenience)
 	v.ValidateField("MinNumOfVisitors", strconv.Itoa(accommodation.MinNumOfVisitors), IsNumber)
 	v.ValidateField("MaxNumOfVisitors", strconv.Itoa(accommodation.MaxNumOfVisitors), IsNumber)
 	if accommodation.MinNumOfVisitors > accommodation.MaxNumOfVisitors {
