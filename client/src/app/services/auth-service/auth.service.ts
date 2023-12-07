@@ -244,6 +244,11 @@ export class AuthService {
           );
         },
         error: (err) => {
+          this.toastSerice.showToast(
+            'Error',
+            err?.error?.error,
+            ToastNotificationType.Error
+          );
           console.log(err);
         },
       });
