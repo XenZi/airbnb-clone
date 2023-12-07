@@ -89,7 +89,8 @@ func main() {
 	router.HandleFunc("/request-reset-password", authHandler.RequestResetPassword).Methods("POST")
 	router.HandleFunc("/reset-password/{token}", authHandler.ResetPassword).Methods("POST")
 	router.HandleFunc("/change-password", middlewares.ValidateJWT(authHandler.ChangePassword)).Methods("POST")
-
+	router.HandleFunc("/update-credentials", middlewares.ValidateJWT(authHandler.UpdateCredentials)).Methods("POST")
+	
 	// server definitions
 
 	if len(port) == 0 {
