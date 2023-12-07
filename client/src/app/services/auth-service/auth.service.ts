@@ -6,6 +6,7 @@ import { ModalService } from '../modal/modal.service';
 import { ToastService } from '../toast/toast.service';
 import { ToastNotificationType } from 'src/app/domains/enums/toast-notification-type.enum';
 import { Router } from '@angular/router';
+import { UserService } from '../user/user.service';
 
 @Injectable({
   providedIn: 'root',
@@ -16,7 +17,8 @@ export class AuthService {
     private http: HttpClient,
     private modalService: ModalService,
     private toastSerice: ToastService,
-    private router: Router
+    private router: Router,
+    private userService: UserService
   ) {}
 
   login(email: string, password: string): void {
@@ -224,5 +226,26 @@ export class AuthService {
         ToastNotificationType.Info
       );
     }, 1000);
+  }
+
+  updateCredentials(email: string, username: string, password: string): void {
+    this.http
+      .post(`${apiURL}/auth/update-credentials`, {
+        email,
+        username,
+        password,
+      })
+      .subscribe({
+        next: (data: any) => {
+          this.toastSerice.showToast(
+            'You made it',
+            data?.data?.message,
+            ToastNotificationType.Success
+          );
+        },
+        error: (err) => {
+          console.log(err);
+        },
+      });
   }
 }
