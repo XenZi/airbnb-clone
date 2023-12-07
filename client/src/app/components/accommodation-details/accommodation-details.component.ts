@@ -8,4 +8,5 @@ import { Accommodation } from 'src/app/domains/entity/accommodation-model';
 })
 export class AccommodationDetailsComponent {
   @Input() accommodation!: Accommodation;
+  
 }
