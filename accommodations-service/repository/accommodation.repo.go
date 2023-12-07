@@ -67,7 +67,9 @@ func (ar *AccommodationRepo) GetAllAccommodations() ([]*do.Accommodation, *error
 
 	for cursor.Next(context.TODO()) {
 		var accommodation do.Accommodation
+
 		if err := cursor.Decode(&accommodation); err != nil {
+			log.Println(accommodation)
 			return nil, errors.NewError(
 				"Error decoding data",
 				500)
@@ -90,7 +92,9 @@ func (ar *AccommodationRepo) UpdateAccommodationById(accommodation do.Accommodat
 	filter := bson.D{{Key: "_id", Value: accommodation.Id}}
 	update := bson.D{
 		{Key: "$set", Value: bson.D{
-			{Key: "location", Value: accommodation.Location},
+			{Key: "address", Value: accommodation.Address},
+			{Key: "city", Value: accommodation.City},
+			{Key: "country", Value: accommodation.Country},
 			{Key: "name", Value: accommodation.Name},
 			{Key: "conveniences", Value: accommodation.Conveniences},
 			{Key: "minNumOfVisitors", Value: accommodation.MinNumOfVisitors},

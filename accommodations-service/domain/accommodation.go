@@ -9,8 +9,10 @@ type Accommodation struct {
 	UserId           string             `json:"userId" bson:"userId"`
 	UserName         string             `json:"username" bson:"username"`
 	Name             string             `json:"name" bson:"name"`
-	Location         string             `json:"location" bson:"location"`
-	Conveniences     []string             `json:"conveniences" bson:"conveniences"`
+	Address          string             `json:"address" bson:"address"`
+	City             string             `json:"city" bson:"city"`
+	Country          string             `json:"country" bson:"country"`
+	Conveniences     []string           `json:"conveniences" bson:"conveniences"`
 	MinNumOfVisitors int                `json:"minNumOfVisitors" bson:"minNumOfVisitors"`
 	MaxNumOfVisitors int                `json:"maxNumOfVisitors" bson:"maxNumOfVisitors"`
 }
@@ -20,7 +22,9 @@ type CreateAccommodation struct {
 	UserId                      string             `json:"userId" bson:"userId"`
 	UserName                    string             `json:"username" bson:"username"`
 	Name                        string             `json:"name" bson:"name"`
-	Location                    string             `json:"location" bson:"location"`
+	Address                     string             `json:"address" bson:"address"`
+	City                        string             `json:"city" bson:"city"`
+	Country                     string             `json:"country" bson:"country"`
 	Conveniences                []string           `json:"conveniences" bson:"conveniences"`
 	MinNumOfVisitors            int                `json:"minNumOfVisitors" bson:"minNumOfVisitors"`
 	MaxNumOfVisitors            int                `json:"maxNumOfVisitors" bson:"maxNumOfVisitors"`
@@ -33,12 +37,14 @@ type AvailableAccommodationDates struct {
 }
 
 type AccommodationDTO struct {
-	Id               string `json:"id"`
-	UserId           string `json:"userId" `
-	UserName         string `json:"username" `
-	Name             string `json:"name" `
-	Location         string `json:"location" `
+	Id               string   `json:"id"`
+	UserId           string   `json:"userId" `
+	UserName         string   `json:"username" `
+	Name             string   `json:"name" `
+	Address          string   `json:"address" `
+	City             string   `json:"city" `
+	Country          string   `json:"country" `
 	Conveniences     []string `json:"conveniences" `
-	MinNumOfVisitors int    `json:"minNumOfVisitors" `
-	MaxNumOfVisitors int    `json:"maxNumOfVisitors" `
+	MinNumOfVisitors int      `json:"minNumOfVisitors" `
+	MaxNumOfVisitors int      `json:"maxNumOfVisitors" `
 }

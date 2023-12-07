@@ -87,7 +87,9 @@ export class FormUpdateAccommodationComponent {
 
       this.accommodationID,
       this.updateAccommodationForm.value.name,
-      this.updateAccommodationForm.value.location,
+      this.updateAccommodationForm.value.address,
+      this.updateAccommodationForm.value.city,
+      this.updateAccommodationForm.value.country,
       this.updateAccommodationForm.value.conveniences,
       this.updateAccommodationForm.value.minNumOfVisitors as number,
       this.updateAccommodationForm.value.maxNumOfVisitors as number

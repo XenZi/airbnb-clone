@@ -85,15 +85,17 @@ export class FormCreateAccommodationComponent {
   }
 
   fromBooleanToConveniences(): string[] {
-    let convArray = this.dateAvailabilities.value.filter(
-      (el: boolean, i: number) => {
-        if (el == true) {
-          return this.convenienceList[i];
-        }
+    let convArray: string[] = [];
+  
+    this.conveniences.value.forEach((el: boolean, i: number) => {
+      if (el === true && this.convenienceList[i]) {
+        convArray.push(this.convenienceList[i]);
       }
-    );
+    });
+    console.log(convArray)
     return convArray;
   }
+
   onSubmit(e: Event) {
     e.preventDefault();
     if (!this.createAccommodationForm.valid) {
@@ -111,7 +113,9 @@ export class FormCreateAccommodationComponent {
       this.user?.id as string,
       this.user?.username as string,
       this.createAccommodationForm.value.name,
-      this.createAccommodationForm.value.location,
+      this.createAccommodationForm.value.address,
+      this.createAccommodationForm.value.city,
+      this.createAccommodationForm.value.country,
       this.fromBooleanToConveniences(),
       this.createAccommodationForm.value.minNumOfVisitors as number,
       this.createAccommodationForm.value.maxNumOfVisitors as number,
