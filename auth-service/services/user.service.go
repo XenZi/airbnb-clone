@@ -6,6 +6,7 @@ import (
 	"auth-service/errors"
 	"auth-service/repository"
 	"auth-service/utils"
+	"context"
 	"log"
 )
 
@@ -16,6 +17,7 @@ type UserService struct {
 	validator         *utils.Validator
 	encryptionService *EncryptionService
 	mailClient        client.MailClientInterface
+	userClient 		  *client.UserClient
 }
 
 func NewUserService(userRepo *repository.UserRepository,
@@ -23,7 +25,8 @@ func NewUserService(userRepo *repository.UserRepository,
 	jwtService *JwtService,
 	validator *utils.Validator,
 	encryptionService *EncryptionService,
-	mailClient client.MailClientInterface) *UserService {
+	mailClient client.MailClientInterface,
+	userClient *client.UserClient) *UserService {
 	return &UserService{
 		userRepository:    userRepo,
 		passwordService:   passwordService,
@@ -31,9 +34,10 @@ func NewUserService(userRepo *repository.UserRepository,
 		validator:         validator,
 		encryptionService: encryptionService,
 		mailClient:        mailClient,
+		userClient: userClient,
 	}
 }
-func (u *UserService) CreateUser(registerUser domains.RegisterUser) (*domains.UserDTO, *errors.ErrorStruct) {
+func (u *UserService) CreateUser(ctx context.Context, registerUser domains.RegisterUser) (*domains.UserDTO, *errors.ErrorStruct) {
 	u.validator.ValidateRegisterUser(&registerUser)
 	validatorErrors := u.validator.GetErrors()
 	if len(validatorErrors) > 0 {
@@ -74,6 +78,7 @@ func (u *UserService) CreateUser(registerUser domains.RegisterUser) (*domains.Us
 	go func() {
 		u.mailClient.SendAccountConfirmationEmail(registerUser.Email, token)
 	}()
+	u.userClient.SendCreatedUser(ctx, newUser.ID.Hex(), registerUser)
 	return &domains.UserDTO{
 		ID:       string(id[1 : len(id)-1]),
 		Email:    registerUser.Email,

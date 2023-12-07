@@ -32,7 +32,12 @@ func (u *UserService) CreateUser(createUser domain.CreateUser) (*domain.User, *e
 		}
 		return nil, errors.NewError(constructedError, 400)
 	}
+	foundId, erro := primitive.ObjectIDFromHex(createUser.ID)
+	if erro != nil {
+		return nil, errors.NewError(erro.Error(), 500)
+	}
 	user := domain.User{
+		ID:        foundId,
 		Username:  createUser.Username,
 		Email:     createUser.Email,
 		Role:      createUser.Role,
@@ -40,6 +45,7 @@ func (u *UserService) CreateUser(createUser domain.CreateUser) (*domain.User, *e
 		LastName:  createUser.LastName,
 		Residence: createUser.Residence,
 		Age:       createUser.Age,
+		Rating:    createUser.Rating,
 	}
 	newUser, foundErr := u.userRepository.CreatUser(user)
 	if foundErr != nil {
@@ -72,6 +78,7 @@ func (u *UserService) UpdateUser(updateUser domain.CreateUser) (*domain.User, *e
 		LastName:  updateUser.LastName,
 		Residence: updateUser.Residence,
 		Age:       updateUser.Age,
+		Rating:    updateUser.Rating,
 	}
 	newUser, foundErr := u.userRepository.UpdateUser(user)
 	if foundErr != nil {

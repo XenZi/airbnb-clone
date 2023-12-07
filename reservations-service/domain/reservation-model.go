@@ -15,10 +15,24 @@ type Reservation struct {
 	EndDate           string     `json:"endDate"`
 	Username          string     `json:"username"`
 	AccommodationName string     `json:"accommodationName"`
+	Location          string     `json:"location"`
+	Price             int        `json:"price"`
+	NumberOfDays      int        `json:"numOfDays"`
+	Continent         string     `json:"continent"`
+}
+
+type FreeReservation struct {
+	Id              gocql.UUID `json:"id"`
+	AccommodationID string     `json:"accommodationId"`
+	StartDate       string     `json:"startDate"`
+	EndDate         string     `json:"endDate"`
+	Location        string     `json:"location"`
+	Price           int        `json:"price"`
+	Continent       string     `json:"continent"`
 }
 type ReservationById []*Reservation
 
-func NewReservation(id gocql.UUID, userID, accommodationID string, startDate, endDate, username, accommodationName string) *Reservation {
+func NewReservation(id gocql.UUID, userID, accommodationID string, startDate, endDate, username, accommodationName, location string, price, numOfDays int, continent string) *Reservation {
 	return &Reservation{
 		Id:                id,
 		UserID:            userID,
@@ -27,7 +41,12 @@ func NewReservation(id gocql.UUID, userID, accommodationID string, startDate, en
 		EndDate:           endDate,
 		Username:          username,
 		AccommodationName: accommodationName,
+		Location:          location,
+		Price:             price,
+		NumberOfDays:      numOfDays,
+		Continent:         continent,
 	}
+
 }
 
 func (ac *Reservation) ToJSON(w io.Writer) error {

@@ -9,4 +9,5 @@ type CreateUser struct {
 	Role      string `json:"role"`
 	Username  string `json:"username"`
 	Age       int    `json:"age"`
+	Rating    int    `json:"rating"`
 }

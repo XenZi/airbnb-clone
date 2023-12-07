@@ -23,19 +23,35 @@ func NewReservationsHandler(l *log.Logger, rs *service.ReservationService) *Rese
 	return &ReservationHandler{l, rs}
 }
 
-func (r *ReservationHandler) CreateReservationByUser(rw http.ResponseWriter, h *http.Request) {
+func (r *ReservationHandler) CreateReservation(rw http.ResponseWriter, h *http.Request) {
 	decoder := json.NewDecoder(h.Body)
 	decoder.DisallowUnknownFields()
 	var res domain.Reservation
 	if err := decoder.Decode(&res); err != nil {
-		utils.WriteErrorResp("Internal server error", 500, "api/reservation", rw)
+		utils.WriteErrorResp("Internal server error", 500, "api/reservations", rw)
 	}
-	newRes, err := r.ReservationService.CreateReservationByUser(res)
+	newRes, err := r.ReservationService.CreateReservation(res)
 	if err != nil {
-		utils.WriteErrorResp(err.Message, err.Status, "api/reservation", rw)
+		utils.WriteErrorResp(err.Message, err.Status, "api/reservations", rw)
 		return
 	}
 	utils.WriteResp(newRes, 201, rw)
+}
+func (r *ReservationHandler) CreateAvailability(rw http.ResponseWriter, h *http.Request) {
+	decoder := json.NewDecoder(h.Body)
+	decoder.DisallowUnknownFields()
+	var avl domain.FreeReservation
+	if err := decoder.Decode(&avl); err != nil {
+		utils.WriteErrorResp(err.Error(), 500, "api/availability", rw)
+		return
+	}
+	newAvl, err := r.ReservationService.CreateAvailability(avl)
+	if err != nil {
+		utils.WriteErrorResp(err.Message, err.Status, "api/availability", rw)
+		return
+	}
+	utils.WriteResp(newAvl, 201, rw)
+
 }
 func (rh *ReservationHandler) GetReservationsByUser(rw http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -54,8 +70,8 @@ func (rh *ReservationHandler) GetReservationsByUser(rw http.ResponseWriter, r *h
 func (rh *ReservationHandler) DeleteReservationById(rw http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["id"]
-	userId := vars["userId"]
-	deletedReservation, err := rh.ReservationService.DeleteReservationById(userId, id)
+
+	deletedReservation, err := rh.ReservationService.DeleteReservationById(id)
 	if err != nil {
 		utils.WriteErrorResp(err.Message, err.Status, "api/reservations/{id}", rw)
 		return

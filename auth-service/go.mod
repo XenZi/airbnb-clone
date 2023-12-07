@@ -9,6 +9,11 @@ require (
 )
 
 require (
+	github.com/eapache/go-resiliency v1.4.0 // indirect
+	github.com/sony/gobreaker v0.5.0 // indirect
+)
+
+require (
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/dgrijalva/jwt-go/v4 v4.0.0-preview1
 	github.com/felixge/httpsnoop v1.0.1 // indirect

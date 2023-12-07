@@ -88,7 +88,7 @@ func (ur UserRepository) UpdateUser(user domain.User) (*domain.User, *errors.Err
 	filter := bson.D{{"_id", user.ID}}
 	update := bson.D{{"$set", bson.D{
 		{"firstName", user.FirstName},
-		{"username", user.Username},
+		//{"username", user.Username},
 		{"email", user.Email},
 		{"lastName", user.LastName},
 		{"residence", user.Residence},
