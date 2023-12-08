@@ -65,7 +65,7 @@ func (rr *ReservationRepo) CreateTables() {
 	// Create new tables
 	err := rr.session.Query(
 		fmt.Sprintf(`CREATE TABLE IF NOT EXISTS %s
-		(id UUID, user_id text, accommodation_id text, start_date text, end_date text, username text, accommodation_name text,location text,price int,num_of_days int,continent text,
+		(id UUID, user_id text, accommodation_id text, start_date text, end_date text, username text, accommodation_name text,location text,price int,num_of_days int,continent text,date_range text,
 		PRIMARY KEY((continent), id)) WITH CLUSTERING ORDER BY (id ASC)`, "reservations")).Exec()
 	if err != nil {
 		rr.logger.Println(err)
@@ -114,13 +114,13 @@ func (rr *ReservationRepo) DropTables() {
 
 func (rr *ReservationRepo) GetReservationsByAccommodation(id string) ([]domain.Reservation, error) {
 
-	scanner := rr.session.Query(`SELECT id,accommodation_id, user_id, start_date, end_date,accommodation_name,location,price,num_of_days FROM reservations WHERE accommodation_id = ? `,
+	scanner := rr.session.Query(`SELECT id,accommodation_id, user_id, start_date, end_date,accommodation_name,location,price,num_of_days,date_range FROM reservations WHERE accommodation_id = ? `,
 		id).Iter().Scanner()
 
 	var reservations []domain.Reservation
 	for scanner.Next() {
 		var reservation domain.Reservation
-		err := scanner.Scan(&reservation.Id, &reservation.AccommodationID, &reservation.UserID, &reservation.StartDate, &reservation.EndDate, &reservation.AccommodationName, reservation.Location, reservation.Price, reservation.NumberOfDays)
+		err := scanner.Scan(&reservation.Id, &reservation.AccommodationID, &reservation.UserID, &reservation.StartDate, &reservation.EndDate, &reservation.AccommodationName, reservation.Location, reservation.Price, reservation.NumberOfDays, reservation.DateRange)
 		if err != nil {
 			rr.logger.Println(err)
 			return nil, err
@@ -135,24 +135,30 @@ func (rr *ReservationRepo) GetReservationsByAccommodation(id string) ([]domain.R
 }
 
 func (rr *ReservationRepo) GetReservationsByUser(id string) ([]domain.Reservation, error) {
-
-	scanner := rr.session.Query(`SELECT id,accommodation_id, user_id, start_date, end_date,username,accommodation_name,location,price,num_of_days FROM reservations WHERE user_id = ? `,
+	scanner := rr.session.Query(`SELECT id,accommodation_id, user_id, start_date, end_date,username,accommodation_name,location,price,num_of_days,date_range FROM reservations WHERE user_id = ? ALLOW FILTERING `,
 		id).Iter().Scanner()
 
 	var reservations []domain.Reservation
 	for scanner.Next() {
 		var reservation domain.Reservation
-		err := scanner.Scan(&reservation.Id, &reservation.AccommodationID, &reservation.UserID, &reservation.StartDate, &reservation.EndDate, &reservation.Username, &reservation.AccommodationName, reservation.Location, reservation.Price, reservation.NumberOfDays)
+		var dateRangeString string
+
+		err := scanner.Scan(&reservation.Id, &reservation.AccommodationID, &reservation.UserID, &reservation.StartDate, &reservation.EndDate, &reservation.Username, &reservation.AccommodationName, &reservation.Location, &reservation.Price, &reservation.NumberOfDays, &dateRangeString)
 		if err != nil {
 			rr.logger.Println(err)
 			return nil, err
 		}
+
+		reservation.DateRange = strings.Split(dateRangeString, ",")
+
 		reservations = append(reservations, reservation)
 	}
+
 	if err := scanner.Err(); err != nil {
 		rr.logger.Println(err)
 		return nil, err
 	}
+
 	return reservations, nil
 }
 
@@ -164,7 +170,7 @@ func (rr *ReservationRepo) InsertAvailability(reservation *domain.FreeReservatio
 		return nil, errors.NewReservationError(400, "Invalid location format: %s")
 	}
 
-	country := locationParts[1]
+	country := locationParts[2]
 	result, err := countryData.FindCountryByName(country)
 	if err != nil {
 		return nil, errors.NewReservationError(500, err.Error())
@@ -207,19 +213,24 @@ func (rr *ReservationRepo) AvailableDates(accommodationID, startDate, endDate st
 	}
 	return true, nil
 }
-
 func (rr *ReservationRepo) InsertReservation(reservation *domain.Reservation) (*domain.Reservation, error) {
 	Id, _ := gocql.RandomUUID()
-	err := rr.session.Query(`INSERT INTO reservations (id,user_id,accommodation_id,start_date,end_date,username,accommodation_name,location,price,num_of_days,continent)
-	VALUES(?,?,?,?,?,?,?,?,?,?,?)`, Id, reservation.UserID, reservation.AccommodationID, reservation.StartDate, reservation.EndDate, reservation.Username, reservation.AccommodationName, reservation.Location, reservation.Price, reservation.NumberOfDays, reservation.Continent).Exec()
+	StartDate := reservation.DateRange[0]
+	EndDate := reservation.DateRange[len(reservation.DateRange)-1]
+
+	dateRangeString := strings.Join(reservation.DateRange, ",")
+
+	err := rr.session.Query(`INSERT INTO reservations (id,user_id,accommodation_id,start_date,end_date,username,accommodation_name,location,price,num_of_days,continent,date_range)
+	VALUES(?,?,?,?,?,?,?,?,?,?,?,?)`, Id, reservation.UserID, reservation.AccommodationID, StartDate, EndDate, reservation.Username, reservation.AccommodationName, reservation.Location, reservation.Price, reservation.NumberOfDays, reservation.Continent, dateRangeString).Exec()
 	if err != nil {
 		rr.logger.Println(err)
 		return nil, err
 	}
 	reservation.Id = Id
+	reservation.StartDate = StartDate
+	reservation.EndDate = EndDate
 	rr.logger.Println(reservation)
 	return reservation, nil
-
 }
 
 /*

@@ -28,7 +28,8 @@ func (r *ReservationHandler) CreateReservation(rw http.ResponseWriter, h *http.R
 	decoder.DisallowUnknownFields()
 	var res domain.Reservation
 	if err := decoder.Decode(&res); err != nil {
-		utils.WriteErrorResp("Internal server error", 500, "api/reservations", rw)
+		utils.WriteErrorResp(err.Error(), 500, "api/reservations", rw)
+		return
 	}
 	newRes, err := r.ReservationService.CreateReservation(res)
 	if err != nil {
