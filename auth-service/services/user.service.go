@@ -76,7 +76,6 @@ func (u *UserService) CreateUser(ctx context.Context, registerUser domains.Regis
 	if encError != nil {
 		return nil, encError
 	}
-	log.Println(registerUser.Age)
 	go func() {
 		u.mailClient.SendAccountConfirmationEmail(registerUser.Email, token)
 	}()

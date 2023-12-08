@@ -4,8 +4,10 @@ import (
 	"auth-service/domains"
 	"auth-service/services"
 	"auth-service/utils"
+	"context"
 	"encoding/json"
 	"net/http"
+	"time"
 
 	"github.com/gorilla/mux"
 )
@@ -37,7 +39,8 @@ func (a AuthHandler) RegisterHandler(r http.ResponseWriter, h *http.Request) {
 	if err := decoder.Decode(&registerData); err != nil {
 		utils.WriteErrorResp("Internal server error", 500, "api/login", r)
 	}
-	ctx := h.Context()
+	ctx, cancel := context.WithTimeout(h.Context(), time.Second * 3)
+	defer cancel()
 	userData, err := a.UserService.CreateUser(ctx, registerData)
 	if err != nil {
 		utils.WriteErrorResp(err.GetErrorMessage(), err.GetErrorStatus(), "api/register", r)
