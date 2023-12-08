@@ -82,8 +82,8 @@ func MinLength(minLength int) ValidationRule {
 	}
 }
 
-func IsDateMMDDYYYY(input string) bool {
-	dateRegex := regexp.MustCompile(`^(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])-(19|20)\d{2}$`)
+func IsDateYYYYMMDD(input string) bool {
+	dateRegex := regexp.MustCompile(`^(19|20)\d{2}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$`)
 	return dateRegex.MatchString(input)
 }
 
@@ -108,10 +108,10 @@ func (v *Validator) ValidateAccommodation(accommodation *domain.Accommodation) {
 }
 
 func (v *Validator) ValidateAvailabilities(availabilities *domain.AvailableAccommodationDates) {
-	v.ValidateField("StartDate", availabilities.StartDate, IsDateMMDDYYYY)
-	v.ValidateField("EndDate", availabilities.EndDate, IsDateMMDDYYYY)
+	v.ValidateField("StartDate", availabilities.StartDate, IsDateYYYYMMDD)
+	v.ValidateField("EndDate", availabilities.EndDate, IsDateYYYYMMDD)
 	v.ValidateField("Price", strconv.Itoa(availabilities.Price), IsNumber)
-	layout := "01-02-2023"
+	layout := "2023-02-01"
 	currentDate := time.Now()
 	StartDateDate, err := time.Parse(layout, availabilities.StartDate)
 	if err != nil {

@@ -115,8 +115,11 @@ export class FormCreateAccommodationComponent {
         }
       });
       console.log(this.errors);
+      
       return;
+      
     }
+    console.log(this.dateAvailabilities.value)
     this.accommodationsService.create(
       this.user?.id as string,
       this.user?.username as string,

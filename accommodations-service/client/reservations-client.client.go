@@ -29,9 +29,9 @@ func NewReservationsClient(host, port string, client *http.Client, circuitBreake
 func (rc ReservationsClient) SendCreatedReservationsAvailabilities(ctx context.Context, id string, accommodation domain.CreateAccommodation) *errors.ErrorStruct {
 	for i := 0; i < len(accommodation.AvailableAccommodationDates); i++ {
 
-		log.Println("OVO JE ID", id)
+		log.Println("OVO JE ID", accommodation.AvailableAccommodationDates[i].StartDate)
 		availabilitiesForReservationService := struct {
-			AccommodationID string `json:"id"`
+			AccommodationID string `json:"accommodationId"`
 			StartDate       string `json:"startDate"`
 			EndDate         string `json:"endDate"`
 			Location        string `json:"location"`
@@ -63,13 +63,7 @@ func (rc ReservationsClient) SendCreatedReservationsAvailabilities(ctx context.C
 			return errors.NewError("Nothing to parse", 500)
 		}
 		resp := cbResp.(*http.Response)
-		anResp := struct {
-			AccommodationID string `json:"id"`
-			StartDate       string `json:"startDate"`
-			EndDate         string `json:"endDate"`
-			Location        string `json:"location"`
-			Price           int    `json:"price"`
-		}{}
+		anResp := domain.BaseErrorHttpResponse{}
 
 		err = json.NewDecoder(resp.Body).Decode(&anResp)
 		if err != nil {
