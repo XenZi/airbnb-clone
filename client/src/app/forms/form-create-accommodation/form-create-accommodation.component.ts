@@ -96,6 +96,14 @@ export class FormCreateAccommodationComponent {
     return convArray;
   }
 
+  createLocationCsv():string{
+    const address=this.createAccommodationForm.value.address;
+    const city=  this.createAccommodationForm.value.city;
+    const country= this.createAccommodationForm.value.country;
+    console.log(address + ","+city +","+country)
+    return address + ","+city +","+country
+  }
+
   onSubmit(e: Event) {
     e.preventDefault();
     if (!this.createAccommodationForm.valid) {
@@ -119,7 +127,8 @@ export class FormCreateAccommodationComponent {
       this.fromBooleanToConveniences(),
       this.createAccommodationForm.value.minNumOfVisitors as number,
       this.createAccommodationForm.value.maxNumOfVisitors as number,
-      this.dateAvailabilities.value
+      this.dateAvailabilities.value,
+      this.createLocationCsv(),
     );
   }
 }

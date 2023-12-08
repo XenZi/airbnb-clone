@@ -35,7 +35,9 @@ export class AccommodationsService {
     conveniences: string[],
     minNumOfVisitors: number,
     maxNumOfVisitors: number,
-    availableAccommodationDates: DateAvailability[]
+    availableAccommodationDates: DateAvailability[],
+    location:string
+
   ): void {
     this.http
       .post(`${apiURL}/accommodations/`, {
@@ -49,6 +51,7 @@ export class AccommodationsService {
         minNumOfVisitors: Number(minNumOfVisitors),
         maxNumOfVisitors: Number(maxNumOfVisitors),
         availableAccommodationDates,
+        location
       })
       .subscribe({
         next: (data) => {

@@ -4,8 +4,10 @@ import (
 	"accommodations-service/domain"
 	"accommodations-service/services"
 	"accommodations-service/utils"
+	"context"
 	"encoding/json"
 	"net/http"
+	"time"
 
 	"github.com/gorilla/mux"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -23,7 +25,9 @@ func (a *AccommodationsHandler) CreateAccommodationById(rw http.ResponseWriter, 
 		utils.WriteErrorResp(err.Error(), 500, "api/accommodations", rw)
 		return
 	}
-	accommodation, err := a.AccommodationService.CreateAccommodation(accomm)
+	ctx, cancel := context.WithTimeout(h.Context(), time.Second*5)
+	defer cancel()
+	accommodation, err := a.AccommodationService.CreateAccommodation(accomm, ctx)
 	if err != nil {
 		utils.WriteErrorResp(err.GetErrorMessage(), 500, "api/accommodations", rw)
 	}

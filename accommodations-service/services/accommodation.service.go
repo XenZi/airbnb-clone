@@ -1,10 +1,12 @@
 package services
 
 import (
+	"accommodations-service/client"
 	"accommodations-service/domain"
 	"accommodations-service/errors"
 	"accommodations-service/repository"
 	"accommodations-service/utils"
+	"context"
 	"log"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -13,16 +15,18 @@ import (
 type AccommodationService struct {
 	accommodationRepository *repository.AccommodationRepo
 	validator               *utils.Validator
+	reservationsClient      *client.ReservationsClient
 }
 
-func NewAccommodationService(accommodationRepo *repository.AccommodationRepo, validator *utils.Validator) *AccommodationService {
+func NewAccommodationService(accommodationRepo *repository.AccommodationRepo, validator *utils.Validator, reservationsClient *client.ReservationsClient) *AccommodationService {
 	return &AccommodationService{
 		accommodationRepository: accommodationRepo,
 		validator:               validator,
+		reservationsClient:      reservationsClient,
 	}
 }
 
-func (as *AccommodationService) CreateAccommodation(accommodation domain.CreateAccommodation) (*domain.AccommodationDTO, *errors.ErrorStruct) {
+func (as *AccommodationService) CreateAccommodation(accommodation domain.CreateAccommodation, ctx context.Context) (*domain.AccommodationDTO, *errors.ErrorStruct) {
 	accomm := domain.Accommodation{
 		Name:             accommodation.Name,
 		Address:          accommodation.Address,
@@ -50,6 +54,7 @@ func (as *AccommodationService) CreateAccommodation(accommodation domain.CreateA
 	}
 	id := newAccommodation.Id.Hex()
 
+	as.reservationsClient.SendCreatedReservationsAvailabilities(ctx, id, accommodation)
 	return &domain.AccommodationDTO{
 		Id:               id,
 		Name:             accommodation.Name,

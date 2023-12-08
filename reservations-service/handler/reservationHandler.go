@@ -45,6 +45,7 @@ func (r *ReservationHandler) CreateAvailability(rw http.ResponseWriter, h *http.
 		utils.WriteErrorResp(err.Error(), 500, "api/availability", rw)
 		return
 	}
+	log.Println("USLO U CREATE")
 	newAvl, err := r.ReservationService.CreateAvailability(avl)
 	if err != nil {
 		utils.WriteErrorResp(err.Message, err.Status, "api/availability", rw)
