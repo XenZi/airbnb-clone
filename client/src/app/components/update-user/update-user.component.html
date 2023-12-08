@@ -2,7 +2,13 @@
   <div class="update-user__container flex flex-row">
     <div class="update-user__left">
       <ul class="update-user__list">
-        <li class="update-user__item">Update password</li>
+        <li
+          class="update-user__item"
+          *ngFor="let item of updateUserListOptions"
+          (click)="item.action()"
+        >
+          {{ item.text }}
+        </li>
       </ul>
     </div>
     <div class="update-user__right">
@@ -10,6 +16,9 @@
         <app-form-change-password
           *ngIf="isIndexActive(0)"
         ></app-form-change-password>
+        <app-form-update-credentials
+          *ngIf="isIndexActive(1)"
+        ></app-form-update-credentials>
       </ng-container>
     </div>
   </div>

@@ -16,6 +16,13 @@ export class UpdateUserComponent {
         this.changeCurrentActiveTo(0);
       },
     },
+    {
+      text: 'Update credentials',
+      action: () => {
+        this.currActiveIndex = 1;
+        this.changeCurrentActiveTo(1);
+      },
+    },
   ];
 
   constructor() {}
@@ -24,5 +31,7 @@ export class UpdateUserComponent {
     return this.currActiveIndex === number;
   }
 
-  changeCurrentActiveTo(index: number) {}
+  changeCurrentActiveTo(index: number) {
+    this.currActiveIndex = index;
+  }
 }

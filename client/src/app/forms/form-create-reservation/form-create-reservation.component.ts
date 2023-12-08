@@ -1,6 +1,7 @@
 // reservation-form.component.ts
-import { Component, OnInit } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { Accommodation } from 'src/app/domains/entity/accommodation-model';
 import { ReservationService } from 'src/app/services/reservation-service/reservation.service';
 
 @Component({
@@ -10,6 +11,7 @@ import { ReservationService } from 'src/app/services/reservation-service/reserva
 })
 export class ReservationFormComponent implements OnInit {
   reservationForm!: FormGroup;
+  @Input() accommodation!:Accommodation
 
   constructor(private fb: FormBuilder, private reservationService: ReservationService) {}
 
@@ -19,18 +21,17 @@ export class ReservationFormComponent implements OnInit {
 
   initializeForm() {
     this.reservationForm = this.fb.group({
-      accommodationId: ['', Validators.required],
       startDate: ['', Validators.required],
       endDate: ['', Validators.required],
-      username: ['', Validators.required],
-      accommodationName: ['', Validators.required],
     });
   }
 
   submitReservation() {
     if (this.reservationForm.valid) {
       const reservationData = this.reservationForm.value;
-      
+      reservationData.accommodationID = this.accommodation.id
+      reservationData.location = this.accommodation.location
+      reservationData.accommodationName = this.accommodation.name
       this.reservationService.createReservation(reservationData).subscribe(
         (response: any) => {
           console.log('Reservation created successfully:', response); 

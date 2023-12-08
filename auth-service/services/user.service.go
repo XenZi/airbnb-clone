@@ -8,6 +8,8 @@ import (
 	"auth-service/utils"
 	"context"
 	"log"
+
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type UserService struct {
@@ -74,7 +76,6 @@ func (u *UserService) CreateUser(ctx context.Context, registerUser domains.Regis
 	if encError != nil {
 		return nil, encError
 	}
-	log.Println(registerUser.Age)
 	go func() {
 		u.mailClient.SendAccountConfirmationEmail(registerUser.Email, token)
 	}()
@@ -202,7 +203,7 @@ func (u UserService) ChangePassword(data domains.ChangePassword, userID string) 
 		return nil, err
 	}
 
-	if u.passwordService.CheckPasswordHash(data.Password, user.Password) == true {
+	if u.passwordService.CheckPasswordHash(data.Password, user.Password) == false {
 		return nil, errors.NewError("Old password doesn't match", 400)
 	}
 
@@ -218,4 +219,43 @@ func (u UserService) ChangePassword(data domains.ChangePassword, userID string) 
 		Message: "You have updated your password",
 	}
 	return &response, nil
+}
+
+func (u UserService) UpdateCredentials(id string, updatedData domains.User) (*domains.BaseMessageResponse, *errors.ErrorStruct) {
+	if (updatedData.Email == "" || updatedData.Username == "") {
+		return nil, errors.NewError("Email or username are empty", 400)
+	} 
+	foundUser, _ := u.userRepository.FindUserById(id)
+	if (foundUser.Username == updatedData.Username && foundUser.Email == updatedData.Email) {
+		return &domains.BaseMessageResponse{
+			Message: "You have successfully updated your credentials", 
+		}, nil
+	}
+	if (foundUser.Email != updatedData.Email) {
+		_, err := u.userRepository.FindUserByEmail(updatedData.Email)
+		if err == nil {
+			return  nil, errors.NewError("User with same email already exists", 400)
+		}
+	}
+	if (foundUser.Username != updatedData.Username) {
+		_, err := u.userRepository.FindUserByUsername(updatedData.Username)
+		if err == nil {
+			return nil, errors.NewError("User with same username already exists", 400)
+		}
+	}
+	if u.passwordService.CheckPasswordHash(updatedData.Password, foundUser.Password) == false {
+		return nil, errors.NewError("Password doesn't match", 400)
+	}
+	objectID, newError := primitive.ObjectIDFromHex(id)
+	if newError != nil {
+		return nil, errors.NewError(newError.Error(),500)
+	}
+	updatedData.ID = objectID
+	_, err := u.userRepository.UpdateUserCredentials(updatedData)
+	if err != nil {
+		return nil, err
+	}
+	return &domains.BaseMessageResponse{
+		Message: "You have successfully updated your credentials, please log in again.",
+	}, nil
 }

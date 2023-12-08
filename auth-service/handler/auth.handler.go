@@ -4,8 +4,10 @@ import (
 	"auth-service/domains"
 	"auth-service/services"
 	"auth-service/utils"
+	"context"
 	"encoding/json"
 	"net/http"
+	"time"
 
 	"github.com/gorilla/mux"
 )
@@ -37,7 +39,8 @@ func (a AuthHandler) RegisterHandler(r http.ResponseWriter, h *http.Request) {
 	if err := decoder.Decode(&registerData); err != nil {
 		utils.WriteErrorResp("Internal server error", 500, "api/login", r)
 	}
-	ctx := h.Context()
+	ctx, cancel := context.WithTimeout(h.Context(), time.Second * 3)
+	defer cancel()
 	userData, err := a.UserService.CreateUser(ctx, registerData)
 	if err != nil {
 		utils.WriteErrorResp(err.GetErrorMessage(), err.GetErrorStatus(), "api/register", r)
@@ -77,7 +80,7 @@ func (a AuthHandler) RequestResetPassword(r http.ResponseWriter, h *http.Request
 	utils.WriteResp(res, 200, r)
 }
 
-func (a AuthHandler) ResetPassword (r http.ResponseWriter, h  *http.Request) {
+func (a AuthHandler) ResetPassword(r http.ResponseWriter, h  *http.Request) {
 	vars := mux.Vars(h)
 	token := vars["token"]
 	if token == "" {
@@ -114,4 +117,21 @@ func (a AuthHandler) ChangePassword(r http.ResponseWriter, h *http.Request) {
 		return
 	}
 	utils.WriteResp(resp, 200, r)
+}
+
+func (a AuthHandler) UpdateCredentials(r http.ResponseWriter, h *http.Request) {
+	decoder := json.NewDecoder(h.Body)
+	decoder.DisallowUnknownFields()
+	var requestData domains.User
+	if err := decoder.Decode(&requestData); err != nil {
+		utils.WriteErrorResp(err.Error(), 500, "api/change-password", r)
+		return
+	}
+	userID := h.Context().Value("userID").(string)
+	res, err := a.UserService.UpdateCredentials(userID, requestData)
+	if err != nil {
+		utils.WriteErrorResp(err.GetErrorMessage(), err.GetErrorStatus(), "api/update-credentials", r)
+		return
+	}
+	utils.WriteResp(res, 201, r)
 }
