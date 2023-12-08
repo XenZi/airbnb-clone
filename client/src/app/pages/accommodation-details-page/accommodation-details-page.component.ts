@@ -2,7 +2,7 @@ import { ModalService } from './../../services/modal/modal.service';
 import { Component } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { Accommodation } from 'src/app/domains/entity/accommodation-model';
-import { FormDefineAvailabilityComponent } from 'src/app/forms/form-define-availability/form-define-availability.component';
+
 import { FormUpdateAccommodationComponent } from 'src/app/forms/form-update-accommodation/form-update-accommodation.component';
 import { AccommodationsService } from 'src/app/services/accommodations-service/accommodations.service';
 
@@ -36,9 +36,7 @@ export class AccommodationDetailsPageComponent {
     this.callDeleteAccommodation();
     console.log('Uslo');
   }
-  availabilityClick(){
-    this.callAvailabilityAndPricing();
-  }
+  
 
   getAccommodationID() {
     this.route.paramMap.subscribe((params) => {
@@ -66,15 +64,6 @@ export class AccommodationDetailsPageComponent {
     );
   }
 
-  callAvailabilityAndPricing() {
-    this.modalService.open(
-      FormDefineAvailabilityComponent,
-      'Define availability and pricing',
-      {
-        accommodationID: this.accommodationID,
-      }
-    );
-  }
 
   callDeleteAccommodation() {
     this.accommodationsService.deleteById(this.accommodationID as string);
