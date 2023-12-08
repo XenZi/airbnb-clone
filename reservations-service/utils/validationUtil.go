@@ -82,6 +82,17 @@ func DateNotBefore(date1, date2 string) ValidationRule {
 		return !date.Before(startDate)
 	}
 }
+func DateNotInPast() ValidationRule {
+	return func(value string) bool {
+		today := time.Now().UTC()
+		date, err := time.Parse("2006-01-02", value)
+		if err != nil {
+			return false
+		}
+		return !date.Before(today)
+	}
+}
+
 func MinLength(minLength int) ValidationRule {
 	return func(value string) bool {
 		return len(value) >= minLength
@@ -108,8 +119,8 @@ func WordBan(value string) bool {
 func (v *Validator) ValidateReservation(reservation *domain.Reservation) {
 	v.ValidateField("username", reservation.Username, MinLength(2), MaxLength(15), WordBan)
 	v.ValidateField("accommodationName", reservation.AccommodationName, MinLength(2), MaxLength(15), WordBan)
-	v.ValidateField("startDate", reservation.StartDate, DateNotAfter(reservation.StartDate, reservation.EndDate))
-	v.ValidateField("endDate", reservation.EndDate, DateNotBefore(reservation.EndDate, reservation.StartDate))
+	v.ValidateField("startDate", reservation.StartDate, DateNotAfter(reservation.StartDate, reservation.EndDate), DateNotInPast())
+	v.ValidateField("endDate", reservation.EndDate, DateNotBefore(reservation.EndDate, reservation.StartDate), DateNotInPast())
 	foundErrors := v.GetErrors()
 	if len(foundErrors) > 0 {
 		for field, message := range foundErrors {
