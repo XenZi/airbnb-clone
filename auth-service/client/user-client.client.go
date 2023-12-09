@@ -64,16 +64,7 @@ func (uc UserClient) SendCreatedUser(ctx context.Context, id string, user domain
 		return err
 	}
 	resp := cbResp.(*http.Response)
-	anResp := struct {
-		ID        string `json:"id"`
-		FirstName string `json:"firstName"`
-		LastName  string `json:"lastName"`
-		Email     string `json:"email"`
-		Residence string `json:"residence"`
-		Role      string `json:"role"`
-		Username  string `json:"username"`
-		Age       int    `json:"age"`
-	}{}
+	anResp := domains.BaseErrorHttpResponse{}
 
 	err = json.NewDecoder(resp.Body).Decode(&anResp)
 	if err != nil {

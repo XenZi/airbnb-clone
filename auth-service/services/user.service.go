@@ -259,3 +259,20 @@ func (u UserService) UpdateCredentials(id string, updatedData domains.User) (*do
 		Message: "You have successfully updated your credentials, please log in again.",
 	}, nil
 }
+
+func (u UserService) DeleteUserById(id string) (*domains.UserDTO, *errors.ErrorStruct) {
+	if id == "" {
+		return nil, errors.NewError("Invalid ID format", 400)
+	}
+	user, err := u.userRepository.DeleteUserById(id)
+	if err != nil {
+		return nil, err
+	}
+	return &domains.UserDTO{
+		Username:  user.Username,
+		Email:     user.Email,
+		ID:        id,
+		Role:      user.Role,
+		Confirmed: user.Confirmed,
+	}, nil
+}

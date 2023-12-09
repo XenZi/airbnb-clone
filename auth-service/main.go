@@ -90,6 +90,7 @@ func main() {
 	router.HandleFunc("/reset-password/{token}", authHandler.ResetPassword).Methods("POST")
 	router.HandleFunc("/change-password", middlewares.ValidateJWT(authHandler.ChangePassword)).Methods("POST")
 	router.HandleFunc("/update-credentials", middlewares.ValidateJWT(authHandler.UpdateCredentials)).Methods("POST")
+	router.HandleFunc("/{id}", authHandler.DeleteUser).Methods("DELETE")
 	
 	// server definitions
 

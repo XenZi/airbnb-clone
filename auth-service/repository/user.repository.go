@@ -171,3 +171,22 @@ func (u UserRepository) FindUserByUsername(username string) (*domains.User, *err
 	}
 	return &user, nil
 }
+
+
+func (u UserRepository) DeleteUserById(id string) (*domains.User, *errors.ErrorStruct) {
+	user, err := u.FindUserById(id)
+	if err != nil {
+		return nil, err
+	}
+	userCollection := u.cli.Database("auth").Collection("user")
+	primitiveID, errFromCast := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return nil, errors.NewError(errFromCast.Error(), 500)
+	}
+	filter := bson.M{"_id": primitiveID}
+	_, errFromDelete := userCollection.DeleteOne(context.TODO(), filter)
+	if errFromDelete != nil {
+		return nil, errors.NewError(errFromDelete.Error(), 500)
+	}
+	return user, nil
+}
