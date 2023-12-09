@@ -89,10 +89,26 @@ func (ur UserRepository) UpdateUser(user domain.User) (*domain.User, *errors.Err
 	update := bson.D{{"$set", bson.D{
 		{"firstName", user.FirstName},
 		//{"username", user.Username},
-		{"email", user.Email},
+		//{"email", user.Email},
 		{"lastName", user.LastName},
 		{"residence", user.Residence},
 		{"age", user.Age},
+	}}}
+	_, err := userCollection.UpdateOne(context.TODO(), filter, update)
+	if err != nil {
+		ur.logger.Println(err.Error())
+		err, status := errors.HandleInsertError(err, user)
+		return nil, errors.NewError(err.Error(), status)
+	}
+	return &user, nil
+}
+
+func (ur UserRepository) UpdateUserCreds(user domain.User) (*domain.User, *errors.ErrorStruct) {
+	userCollection := ur.cli.Database("user-service").Collection("users")
+	filter := bson.D{{"_id", user.ID}}
+	update := bson.D{{"$set", bson.D{
+		{"username", user.Username},
+		{"email", user.Email},
 	}}}
 	_, err := userCollection.UpdateOne(context.TODO(), filter, update)
 	if err != nil {

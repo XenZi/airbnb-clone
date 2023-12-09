@@ -44,6 +44,8 @@ func main() {
 	router.HandleFunc("/all", profileHandler.GetAllHandler).Methods("GET")
 	router.HandleFunc("/{id}", profileHandler.GetUserById).Methods("GET")
 	router.HandleFunc("/{id}", profileHandler.DeleteHandler).Methods("DELETE")
+	//better endpoint?
+	router.HandleFunc("/creds/{id}", profileHandler.CredsHandler).Methods("POST")
 	port := os.Getenv("PORT")
 	if len(port) == 0 {
 		port = "8080"

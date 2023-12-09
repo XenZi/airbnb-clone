@@ -2,6 +2,7 @@ package service
 
 import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"log"
 	"user-service/domain"
 	"user-service/errors"
 	"user-service/repository"
@@ -23,6 +24,7 @@ func NewUserService(userRepo *repository.UserRepository, jwtService *JwtService,
 }
 
 func (u *UserService) CreateUser(createUser domain.CreateUser) (*domain.User, *errors.ErrorStruct) {
+	log.Println(createUser)
 	u.validator.ValidateUser(&createUser)
 	validErrors := u.validator.GetErrors()
 	if len(validErrors) > 0 {
@@ -56,6 +58,7 @@ func (u *UserService) CreateUser(createUser domain.CreateUser) (*domain.User, *e
 }
 
 func (u *UserService) UpdateUser(updateUser domain.CreateUser) (*domain.User, *errors.ErrorStruct) {
+
 	u.validator.ValidateUser(&updateUser)
 	validErrors := u.validator.GetErrors()
 	if len(validErrors) > 0 {
@@ -81,6 +84,33 @@ func (u *UserService) UpdateUser(updateUser domain.CreateUser) (*domain.User, *e
 		Rating:    updateUser.Rating,
 	}
 	newUser, foundErr := u.userRepository.UpdateUser(user)
+	if foundErr != nil {
+		return nil, foundErr
+	}
+
+	return newUser, nil
+}
+
+func (u *UserService) UpdateUserCreds(updateUser domain.CreateUser) (*domain.User, *errors.ErrorStruct) {
+	u.validator.ValidateCreds(&updateUser)
+	validErrors := u.validator.GetErrors()
+	if len(validErrors) > 0 {
+		var constructedError string
+		for _, message := range validErrors {
+			constructedError += message + "\n"
+		}
+		return nil, errors.NewError(constructedError, 400)
+	}
+	foundId, err := primitive.ObjectIDFromHex(updateUser.ID)
+	if err != nil {
+		return nil, errors.NewError(err.Error(), 500)
+	}
+	user := domain.User{
+		ID:       foundId,
+		Username: updateUser.Username,
+		Email:    updateUser.Email,
+	}
+	newUser, foundErr := u.userRepository.UpdateUserCreds(user)
 	if foundErr != nil {
 		return nil, foundErr
 	}

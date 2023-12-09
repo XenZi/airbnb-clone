@@ -148,3 +148,13 @@ func (v *Validator) ValidateUser(newUser *domain.CreateUser) {
 		}
 	}
 }
+
+func (v *Validator) ValidateCreds(newUser *domain.CreateUser) {
+	v.ValidateField("Email", newUser.Email, IsEmail)
+	foundErrors := v.GetErrors()
+	if len(foundErrors) > 0 {
+		for field, message := range foundErrors {
+			fmt.Printf("%s: %s\n", field, message)
+		}
+	}
+}
