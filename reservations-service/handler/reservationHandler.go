@@ -68,6 +68,19 @@ func (rh *ReservationHandler) GetReservationsByUser(rw http.ResponseWriter, r *h
 	rw.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(rw).Encode(reservations)
 }
+func (rh ReservationHandler) GetReservationsByAccommodation(rw http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	accommodationID := vars["accommodationID"]
+
+	reservations, err := rh.ReservationService.GetReservationsByAccommodation(accommodationID)
+	if err != nil {
+		utils.WriteErrorResp(err.Message, err.Status, "api/accommodation/sreservations/{accommodationID}", rw)
+		return
+	}
+
+	rw.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(rw).Encode(reservations)
+}
 
 func (rh *ReservationHandler) DeleteReservationById(rw http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)

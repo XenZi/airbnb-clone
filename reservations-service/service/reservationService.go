@@ -65,6 +65,14 @@ func (s *ReservationService) GetReservationsByUser(userID string) ([]domain.Rese
 	return reservations, nil
 }
 
+func (s *ReservationService) GetReservationsByAccommodation(accommodationID string) ([]domain.Reservation, *errors.ReservationError) {
+	reservations, err := s.repo.GetReservationsByAccommodation(accommodationID)
+	if err != nil {
+		return nil, errors.NewReservationError(500, err.Error())
+	}
+	return reservations, nil
+}
+
 func (s *ReservationService) DeleteReservationById(id string) (*domain.ReservationById, *errors.ReservationError) {
 	deletedReservation, err := s.repo.DeleteById(id)
 	if err != nil {
