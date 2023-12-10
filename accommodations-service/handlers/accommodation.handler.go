@@ -2,11 +2,13 @@ package handlers
 
 import (
 	"accommodations-service/domain"
+	"accommodations-service/errors"
 	"accommodations-service/services"
 	"accommodations-service/utils"
 	"context"
 	"encoding/json"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -135,4 +137,34 @@ func (a *AccommodationsHandler) DeleteAccommodationById(rw http.ResponseWriter, 
 
 	rw.Header().Set("Content-Type", "application/json")
 	rw.WriteHeader(http.StatusNoContent) // HTTP 204 No Content for successful deletion
+}
+
+func (a *AccommodationsHandler) SearchAccommodations(w http.ResponseWriter, r *http.Request) {
+	// Extract query parameters from the request
+	city := r.URL.Query().Get("city")
+	country := r.URL.Query().Get("country")
+	address := r.URL.Query().Get("address")
+	visitors := r.URL.Query().Get("numOfVisitors")
+	numOfVisitors, err := strconv.Atoi(visitors)
+	if err != nil {
+		errors.NewError("Unable to convert to int", 500)
+		return
+	}
+
+	// Call the AccommodationService to perform the search
+	accommodations, errS := a.AccommodationService.SearchAccommodations(city, country, address, numOfVisitors)
+	if errS != nil {
+		utils.WriteErrorResp(errS.GetErrorMessage(), http.StatusInternalServerError, "api/accommodations/search", w)
+		return
+	}
+
+	// Encode the search results into JSON and send the response
+	responseJSON, err := json.Marshal(accommodations)
+	if err != nil {
+		http.Error(w, "Failed to marshal JSON", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(responseJSON)
 }

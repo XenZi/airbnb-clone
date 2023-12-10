@@ -87,6 +87,9 @@ func main() {
 	deleteAccommodationsById := router.Methods(http.MethodDelete).Subrouter()
 	deleteAccommodationsById.HandleFunc("/{id}", accommodationsHandler.DeleteAccommodationById)
 
+	searchAccommodation := router.Methods(http.MethodGet).Subrouter()
+	searchAccommodation.HandleFunc("/search", accommodationsHandler.SearchAccommodations)
+
 	headersOk := gorillaHandlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"})
 	methodsOk := gorillaHandlers.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "OPTIONS", "DELETE"})
 	originsOk := gorillaHandlers.AllowedOrigins([]string{"http://localhost:4200"})

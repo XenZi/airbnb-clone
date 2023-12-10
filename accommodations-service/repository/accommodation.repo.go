@@ -124,3 +124,51 @@ func (ar *AccommodationRepo) DeleteAccommodationById(id string) *errors.ErrorStr
 
 	return nil
 }
+
+func (ar *AccommodationRepo) SearchAccommodations(city, country, address string, numOfVisitors int) ([]do.Accommodation, *errors.ErrorStruct) {
+	accommodationCollection := ar.cli.Database("accommodations-service").Collection("accommodations")
+	filter := bson.M{}
+
+	// Build the filter based on the provided parameters
+	if city != "" {
+		filter["city"] = city
+	}
+	if country != "" {
+		filter["country"] = country
+	}
+	if address != "" {
+		filter["address"] = address
+	}
+	if numOfVisitors > 0 {
+		filter["$and"] = bson.A{
+			bson.M{"minGuests": bson.M{"$lte": numOfVisitors}},
+			bson.M{"maxGuests": bson.M{"$gte": numOfVisitors}},
+		}
+	}
+
+	// Perform the search using the constructed filter
+	var accommodations []do.Accommodation // Replace Accommodation with your struct type
+	ctx := context.TODO()
+
+	// Apply the filter and retrieve accommodations
+	cursor, err := accommodationCollection.Find(ctx, filter)
+	if err != nil {
+		return nil, errors.NewError("Unable to find accommodations, database error", 500)
+	}
+	defer cursor.Close(ctx)
+
+	// Iterate through the results and decode them into accommodations slice
+	for cursor.Next(ctx) {
+		var accommodation do.Accommodation // Replace Accommodation with your struct type
+		if err := cursor.Decode(&accommodation); err != nil {
+			return nil, errors.NewError("Unable to decode accommodations,error", 500)
+		}
+		accommodations = append(accommodations, accommodation)
+	}
+
+	if err := cursor.Err(); err != nil {
+		return nil, errors.NewError("Unable to find accommodations, database error", 500)
+	}
+
+	return accommodations, nil
+}
