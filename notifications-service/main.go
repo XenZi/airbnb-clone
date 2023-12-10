@@ -34,10 +34,14 @@ func main() {
 	notificationRepository := repository.NewNotificationRepository(mongoService.GetCli(), logger)
 	notificationService := services.NewNotificationService(notificationRepository)
 	notificationHandler := handlers.NewNotificationHandler(notificationService)
+	
+	
 	// router definitions
 
 	router := mux.NewRouter()
-	router.HandleFunc("/", notificationHandler.CreateNotification).Methods("POST")
+	router.HandleFunc("/create-new-user-notification/{id}", notificationHandler.CreateNewUserNotification).Methods("POST")
+	router.HandleFunc("/{id}", notificationHandler.CreateNewNotificationForUser).Methods("POST")
+
 	// server definitions
 
 	if len(port) == 0 {
