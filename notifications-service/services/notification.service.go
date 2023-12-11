@@ -5,6 +5,8 @@ import (
 	"notifications-service/errors"
 	"notifications-service/repository"
 	"time"
+
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type NotificationService struct {
@@ -36,7 +38,7 @@ func (ns NotificationService) PushNewNotificationToUser(id string, notification 
 	}
 	notification.CreatedAt = time.Now().String()
 	notification.IsOpened = false
-	userNotification.Notifications = append(userNotification.Notifications, notification)
+	userNotification.Notifications = append([]domains.Notification{notification}, userNotification.Notifications...)
 	repoResp, err := ns.repo.UpdateNotificationByID(userNotification)
 	if err != nil {
 		return nil, err
@@ -45,4 +47,28 @@ func (ns NotificationService) PushNewNotificationToUser(id string, notification 
 		ID: repoResp.ID.Hex(),
 		Notifications: repoResp.Notifications,
 	}, nil
+}
+
+func (ns NotificationService) ReadAllNotifications(notifications domains.UserNotificationDTO) (*domains.UserNotificationDTO, *errors.ErrorStruct) {
+	notifications.Notifications = *ns.makeAllNotificationsOpened(&notifications.Notifications)
+	castedKey, _ := primitive.ObjectIDFromHex(notifications.ID)
+	castedUserNotification := domains.UserNotification{
+		ID: castedKey,
+		Notifications: notifications.Notifications,
+	}
+	_, err := ns.repo.UpdateNotificationByID(&castedUserNotification)
+	if err != nil {
+		return nil, err
+	}
+	return &notifications, nil
+}
+
+func (ns NotificationService) makeAllNotificationsOpened(notifications *[]domains.Notification) *[]domains.Notification {
+    for i := range *notifications {
+		if (*notifications)[i].IsOpened {
+			break
+		}
+		(*notifications)[i].IsOpened = true
+	}
+    return notifications
 }

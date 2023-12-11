@@ -57,3 +57,19 @@ func (nh NotificationHandler) CreateNewNotificationForUser(rw http.ResponseWrite
 	}
 	utils.WriteResp(resp, 201, rw)
 }
+
+func (nh NotificationHandler) ReadAllNotifications(rw http.ResponseWriter, h *http.Request) {
+	decoder := json.NewDecoder(h.Body)
+	decoder.DisallowUnknownFields()
+	var requestData domains.UserNotificationDTO
+	if err := decoder.Decode(&requestData); err != nil {
+		utils.WriteErrorResp(err.Error(), 500, "api/notifications", rw)
+		return
+	}
+	resp, err := nh.service.ReadAllNotifications(requestData)
+	if err != nil {
+		utils.WriteErrorResp(err.GetErrorMessage(), err.GetErrorStatus(), "api/notifications",rw)
+		return
+	}
+	utils.WriteResp(resp, 200, rw)
+}
