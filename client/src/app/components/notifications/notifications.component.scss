@@ -1,0 +1,80 @@
+.notifications {
+  margin-right: 10px;
+}
+
+.notifications__top-box {
+  position: relative;
+}
+
+.notifications__icon {
+  color: rgba(0, 0, 0, 0.6);
+  padding: 5px;
+  cursor: pointer;
+}
+
+.notifications__new-notification {
+  position: absolute;
+  top: 5px;
+  right: 4px;
+  background-color: red;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+}
+
+.notifications__container {
+  position: relative;
+}
+
+.notifications__box {
+  cursor: pointer;
+  border-top: 2px solid #eee;
+  border-bottom: 1px solid #eee;
+  padding: 10px;
+  transition: all 0.3s ease-in-out;
+  &:hover {
+    background-color: #eee;
+  }
+}
+
+.notifications__lower-box {
+  position: absolute;
+  top: 100%;
+  width: 300px;
+  max-height: 500px;
+  right: 0;
+  background-color: #fff;
+  box-shadow: rgba(149, 157, 165, 0.2) 0px 8px 24px;
+  border-radius: 15px;
+  overflow-y: scroll;
+  visibility: hidden;
+  opacity: 0;
+  z-index: -1;
+  transition: all 0.3s ease-in;
+}
+
+.notifications__text {
+  font-size: 14px;
+  line-height: 15px;
+}
+
+.notifications__date {
+  color: #00008b;
+  margin-top: 5px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.notifications__box--readed {
+  background-color: #eee;
+  transition: all 0.3s ease-in-out;
+  &:hover {
+    background-color: darken($color: #eee, $amount: 3);
+  }
+}
+
+.notifications__lower-box--active {
+  visibility: visible;
+  opacity: 1;
+  z-index: 3;
+}
