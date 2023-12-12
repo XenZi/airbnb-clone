@@ -73,3 +73,18 @@ func (nh NotificationHandler) ReadAllNotifications(rw http.ResponseWriter, h *ht
 	}
 	utils.WriteResp(resp, 200, rw)
 }
+
+func (nh NotificationHandler) GetAllNotificationsByID(rw http.ResponseWriter, h *http.Request) {
+	vars := mux.Vars(h)
+	id := vars["id"]
+	if id == "" {
+		utils.WriteErrorResp("Bad request", 400, "api/notifications", rw)
+		return
+	}
+	resp, err := nh.service.FindAllNotificationsByID(id)
+	if err != nil {
+		utils.WriteErrorResp(err.GetErrorMessage(), err.GetErrorStatus(), "api/notifications",rw)
+		return
+	}
+	utils.WriteResp(resp, 200, rw) 
+}

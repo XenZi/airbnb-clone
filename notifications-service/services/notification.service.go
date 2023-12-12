@@ -63,6 +63,17 @@ func (ns NotificationService) ReadAllNotifications(notifications domains.UserNot
 	return &notifications, nil
 }
 
+func (ns NotificationService) FindAllNotificationsByID(id string) (*domains.UserNotificationDTO, *errors.ErrorStruct) {
+	notifications, err := ns.repo.FindOneUserNotificationByID(id)
+	if err != nil {
+		return nil, err
+	}
+	return &domains.UserNotificationDTO{
+		ID: notifications.ID.Hex(),
+		Notifications: notifications.Notifications,
+	}, nil
+}
+
 func (ns NotificationService) makeAllNotificationsOpened(notifications *[]domains.Notification) *[]domains.Notification {
     for i := range *notifications {
 		if (*notifications)[i].IsOpened {

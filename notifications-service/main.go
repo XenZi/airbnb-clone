@@ -42,6 +42,7 @@ func main() {
 	router.HandleFunc("/create-new-user-notification/{id}", notificationHandler.CreateNewUserNotification).Methods("POST")
 	router.HandleFunc("/{id}", notificationHandler.CreateNewNotificationForUser).Methods("POST")
 	router.HandleFunc("/{id}", notificationHandler.ReadAllNotifications).Methods("PUT")
+	router.HandleFunc("/{id}", notificationHandler.GetAllNotificationsByID).Methods("GET")
 
 	// server definitions
 
