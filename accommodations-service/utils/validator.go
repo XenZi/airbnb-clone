@@ -81,6 +81,11 @@ func MinLength(minLength int) ValidationRule {
 		return len(value) >= minLength
 	}
 }
+func IsAddress(value string) bool {
+	addressRegex := `^[a-zA-Z0-9 ,]+$`
+	isValid, _ := regexp.MatchString(addressRegex, value)
+	return isValid
+}
 
 func IsDateYYYYMMDD(input string) bool {
 	dateRegex := regexp.MustCompile(`^(19|20)\d{2}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$`)
@@ -89,9 +94,9 @@ func IsDateYYYYMMDD(input string) bool {
 
 func (v *Validator) ValidateAccommodation(accommodation *domain.Accommodation) {
 	v.ValidateField("Name", accommodation.Name, MinLength(2), IsName)
-	v.ValidateField("Address", accommodation.Address, MinLength(2))
+	v.ValidateField("Address", accommodation.Address, MinLength(2), IsAddress)
 	v.ValidateField("City", accommodation.City, MinLength(2), IsLocationOrConvenience)
-	v.ValidateField("Country", accommodation.Country, MinLength(2), IsLocationOrConvenience)
+
 	v.ValidateField("MinNumOfVisitors", strconv.Itoa(accommodation.MinNumOfVisitors), IsNumber)
 	v.ValidateField("MaxNumOfVisitors", strconv.Itoa(accommodation.MaxNumOfVisitors), IsNumber)
 	if accommodation.MinNumOfVisitors > accommodation.MaxNumOfVisitors {

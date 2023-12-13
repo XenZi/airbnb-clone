@@ -7,7 +7,7 @@ import { ModalService } from '../modal/modal.service';
 import { ToastService } from '../toast/toast.service';
 import { ToastNotificationType } from 'src/app/domains/enums/toast-notification-type.enum';
 import { Router } from '@angular/router';
-import { Observable } from 'rxjs';
+import { Observable, map } from 'rxjs';
 import { Accommodation } from 'src/app/domains/entity/accommodation-model';
 import { DateAvailability } from 'src/app/domains/entity/date-availability.model';
 
@@ -77,9 +77,10 @@ export class AccommodationsService {
   }
 
   public loadAccommodations(): Observable<Accommodation[]> {
-    return this.http.get<Accommodation[]>(`${apiURL}/accommodations/`);
+    return this.http.get<any>(`${apiURL}/accommodations/`).pipe(
+      map((response: { data: any; }) => response.data)
+    );
   }
-
   public getAccommodationById(id: string): Observable<Accommodation> {
     return this.http.get<Accommodation>(`${apiURL}/accommodations/${id}`);
   }

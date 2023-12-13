@@ -7,9 +7,8 @@ import (
 	"accommodations-service/repository"
 	"accommodations-service/utils"
 	"context"
-	"log"
-
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"log"
 )
 
 type AccommodationService struct {
@@ -171,7 +170,11 @@ func (as *AccommodationService) SearchAccommodations(city, country, address stri
 		// Handle the error returned by the repository
 		return nil, errors.NewError("Failed to find accommodations", 500) // Modify according to your error handling approach
 	}
-
+	var accommodationIDs []string
+	for _, acc := range accommodations {
+		accommodationIDs = append(accommodationIDs, acc.Id.Hex())
+	}
+	log.Println(accommodationIDs)
 	// Return the search results obtained from the repository
 	return accommodations, nil
 }

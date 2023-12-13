@@ -94,7 +94,7 @@ func (ar *AccommodationRepo) UpdateAccommodationById(accommodation do.Accommodat
 		{Key: "$set", Value: bson.D{
 			{Key: "address", Value: accommodation.Address},
 			{Key: "city", Value: accommodation.City},
-			{Key: "country", Value: accommodation.Country},
+
 			{Key: "name", Value: accommodation.Name},
 			{Key: "conveniences", Value: accommodation.Conveniences},
 			{Key: "minNumOfVisitors", Value: accommodation.MinNumOfVisitors},

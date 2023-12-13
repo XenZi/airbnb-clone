@@ -76,3 +76,70 @@ func (rc ReservationsClient) SendCreatedReservationsAvailabilities(ctx context.C
 
 	return errors.NewError("Nothing to parse", 500)
 }
+
+func (rc ReservationsClient) CheckAvailabilityForAccommodations(ctx context.Context, accommodationIDs []string, startDate, endDate string) ([]string, *errors.ErrorStruct) {
+	availabilityCheck := struct {
+		AccommodationIDs []string `json:"accommodationIds"`
+		StartDate        string   `json:"startDate"`
+		EndDate          string   `json:"endDate"`
+	}{
+		AccommodationIDs: accommodationIDs,
+		StartDate:        startDate,
+		EndDate:          endDate,
+	}
+
+	jsonData, err := json.Marshal(availabilityCheck)
+	if err != nil {
+		return nil, errors.NewError("Failed to marshal JSON data", http.StatusInternalServerError)
+	}
+
+	requestBody := bytes.NewReader(jsonData)
+
+	var responseAccommodationIDs []string
+
+	cbResp, err := rc.circuitBreaker.Execute(func() (interface{}, error) {
+		req, err := http.NewRequestWithContext(ctx, http.MethodPost, rc.address+"/availabilityFinder", requestBody)
+		if err != nil {
+			log.Println(err)
+			return nil, err
+		}
+		req.Header.Set("Content-Type", "application/json")
+
+		resp, err := rc.client.Do(req)
+		if err != nil {
+			return nil, err
+		}
+		defer resp.Body.Close()
+
+		if resp.StatusCode != http.StatusOK {
+			return nil, fmt.Errorf("non-success status code received: %d", resp.StatusCode)
+		}
+
+		var responseData struct {
+			AccommodationIDs []string `json:"accommodationIds"`
+		}
+
+		if err := json.NewDecoder(resp.Body).Decode(&responseData); err != nil {
+			return nil, err
+		}
+
+		responseAccommodationIDs = responseData.AccommodationIDs
+
+		return resp, nil
+	})
+
+	if err != nil {
+		log.Println("ERR FROM GGG ", err)
+		return nil, errors.NewError("Failed to perform HTTP request", http.StatusInternalServerError)
+	}
+
+	resp := cbResp.(*http.Response)
+	anResp := domain.BaseErrorHttpResponse{}
+
+	if err := json.NewDecoder(resp.Body).Decode(&anResp); err != nil {
+		return nil, errors.NewError("Failed to parse response body", http.StatusInternalServerError)
+	}
+	log.Println(anResp)
+
+	return responseAccommodationIDs, nil
+}

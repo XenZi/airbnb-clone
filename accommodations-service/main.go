@@ -24,6 +24,7 @@ func main() {
 		port = "8080"
 	}
 	timeoutContext, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
 	logger := log.New(os.Stdout, "[accommodation-api] ", log.LstdFlags)
 
 	//env
@@ -67,8 +68,6 @@ func main() {
 	accommodationsHandler := handlers.AccommodationsHandler{
 		AccommodationService: accommodationService,
 	}
-
-	defer cancel()
 
 	router := mux.NewRouter()
 
