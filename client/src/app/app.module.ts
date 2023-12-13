@@ -89,6 +89,7 @@ import { FormUpdateCredentialsComponent } from './forms/form-update-credentials/
     FormsModule,
     CalendarModule,
     BrowserAnimationsModule,
+   
   ],
   providers: [
     {
