@@ -155,7 +155,12 @@ func (ar *AccommodationRepo) SearchAccommodations(city, country, address string,
 	if err != nil {
 		return nil, errors.NewError("Unable to find accommodations, database error", 500)
 	}
-	defer cursor.Close(ctx)
+	defer func(cursor *mongo.Cursor, ctx context.Context) {
+		err := cursor.Close(ctx)
+		if err != nil {
+
+		}
+	}(cursor, ctx)
 
 	// Iterate through the results and decode them into accommodations slice
 	for cursor.Next(ctx) {

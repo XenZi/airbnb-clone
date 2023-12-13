@@ -164,7 +164,7 @@ func (as *AccommodationService) DeleteAccommodation(accommodationID string) (*do
 	return existingAccommodation, nil
 }
 
-func (as *AccommodationService) SearchAccommodations(city, country, address string, numOfVisitors int) ([]domain.Accommodation, *errors.ErrorStruct) {
+func (as *AccommodationService) SearchAccommodations(city, country, address string, numOfVisitors int) (*[]domain.Accommodation, *errors.ErrorStruct) {
 	// Call the repository function to perform the search
 	accommodations, err := as.accommodationRepository.SearchAccommodations(city, country, address, numOfVisitors)
 	if err != nil {
@@ -173,5 +173,5 @@ func (as *AccommodationService) SearchAccommodations(city, country, address stri
 	}
 
 	// Return the search results obtained from the repository
-	return accommodations, nil
+	return &accommodations, nil
 }
