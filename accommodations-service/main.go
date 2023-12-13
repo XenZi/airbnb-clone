@@ -72,23 +72,32 @@ func main() {
 
 	router := mux.NewRouter()
 
-	getAllAccommodations := router.Methods(http.MethodGet).Subrouter()
-	getAllAccommodations.HandleFunc("/", accommodationsHandler.GetAllAccommodations)
+	//getAllAccommodations := router.Methods(http.MethodGet).Subrouter()
+	//getAllAccommodations.HandleFunc("/", accommodationsHandler.GetAllAccommodations)
 
-	getAccommodationsById := router.Methods(http.MethodGet).Subrouter()
-	getAccommodationsById.HandleFunc("/{id}", accommodationsHandler.GetAccommodationById)
+	router.HandleFunc("/", accommodationsHandler.GetAllAccommodations).Methods("GET")
 
-	postAccommodationForId := router.Methods(http.MethodPost).Subrouter()
-	postAccommodationForId.HandleFunc("/", accommodationsHandler.CreateAccommodationById)
+	//getAccommodationsById := router.Methods(http.MethodGet).Subrouter()
+	//getAccommodationsById.HandleFunc("/{id}", accommodationsHandler.GetAccommodationById)
 
-	putAccommodationForId := router.Methods(http.MethodPut).Subrouter()
-	putAccommodationForId.HandleFunc("/{id}", accommodationsHandler.UpdateAccommodationById)
+	//postAccommodationForId := router.Methods(http.MethodPost).Subrouter()
+	//postAccommodationForId.HandleFunc("/", accommodationsHandler.CreateAccommodationById)
 
-	deleteAccommodationsById := router.Methods(http.MethodDelete).Subrouter()
-	deleteAccommodationsById.HandleFunc("/{id}", accommodationsHandler.DeleteAccommodationById)
+	router.HandleFunc("/", accommodationsHandler.CreateAccommodationById).Methods("POST")
 
-	searchAccommodations := router.Methods(http.MethodGet).Subrouter()
-	searchAccommodations.HandleFunc("/search", accommodationsHandler.SearchAccommodations)
+	//putAccommodationForId := router.Methods(http.MethodPut).Subrouter()
+	//putAccommodationForId.HandleFunc("/{id}", accommodationsHandler.UpdateAccommodationById)
+
+	router.HandleFunc("/{id}", accommodationsHandler.UpdateAccommodationById).Methods("PUT")
+
+	//deleteAccommodationsById := router.Methods(http.MethodDelete).Subrouter()
+	//deleteAccommodationsById.HandleFunc("/{id}", accommodationsHandler.DeleteAccommodationById)
+
+	router.HandleFunc("/{id}", accommodationsHandler.DeleteAccommodationById).Methods("DELETE")
+
+	router.HandleFunc("/search", accommodationsHandler.SearchAccommodations).Methods("GET")
+
+	router.HandleFunc("/{id}", accommodationsHandler.GetAccommodationById).Methods("GET")
 
 	headersOk := gorillaHandlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"})
 	methodsOk := gorillaHandlers.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "OPTIONS", "DELETE"})

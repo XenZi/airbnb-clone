@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"accommodations-service/domain"
-	"accommodations-service/errors"
 	"accommodations-service/services"
 	"accommodations-service/utils"
 	"context"
@@ -147,15 +146,20 @@ func (a *AccommodationsHandler) SearchAccommodations(w http.ResponseWriter, r *h
 	country := r.URL.Query().Get("country")
 	address := r.URL.Query().Get("address")
 	visitors := r.URL.Query().Get("numOfVisitors")
+	if visitors == "" {
+		visitors = "1"
+	}
 	numOfVisitors, err := strconv.Atoi(visitors)
 
 	if err != nil {
-		errors.NewError("Unable to convert to int", 500)
+		utils.WriteErrorResp(err.Error(), 500, "api/accommodations/search", w)
 		return
 	}
 
 	// Call the AccommodationService to perform the search
 	accommodations, errS := a.AccommodationService.SearchAccommodations(city, country, address, numOfVisitors)
+
+	log.Println("Accommodations iz handlera", accommodations)
 	if errS != nil {
 		utils.WriteErrorResp(errS.GetErrorMessage(), http.StatusInternalServerError, "api/accommodations/BILOSTA", w)
 		log.Println("greska je,", errS.GetErrorMessage())
@@ -170,9 +174,5 @@ func (a *AccommodationsHandler) SearchAccommodations(w http.ResponseWriter, r *h
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	_, err = w.Write(responseJSON)
-	if err != nil {
-		http.Error(w, "Failed to marshal JSON", http.StatusInternalServerError)
-		return
-	}
+	w.Write(responseJSON)
 }

@@ -141,8 +141,8 @@ func (ar *AccommodationRepo) SearchAccommodations(city, country, address string,
 	}
 	if numOfVisitors > 0 {
 		filter["$and"] = bson.A{
-			bson.M{"minGuests": bson.M{"$lte": numOfVisitors}},
-			bson.M{"maxGuests": bson.M{"$gte": numOfVisitors}},
+			bson.M{"minNumOfVisitors": bson.M{"$lte": numOfVisitors}},
+			bson.M{"maxNumOfVisitors": bson.M{"$gte": numOfVisitors}},
 		}
 	}
 
@@ -174,6 +174,7 @@ func (ar *AccommodationRepo) SearchAccommodations(city, country, address string,
 	if err := cursor.Err(); err != nil {
 		return nil, errors.NewError("Unable to find accommodations, database error", 500)
 	}
+	log.Println(accommodations)
 
 	return accommodations, nil
 }
