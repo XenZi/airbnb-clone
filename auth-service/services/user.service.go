@@ -221,7 +221,7 @@ func (u UserService) ChangePassword(data domains.ChangePassword, userID string) 
 	return &response, nil
 }
 
-func (u UserService) UpdateCredentials(id string, updatedData domains.User) (*domains.BaseMessageResponse, *errors.ErrorStruct) {
+func (u UserService) UpdateCredentials(ctx context.Context, id string, updatedData domains.User) (*domains.BaseMessageResponse, *errors.ErrorStruct) {
 	if (updatedData.Email == "" || updatedData.Username == "") {
 		return nil, errors.NewError("Email or username are empty", 400)
 	} 
@@ -255,6 +255,7 @@ func (u UserService) UpdateCredentials(id string, updatedData domains.User) (*do
 	if err != nil {
 		return nil, err
 	}
+	u.userClient.SendUpdateCredentials(ctx, updatedData)
 	return &domains.BaseMessageResponse{
 		Message: "You have successfully updated your credentials, please log in again.",
 	}, nil

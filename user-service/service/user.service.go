@@ -1,12 +1,13 @@
 package service
 
 import (
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"log"
 	"user-service/domain"
 	"user-service/errors"
 	"user-service/repository"
 	"user-service/utils"
+
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type UserService struct {
