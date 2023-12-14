@@ -79,7 +79,7 @@ func (rc ReservationsClient) SendCreatedReservationsAvailabilities(ctx context.C
 
 func (rc ReservationsClient) CheckAvailabilityForAccommodations(ctx context.Context, accommodationIDs []string, dateRange []string) ([]string, *errors.ErrorStruct) {
 	availabilityCheck := struct {
-		AccommodationIDs []string `json:"accommodationIds"`
+		AccommodationIDs []string `json:"accommodationIDs"`
 		DateRange        []string `json:"dateRange"`
 	}{
 		AccommodationIDs: accommodationIDs,
@@ -114,7 +114,7 @@ func (rc ReservationsClient) CheckAvailabilityForAccommodations(ctx context.Cont
 		}
 
 		var responseData struct {
-			AccommodationIDs []string `json:"accommodationIds"`
+			AccommodationIDs []string `json:"accommodationIDs"`
 		}
 
 		if err := json.NewDecoder(resp.Body).Decode(&responseData); err != nil {
