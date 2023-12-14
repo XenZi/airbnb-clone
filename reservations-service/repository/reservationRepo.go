@@ -66,7 +66,7 @@ func (rr *ReservationRepo) CreateTables() {
 	err := rr.session.Query(
 		fmt.Sprintf(`CREATE TABLE IF NOT EXISTS %s
 		(id UUID, user_id text, accommodation_id text, start_date text, end_date text, username text, accommodation_name text,location text,price int,num_of_days int,continent text,date_range text,is_active boolean,country text,
-		PRIMARY KEY((continent),location,id)) WITH CLUSTERING ORDER BY (location ASC,id ASC)`, "reservations")).Exec()
+		PRIMARY KEY((continent),country,id)) WITH CLUSTERING ORDER BY (country ASC,id ASC)`, "reservations")).Exec()
 	if err != nil {
 		rr.logger.Println(err)
 	}
@@ -135,7 +135,7 @@ func (rr *ReservationRepo) GetReservationsByAccommodation(id string) ([]domain.R
 }
 
 func (rr *ReservationRepo) GetReservationsByUser(id string) ([]domain.Reservation, error) {
-	scanner := rr.session.Query(`SELECT id,accommodation_id, user_id, start_date, end_date,username,accommodation_name,location,price,num_of_days,date_range FROM reservations WHERE user_id = ? ALLOW FILTERING `,
+	scanner := rr.session.Query(`SELECT id,accommodation_id, user_id, start_date, end_date,username,accommodation_name,location,price,num_of_days,date_range,country FROM reservations WHERE is_active = true AND user_id = ? ALLOW FILTERING `,
 		id).Iter().Scanner()
 
 	var reservations []domain.Reservation
@@ -143,7 +143,7 @@ func (rr *ReservationRepo) GetReservationsByUser(id string) ([]domain.Reservatio
 		var reservation domain.Reservation
 		var dateRangeString string
 
-		err := scanner.Scan(&reservation.Id, &reservation.AccommodationID, &reservation.UserID, &reservation.StartDate, &reservation.EndDate, &reservation.Username, &reservation.AccommodationName, &reservation.Location, &reservation.Price, &reservation.NumberOfDays, &dateRangeString)
+		err := scanner.Scan(&reservation.Id, &reservation.AccommodationID, &reservation.UserID, &reservation.StartDate, &reservation.EndDate, &reservation.Username, &reservation.AccommodationName, &reservation.Location, &reservation.Price, &reservation.NumberOfDays, &dateRangeString, &reservation.Country)
 		if err != nil {
 			rr.logger.Println(err)
 			return nil, err
@@ -271,17 +271,13 @@ func (rr *ReservationRepo) InsertReservation(reservation *domain.Reservation) (*
 */
 func (rr *ReservationRepo) DeleteById(country string, id string) (*domain.ReservationById, *errors.ReservationError) {
 	countryData := gountries.New()
-	locationParts := strings.Split(country, ",")
-	if len(locationParts) < 3 {
-		return nil, errors.NewReservationError(400, "Invalid location format: %s")
-	}
-	countryName := locationParts[2]
-	result, err := countryData.FindCountryByName(countryName)
+
+	result, err := countryData.FindCountryByName(country)
 	if err != nil {
 		return nil, errors.NewReservationError(500, err.Error())
 	}
 	continent := result.Continent
-	err = rr.session.Query(`UPDATE reservations SET is_active = false WHERE continent = ? AND country = ? AND id = ?`, continent, countryName, id).Exec()
+	err = rr.session.Query(`UPDATE reservations SET is_active = false WHERE continent = ? AND country = ? AND id = ?`, continent, country, id).Exec()
 	if err != nil {
 		rr.logger.Println(err)
 		return nil, errors.NewReservationError(500, "Unable to delete, database error")
