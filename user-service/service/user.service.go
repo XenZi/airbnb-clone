@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"log"
 	"user-service/domain"
@@ -10,16 +11,18 @@ import (
 )
 
 type UserService struct {
-	userRepository *repository.UserRepository
-	jwtService     *JwtService
-	validator      *utils.Validator
+	userRepository    *repository.UserRepository
+	jwtService        *JwtService
+	validator         *utils.Validator
+	reservationClient *client.ReservationClient
 }
 
-func NewUserService(userRepo *repository.UserRepository, jwtService *JwtService, validator *utils.Validator) *UserService {
+func NewUserService(userRepo *repository.UserRepository, jwtService *JwtService, validator *utils.Validator, reservationClient *client.ReservationClient) *UserService {
 	return &UserService{
-		userRepository: userRepo,
-		jwtService:     jwtService,
-		validator:      validator,
+		userRepository:    userRepo,
+		jwtService:        jwtService,
+		validator:         validator,
+		reservationClient: reservationClient,
 	}
 }
 
@@ -135,7 +138,12 @@ func (u *UserService) GetUserById(id string) (*domain.User, *errors.ErrorStruct)
 }
 
 func (u *UserService) DeleteUser(id string) *errors.ErrorStruct {
-	err := u.userRepository.DeleteUser(id)
+	list, err := u.reservationClient.CheckUserReservations(context.TODO(), id)
+	//accList, accErr := u.reservationClient.CheckAccommodationReservations(context.TODO(), accommodationId)
+	if list {
+		return errors.NewError("user has reservations", 401)
+	}
+	err = u.userRepository.DeleteUser(id)
 	if err != nil {
 		return err
 	}
