@@ -114,13 +114,13 @@ func (rr *ReservationRepo) DropTables() {
 
 func (rr *ReservationRepo) GetReservationsByAccommodation(id string) ([]domain.Reservation, error) {
 
-	scanner := rr.session.Query(`SELECT id,accommodation_id, user_id, start_date, end_date,accommodation_name,location,price,num_of_days,date_range FROM reservations WHERE accommodation_id = ? `,
+	scanner := rr.session.Query(`SELECT id,accommodation_id, user_id, start_date, end_date,accommodation_name,location,price,num_of_days,date_range,country FROM reservations WHERE is_active = true AND accommodation_id = ? `,
 		id).Iter().Scanner()
 
 	var reservations []domain.Reservation
 	for scanner.Next() {
 		var reservation domain.Reservation
-		err := scanner.Scan(&reservation.Id, &reservation.AccommodationID, &reservation.UserID, &reservation.StartDate, &reservation.EndDate, &reservation.AccommodationName, reservation.Location, reservation.Price, reservation.NumberOfDays, reservation.DateRange)
+		err := scanner.Scan(&reservation.Id, &reservation.AccommodationID, &reservation.UserID, &reservation.StartDate, &reservation.EndDate, &reservation.AccommodationName, reservation.Location, reservation.Price, reservation.NumberOfDays, reservation.DateRange, reservation.Country)
 		if err != nil {
 			rr.logger.Println(err)
 			return nil, err
@@ -192,27 +192,31 @@ func (rr *ReservationRepo) InsertAvailability(reservation *domain.FreeReservatio
 	return reservation, nil
 }
 
-func (rr *ReservationRepo) AvailableDates(accommodationID, startDate, endDate string) (bool, *errors.ReservationError) {
+func (rr *ReservationRepo) AvailableDates(accommodationID, startDate, endDate string) ([]domain.FreeReservation, *errors.ReservationError) {
+	var result []domain.FreeReservation
+
 	query := `
-    SELECT id, accommodation_id, start_date, end_date, location,price
-    FROM free_accommodation 
-    WHERE accommodation_id = ? 
-    AND start_date <= ? AND end_date >= ?
-    ALLOW FILTERING`
+        SELECT id, accommodation_id, start_date, end_date, location, price
+        FROM free_accommodation 
+        WHERE accommodation_id = ? 
+        AND start_date <= ? AND end_date >= ?
+        ALLOW FILTERING`
 
 	iter := rr.session.Query(query, accommodationID, endDate, startDate).Iter()
 
-	var reservationID string
-	if iter.Scan(&reservationID) {
-		return false, nil
+	var reservation domain.FreeReservation
+	for iter.Scan(&reservation.Id, &reservation.AccommodationID, &reservation.StartDate, &reservation.EndDate, &reservation.Location, &reservation.Price) {
+		result = append(result, reservation)
 	}
 
 	if err := iter.Close(); err != nil {
 		rr.logger.Println(err)
-		return false, errors.NewReservationError(500, "Unable to check availability, database error")
+		return nil, errors.NewReservationError(500, "Unable to check availability, database error")
 	}
-	return true, nil
+
+	return result, nil
 }
+
 func (rr *ReservationRepo) InsertReservation(reservation *domain.Reservation) (*domain.Reservation, error) {
 	Id, _ := gocql.RandomUUID()
 	StartDate := reservation.DateRange[0]
@@ -269,7 +273,7 @@ func (rr *ReservationRepo) InsertReservation(reservation *domain.Reservation) (*
 		return reservation, nil
 	}
 */
-func (rr *ReservationRepo) DeleteById(country string, id string) (*domain.ReservationById, *errors.ReservationError) {
+func (rr *ReservationRepo) DeleteById(country string, id string) (*domain.Reservation, *errors.ReservationError) {
 	countryData := gountries.New()
 
 	result, err := countryData.FindCountryByName(country)
@@ -284,4 +288,49 @@ func (rr *ReservationRepo) DeleteById(country string, id string) (*domain.Reserv
 	}
 
 	return nil, nil
+}
+func (rr *ReservationRepo) ReservationsInDateRange(accommodationIDs []string, dateRange []string) ([]domain.Reservation, *errors.ReservationError) {
+	var result []domain.Reservation
+
+	query := `
+        SELECT id, accommodation_id, start_date, end_date
+        FROM reservations 
+        WHERE accommodation_id IN ? 
+        AND start_date <= ? AND end_date >= ?
+        ALLOW FILTERING`
+
+	iter := rr.session.Query(query, accommodationIDs, dateRange[0], dateRange[len(dateRange)-1]).Iter()
+
+	var reservation domain.Reservation
+	for iter.Scan(&reservation.Id, &reservation.AccommodationID, &reservation.StartDate, &reservation.EndDate) {
+		result = append(result, reservation)
+	}
+
+	if err := iter.Close(); err != nil {
+		rr.logger.Println(err)
+		return nil, errors.NewReservationError(500, "Unable to retrieve reservations, database error")
+	}
+
+	return result, nil
+}
+func (rr *ReservationRepo) IsAvailable(accommodationID, startDate, endDate string) (bool, *errors.ReservationError) {
+	query := `
+    SELECT id, accommodation_id, start_date, end_date, location,price
+    FROM free_accommodation 
+    WHERE accommodation_id = ? 
+    AND start_date <= ? AND end_date >= ?
+    ALLOW FILTERING`
+
+	iter := rr.session.Query(query, accommodationID, endDate, startDate).Iter()
+
+	var reservationID string
+	if iter.Scan(&reservationID) {
+		return false, nil
+	}
+
+	if err := iter.Close(); err != nil {
+		rr.logger.Println(err)
+		return false, errors.NewReservationError(500, "Unable to check availability, database error")
+	}
+	return true, nil
 }

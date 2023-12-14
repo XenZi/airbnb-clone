@@ -48,6 +48,8 @@ func main() {
 	router.HandleFunc("/availability", reservationsHandler.CreateAvailability).Methods("POST")
 	router.HandleFunc("/user/{userId}", reservationsHandler.GetReservationsByUser).Methods("GET")
 	router.HandleFunc("/accommodations/reservations/{accommodationID}", reservationsHandler.GetReservationsByAccommodation).Methods("GET")
+	router.HandleFunc("/accommodations/reservations", reservationsHandler.ReservationsInDateRangeHandler).Methods("GET")
+	router.HandleFunc("/accommodation/dates", reservationsHandler.GetAvailableDates).Methods("GET")
 	router.HandleFunc("/{country}/{id}", reservationsHandler.DeleteReservationById).Methods("PUT")
 
 	headersOk := gorillaHandlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"})
