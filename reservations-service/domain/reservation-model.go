@@ -33,6 +33,15 @@ type FreeReservation struct {
 	Price           int        `json:"price"`
 	Continent       string     `json:"continent"`
 }
+type ReservationsInDateRangeRequest struct {
+	AccommodationIDs []string `json:"accommodationIDs"`
+	DateRange        []string `json:"dateRange"`
+}
+type CheckAvailabilityRequest struct {
+	AccommodationID string `json:"accommodationId"`
+	StartDate       string `json:"startDate"`
+	EndDate         string `json:"endDate"`
+}
 type ReservationById []*Reservation
 
 func NewReservation(id gocql.UUID, userID, accommodationID string, startDate, endDate, username, accommodationName, location string, price, numOfDays int, continent string, dateRange []string, isActive bool, country string) *Reservation {
