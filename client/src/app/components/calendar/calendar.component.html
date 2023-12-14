@@ -2,5 +2,6 @@
   [(ngModel)]="rangeDates"
   selectionMode="range"
   [readonlyInput]="true"
-  [disabledDates]="invalidDates"
+  class="calendar"
+  (ngModelChange)="onDatesChange()"
 ></p-calendar>
