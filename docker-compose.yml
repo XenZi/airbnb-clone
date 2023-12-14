@@ -166,7 +166,9 @@ services:
     hostname: "user-service"
     environment:
       - PORT=8080
-      - MONGO_DB_URI=mongodb://root:pass@user-db:27017
+      - MONGO_DB_URI=mongodb://root:pass@accommodation-db:27017
+      - RESERVATIONS_SERVICE_HOST=${RESERVATIONS_SERVICE_HOST}
+      - RESERVATIONS_SERVICE_PORT=${RESERVATIONS_SERVICE_PORT}
     networks:
       - network
     depends_on:

@@ -5,6 +5,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 
 	"log"
+	"user-service/client"
 	"user-service/domain"
 	"user-service/errors"
 	"user-service/repository"
@@ -139,14 +140,16 @@ func (u *UserService) GetUserById(id string) (*domain.User, *errors.ErrorStruct)
 }
 
 func (u *UserService) DeleteUser(id string) *errors.ErrorStruct {
-	list, err := u.reservationClient.CheckUserReservations(context.TODO(), id)
-	//accList, accErr := u.reservationClient.CheckAccommodationReservations(context.TODO(), accommodationId)
-	if list {
-		return errors.NewError("user has reservations", 401)
-	}
-	err = u.userRepository.DeleteUser(id)
+	allow, err := u.reservationClient.GuestDeleteAllowed(context.TODO(), id)
 	if err != nil {
 		return err
+	}
+	if !allow {
+		return errors.NewError("user has reservations", 401)
+	}
+	erro := u.userRepository.DeleteUser(id)
+	if erro != nil {
+		return errors.NewError("internal error", 500)
 	}
 	return nil
 }

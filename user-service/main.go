@@ -6,12 +6,14 @@ import (
 	"github.com/gorilla/mux"
 
 	gorillaHandlers "github.com/gorilla/handlers"
+	"github.com/sony/gobreaker"
 
 	"log"
 	"net/http"
 	"os"
 	"os/signal"
 	"time"
+	"user-service/client"
 	"user-service/handler"
 	"user-service/repository"
 	"user-service/service"
@@ -23,7 +25,36 @@ func main() {
 	defer cancel()
 	logger := log.New(os.Stdout, "[user-api] ", log.LstdFlags)
 	mongoService, err := service.New(timeoutContext, logger)
+	//env
+	reservationsServiceHost := os.Getenv("RESERVATIONS_SERVICE_HOST")
+	log.Println("HOST", reservationsServiceHost)
+	log.Println("ctrlf")
+	reservationsServicePort := os.Getenv("RESERVATIONS_SERVICE_PORT")
+	log.Println("PORT", reservationsServicePort)
+
+	//clients
+
+	customReservationsServiceClient := &http.Client{
+		Transport: &http.Transport{
+			MaxIdleConns:        10,
+			MaxIdleConnsPerHost: 10,
+			MaxConnsPerHost:     10,
+		},
+	}
+
+	reservationsServiceCircuitBreaker := gobreaker.NewCircuitBreaker(
+		gobreaker.Settings{
+			Name:        "reservations-service",
+			MaxRequests: 1,
+			Timeout:     10 * time.Second,
+			Interval:    0,
+			OnStateChange: func(name string, from gobreaker.State, to gobreaker.State) {
+				log.Printf("Circuit Breaker %v: %v -> %v", name, from, to)
+			},
+		},
+	)
 	validator := utils.NewValidator()
+	reservationsClient := client.NewReservationClient(reservationsServiceHost, reservationsServicePort, customReservationsServiceClient, reservationsServiceCircuitBreaker)
 
 	if err != nil {
 		log.Fatal(err)
@@ -33,7 +64,7 @@ func main() {
 	key := os.Getenv("JWT_SECRET")
 	keyByte := []byte(key)
 	jwtService := service.NewJWTService(keyByte)
-	userService := service.NewUserService(userRepo, jwtService, validator)
+	userService := service.NewUserService(userRepo, jwtService, validator, reservationsClient)
 	profileHandler := handler.UserHandler{
 		UserService: userService,
 	}
@@ -54,6 +85,7 @@ func main() {
 	headersOk := gorillaHandlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"})
 	methodsOk := gorillaHandlers.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "OPTIONS", "DELETE"})
 	originsOk := gorillaHandlers.AllowedOrigins([]string{"http://localhost:4200", "http://localhost:58495"})
+
 	server := http.Server{
 		Addr:         ":" + port,
 		Handler:      gorillaHandlers.CORS(headersOk, methodsOk, originsOk)(router),
