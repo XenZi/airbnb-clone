@@ -1,26 +1,32 @@
 package service
 
 import (
+	"context"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+
 	"log"
+	"user-service/client"
 	"user-service/domain"
 	"user-service/errors"
 	"user-service/repository"
 	"user-service/utils"
-
-	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type UserService struct {
-	userRepository *repository.UserRepository
-	jwtService     *JwtService
-	validator      *utils.Validator
+	userRepository    *repository.UserRepository
+	jwtService        *JwtService
+	validator         *utils.Validator
+	reservationClient *client.ReservationClient
+	authClient        *client.AuthClient
 }
 
-func NewUserService(userRepo *repository.UserRepository, jwtService *JwtService, validator *utils.Validator) *UserService {
+func NewUserService(userRepo *repository.UserRepository, jwtService *JwtService, validator *utils.Validator, reservationClient *client.ReservationClient, authClient *client.AuthClient) *UserService {
 	return &UserService{
-		userRepository: userRepo,
-		jwtService:     jwtService,
-		validator:      validator,
+		userRepository:    userRepo,
+		jwtService:        jwtService,
+		validator:         validator,
+		reservationClient: reservationClient,
+		authClient:        authClient,
 	}
 }
 
@@ -135,10 +141,27 @@ func (u *UserService) GetUserById(id string) (*domain.User, *errors.ErrorStruct)
 	return foundUser, nil
 }
 
-func (u *UserService) DeleteUser(id string) *errors.ErrorStruct {
-	err := u.userRepository.DeleteUser(id)
-	if err != nil {
-		return err
+func (u *UserService) DeleteUser(role string, id string) *errors.ErrorStruct {
+	if role != "Host" {
+		allow, err := u.reservationClient.GuestDeleteAllowed(context.TODO(), id)
+		if err != nil {
+			return err
+		}
+		if !allow {
+			return errors.NewError("user has reservations", 401)
+		}
+	}
+	if role == "Host" {
+		//TODO
+	}
+
+	newErr := u.authClient.DeleteUserAuth(context.TODO(), id)
+	if newErr != nil {
+		return errors.NewError("auth deletion error", 500)
+	}
+	erro := u.userRepository.DeleteUser(id)
+	if erro != nil {
+		return errors.NewError("internal error", 500)
 	}
 	return nil
 }

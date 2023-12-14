@@ -9,6 +9,7 @@ import { UserService } from 'src/app/services/user/user.service';
 import { FormCreateAccommodationComponent } from 'src/app/forms/form-create-accommodation/form-create-accommodation.component';
 import { Role } from 'src/app/domains/enums/roles.enum';
 import { AuthService } from 'src/app/services/auth-service/auth.service';
+import { Route, Router } from '@angular/router';
 
 @Component({
   selector: 'app-simple-profile-menu',
@@ -71,14 +72,15 @@ export class SimpleProfileMenuComponent {
       icon: 'fa-solid fa-user',
       title: 'Guest',
       action: () => {
-        console.log('SADSAD');
+        this.callNavigateToProfile();
       },
     },
   ];
   constructor(
     private modalService: ModalService,
     private userService: UserService,
-    private authService: AuthService
+    private authService: AuthService,
+    private router: Router
   ) {}
 
   ngOnInit() {
@@ -127,5 +129,8 @@ export class SimpleProfileMenuComponent {
   }
   callLogout() {
     this.authService.logout();
+  }
+  callNavigateToProfile() {
+    this.router.navigate(['/profile/' + this.userService.getLoggedUser()?.id])
   }
 }
