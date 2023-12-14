@@ -76,10 +76,10 @@ export class AccommodationsService {
     // window.location.reload();
   }
 
-  public loadAccommodations(): Observable<Accommodation[]> {
-    return this.http.get<any>(`${apiURL}/accommodations/`).pipe(
-      map((response: { data: any; }) => response.data)
-    );
+  public loadAccommodations(): Observable<any> {
+    return this.http.get<any>(`${apiURL}/accommodations/`);
+      
+    
   }
   public getAccommodationById(id: string): Observable<Accommodation> {
     return this.http.get<Accommodation>(`${apiURL}/accommodations/${id}`);

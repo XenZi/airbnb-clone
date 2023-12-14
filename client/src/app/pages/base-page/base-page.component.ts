@@ -21,7 +21,17 @@ export class BasePageComponent {
   }
 
   private loadAccommodations(): void {
-    this.accommodations = this.accommodationService.loadAccommodations();
+    this.accommodationService.loadAccommodations().subscribe({
+      next: (response) => {
+        // Check the structure of the response here
+        // For example, if response has a 'data' property containing accommodations
+        // Modify the following line accordingly based on the actual response structure
+        this.accommodations = response.data; // Update this line based on the actual response structure
+      },
+      error: (error) => {
+        console.log(error)
+      }
+    });
   }
 
   

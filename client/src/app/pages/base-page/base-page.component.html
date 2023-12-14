@@ -3,8 +3,8 @@
   <div class="wrapper">
     <div class="base-page__container">
       <app-accommodation-card
+      *ngFor="let accommodation of accommodations | async"
         [accommodation]="accommodation"
-        *ngFor="let accommodation of accommodations | async"
       ></app-accommodation-card>
     </div>
   </div>

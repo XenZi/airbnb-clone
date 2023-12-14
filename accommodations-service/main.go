@@ -71,26 +71,11 @@ func main() {
 
 	router := mux.NewRouter()
 
-	//getAllAccommodations := router.Methods(http.MethodGet).Subrouter()
-	//getAllAccommodations.HandleFunc("/", accommodationsHandler.GetAllAccommodations)
-
 	router.HandleFunc("/", accommodationsHandler.GetAllAccommodations).Methods("GET")
-
-	//getAccommodationsById := router.Methods(http.MethodGet).Subrouter()
-	//getAccommodationsById.HandleFunc("/{id}", accommodationsHandler.GetAccommodationById)
-
-	//postAccommodationForId := router.Methods(http.MethodPost).Subrouter()
-	//postAccommodationForId.HandleFunc("/", accommodationsHandler.CreateAccommodationById)
 
 	router.HandleFunc("/", accommodationsHandler.CreateAccommodationById).Methods("POST")
 
-	//putAccommodationForId := router.Methods(http.MethodPut).Subrouter()
-	//putAccommodationForId.HandleFunc("/{id}", accommodationsHandler.UpdateAccommodationById)
-
 	router.HandleFunc("/{id}", accommodationsHandler.UpdateAccommodationById).Methods("PUT")
-
-	//deleteAccommodationsById := router.Methods(http.MethodDelete).Subrouter()
-	//deleteAccommodationsById.HandleFunc("/{id}", accommodationsHandler.DeleteAccommodationById)
 
 	router.HandleFunc("/{id}", accommodationsHandler.DeleteAccommodationById).Methods("DELETE")
 
