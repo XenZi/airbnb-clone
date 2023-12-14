@@ -1,5 +1,7 @@
 import { Component, HostListener } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { AccommodationsService } from 'src/app/services/accommodations-service/accommodations.service';
+
 
 @Component({
   selector: 'app-form-search',
@@ -9,7 +11,7 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 export class FormSearchComponent {
   searchForm: FormGroup;
 
-  constructor(private formBuilder: FormBuilder) {
+  constructor(private formBuilder: FormBuilder,private accommodationsService: AccommodationsService) {
     this.searchForm = this.formBuilder.group({
       city: [''],
       country: [''],
@@ -26,9 +28,24 @@ export class FormSearchComponent {
     e.preventDefault();
     console.log(
       this.searchForm.value.city,
-      this.searchForm.value.country,
+      this.searchForm.value.city,
       this.searchForm.value.dateRange,
       this.searchForm.value.guestsNumber
     );
+    this.searchAccommodations()
+    console.log(this.searchAccommodations())
   }
+  searchAccommodations(){
+    this.accommodationsService.search(this.searchForm.value.city as string,this.searchForm.value.country as string,this.searchForm.value.guestsNumber as string).subscribe({next:(data)=>{console.log(data.data)}})
+
+  }
+
+  
+  
+
+  
+
+  
+
+
 }

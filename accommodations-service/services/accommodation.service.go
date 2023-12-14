@@ -163,9 +163,9 @@ func (as *AccommodationService) DeleteAccommodation(accommodationID string) (*do
 	return existingAccommodation, nil
 }
 
-func (as *AccommodationService) SearchAccommodations(city, country, address string, numOfVisitors int) ([]domain.Accommodation, *errors.ErrorStruct) {
+func (as *AccommodationService) SearchAccommodations(city, country string, numOfVisitors int) ([]domain.Accommodation, *errors.ErrorStruct) {
 	log.Println("USLO U SERVIS")
-	accommodations, err := as.accommodationRepository.SearchAccommodations(city, country, address, numOfVisitors)
+	accommodations, err := as.accommodationRepository.SearchAccommodations(city, country, numOfVisitors)
 	if err != nil {
 		// Handle the error returned by the repository
 		return nil, errors.NewError("Failed to find accommodations", 500) // Modify according to your error handling approach

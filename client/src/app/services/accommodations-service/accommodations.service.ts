@@ -146,4 +146,19 @@ export class AccommodationsService {
         },
       });
   }
+
+  public search(city:string,country:string,numOfVisitors:string): Observable<any> {
+
+    this.router.navigate(['/search'], {
+      queryParams: {
+        city: city,
+        country: country,
+        numOfVisitors: numOfVisitors
+      }
+    });
+    return this.http.get<any>(`${apiURL}/accommodations/search?city=${city}&country=${country}&numOfVisitors=${numOfVisitors}`);
+        
+  }
+
+  
 }

@@ -125,7 +125,7 @@ func (ar *AccommodationRepo) DeleteAccommodationById(id string) *errors.ErrorStr
 	return nil
 }
 
-func (ar *AccommodationRepo) SearchAccommodations(city, country, address string, numOfVisitors int) ([]do.Accommodation, *errors.ErrorStruct) {
+func (ar *AccommodationRepo) SearchAccommodations(city, country string, numOfVisitors int) ([]do.Accommodation, *errors.ErrorStruct) {
 	accommodationCollection := ar.cli.Database("accommodations-service").Collection("accommodations")
 	filter := bson.M{}
 
@@ -136,9 +136,7 @@ func (ar *AccommodationRepo) SearchAccommodations(city, country, address string,
 	if country != "" {
 		filter["country"] = country
 	}
-	if address != "" {
-		filter["address"] = address
-	}
+
 	if numOfVisitors > 0 {
 		filter["$and"] = bson.A{
 			bson.M{"minNumOfVisitors": bson.M{"$lte": numOfVisitors}},

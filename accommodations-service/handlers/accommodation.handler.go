@@ -124,7 +124,7 @@ func (a *AccommodationsHandler) SearchAccommodations(w http.ResponseWriter, r *h
 	city := r.URL.Query().Get("city")
 	log.Println("grad je", city)
 	country := r.URL.Query().Get("country")
-	address := r.URL.Query().Get("address")
+
 	visitors := r.URL.Query().Get("numOfVisitors")
 	if visitors == "" {
 		visitors = "1"
@@ -137,7 +137,7 @@ func (a *AccommodationsHandler) SearchAccommodations(w http.ResponseWriter, r *h
 	}
 
 	// Call the AccommodationService to perform the search
-	accommodations, errS := a.AccommodationService.SearchAccommodations(city, country, address, numOfVisitors)
+	accommodations, errS := a.AccommodationService.SearchAccommodations(city, country, numOfVisitors)
 
 	if errS != nil {
 		utils.WriteErrorResp(errS.GetErrorMessage(), http.StatusInternalServerError, "api/accommodations/BILOSTA", w)

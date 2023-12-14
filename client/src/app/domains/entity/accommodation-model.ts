@@ -5,7 +5,9 @@ export interface Accommodation {
     name: string;
     userId:string,
     username:string,
-    location: string;
+    address: string;
+    city:string,
+    country:string,
     conveniences: string;
     minNumOfVisitors: number;
     maxNumOfVisitors:number;
