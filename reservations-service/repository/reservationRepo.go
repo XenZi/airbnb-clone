@@ -136,7 +136,7 @@ func (rr *ReservationRepo) GetReservationsByAccommodation(id string) ([]domain.R
 }
 
 func (rr *ReservationRepo) GetReservationsByUser(id string) ([]domain.Reservation, error) {
-	scanner := rr.session.Query(`SELECT id,accommodation_id, user_id, start_date, end_date,username,accommodation_name,location,price,num_of_days,date_range,country FROM reservations WHERE is_active = true AND user_id = ? ALLOW FILTERING `,
+	scanner := rr.session.Query(`SELECT id,accommodation_id, user_id, start_date, end_date,username,accommodation_name,location,price,num_of_days,date_range,is_active,country FROM reservations WHERE is_active = true AND user_id = ? ALLOW FILTERING `,
 		id).Iter().Scanner()
 
 	var reservations []domain.Reservation
@@ -144,7 +144,7 @@ func (rr *ReservationRepo) GetReservationsByUser(id string) ([]domain.Reservatio
 		var reservation domain.Reservation
 		var dateRangeString string
 
-		err := scanner.Scan(&reservation.Id, &reservation.AccommodationID, &reservation.UserID, &reservation.StartDate, &reservation.EndDate, &reservation.Username, &reservation.AccommodationName, &reservation.Location, &reservation.Price, &reservation.NumberOfDays, &dateRangeString, &reservation.Country)
+		err := scanner.Scan(&reservation.Id, &reservation.AccommodationID, &reservation.UserID, &reservation.StartDate, &reservation.EndDate, &reservation.Username, &reservation.AccommodationName, &reservation.Location, &reservation.Price, &reservation.NumberOfDays, &dateRangeString, &reservation.IsActive, &reservation.Country)
 		if err != nil {
 			rr.logger.Println(err)
 			return nil, err
@@ -253,6 +253,7 @@ func (rr *ReservationRepo) InsertReservation(reservation *domain.Reservation) (*
 	reservation.EndDate = EndDate
 	reservation.Country = country
 	reservation.Continent = continent
+	reservation.IsActive = true
 	rr.logger.Println(reservation)
 
 	return reservation, nil

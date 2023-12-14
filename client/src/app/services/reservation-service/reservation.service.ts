@@ -22,26 +22,30 @@ export class ReservationService {
     private userService: UserService 
   ) {}
 
-  createReservation(reservationData: any): Observable<any> {
-    return this.http.post(`https://localhost:443/api/reservations/`, reservationData)
-      .pipe(
-        tap((data) => {
+  createReservation(reservationData: any): void {
+    console.log("USLO");
+    this.http.post(`${apiURL}/reservations/`, reservationData)
+      .subscribe(
+        (data) => {
+          console.log("USLO1");
           this.toastService.showToast(
             'Success',
             'Reservation created!',
             ToastNotificationType.Success
           );
-        }),
-        catchError((err) => {
+        },
+        (err) => {
           this.toastService.showToast(
             'Error',
             err.error.error,
             ToastNotificationType.Error
           );
-          throw err;
-        })
+          console.error(err); // Log the error for debugging
+        }
       );
-  }
+}
+
+  
 
   getLoggedUserId(): string | null {
     const loggedUser = this.userService.getLoggedUser();
