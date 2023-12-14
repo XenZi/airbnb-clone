@@ -9,30 +9,23 @@ import { AccommodationsService } from 'src/app/services/accommodations-service/a
   styleUrls: ['./base-page.component.scss'],
 })
 export class BasePageComponent {
-  accommodations!: Observable<Accommodation[]>;
+  accommodations!: Accommodation[];
 
   constructor(private accommodationService: AccommodationsService) {}
 
   ngOnInit() {
     this.loadAccommodations();
-    console.log(localStorage.getItem('user'))
-    console.log(this.accommodations)
-    
   }
 
   private loadAccommodations(): void {
     this.accommodationService.loadAccommodations().subscribe({
       next: (response) => {
-        // Check the structure of the response here
-        // For example, if response has a 'data' property containing accommodations
-        // Modify the following line accordingly based on the actual response structure
-        this.accommodations = response.data; // Update this line based on the actual response structure
+        this.accommodations = response.data;
+        console.log(response);
       },
       error: (error) => {
-        console.log(error)
-      }
+        console.log(error);
+      },
     });
   }
-
-  
 }
