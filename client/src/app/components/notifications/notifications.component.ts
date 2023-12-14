@@ -23,13 +23,15 @@ export class NotificationsComponent {
   ngOnInit() {
     this.isUserLogged = this.userService.getLoggedUser() == null ? false : true;
     this.user = (this.userService.getLoggedUser() as unknown as User) ?? null;
-    this.notificationsService
-      .getAllNotificationsForUser(this.user.id)
-      .subscribe({
-        next: (data) => {
-          this.notifications = data.data;
-        },
-      });
+    if (this.user) {
+      this.notificationsService
+        .getAllNotificationsForUser(this.user.id)
+        .subscribe({
+          next: (data) => {
+            this.notifications = data.data;
+          },
+        });
+    }
   }
 
   @HostListener('document:click', ['$event'])
@@ -46,6 +48,7 @@ export class NotificationsComponent {
   }
 
   clickBox() {
+    console.log(this.user);
     this.isClicked = !this.isClicked;
     if (this.isClicked) {
       this.notificationsService.makeAllNotificationsReader(

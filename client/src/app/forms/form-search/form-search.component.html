@@ -1,0 +1,45 @@
+<form
+  class="search form-search"
+  [formGroup]="searchForm"
+  (submit)="onSubmit($event)"
+>
+  <div class="search form-search__container">
+    <div class="search form-search__box">
+      <label class="search form-search__label">Where</label>
+      <input
+        type="text"
+        class="search form-search__input"
+        placeholder="Search destinations"
+        formControlName="city"
+      />
+    </div>
+    <div class="search form-search__box">
+      <label class="search form-search__label">Country</label>
+      <input
+        type="text"
+        class="search form-search__input"
+        placeholder="Search countries"
+        formControlName="country"
+      />
+    </div>
+    <div class="search form-search__box">
+      <label for="" class="search form-search__label">Date range</label>
+      <app-calendar
+        (datesChanged)="handleDateChange($event)"
+        class="search"
+      ></app-calendar>
+    </div>
+    <div class="search form-search__box">
+      <label for="" class="search form-search__label">Who</label>
+      <input
+        type="text"
+        class="search form-search__input"
+        placeholder="Add guests"
+        formControlName="guestsNumber"
+      />
+    </div>
+    <button class="search form-search__button" type="submit">
+      <i class="fa-solid fa-magnifying-glass search form-search__icon"></i>
+    </button>
+  </div>
+</form>

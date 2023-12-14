@@ -1,4 +1,8 @@
-<div class="notifications" *ngIf="isUserLogged" (click)="clickBox()">
+<div
+  class="notifications"
+  *ngIf="isUserLogged || notifications"
+  (click)="clickBox()"
+>
   <div class="notifications__container">
     <div class="notifications__top-box">
       <i class="fa-regular fa-bell notifications__icon"></i>
@@ -8,6 +12,7 @@
       ></div>
     </div>
     <div
+      *ngIf="notifications"
       class="notifications__lower-box"
       [ngClass]="{ 'notifications__lower-box--active': isClicked == true }"
     >
