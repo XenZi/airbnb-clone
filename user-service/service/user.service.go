@@ -17,14 +17,16 @@ type UserService struct {
 	jwtService        *JwtService
 	validator         *utils.Validator
 	reservationClient *client.ReservationClient
+	authClient        *client.AuthClient
 }
 
-func NewUserService(userRepo *repository.UserRepository, jwtService *JwtService, validator *utils.Validator, reservationClient *client.ReservationClient) *UserService {
+func NewUserService(userRepo *repository.UserRepository, jwtService *JwtService, validator *utils.Validator, reservationClient *client.ReservationClient, authClient *client.AuthClient) *UserService {
 	return &UserService{
 		userRepository:    userRepo,
 		jwtService:        jwtService,
 		validator:         validator,
 		reservationClient: reservationClient,
+		authClient:        authClient,
 	}
 }
 
@@ -139,13 +141,23 @@ func (u *UserService) GetUserById(id string) (*domain.User, *errors.ErrorStruct)
 	return foundUser, nil
 }
 
-func (u *UserService) DeleteUser(id string) *errors.ErrorStruct {
-	allow, err := u.reservationClient.GuestDeleteAllowed(context.TODO(), id)
-	if err != nil {
-		return err
+func (u *UserService) DeleteUser(role string, id string) *errors.ErrorStruct {
+	if role != "Host" {
+		allow, err := u.reservationClient.GuestDeleteAllowed(context.TODO(), id)
+		if err != nil {
+			return err
+		}
+		if !allow {
+			return errors.NewError("user has reservations", 401)
+		}
 	}
-	if !allow {
-		return errors.NewError("user has reservations", 401)
+	if role == "Host" {
+		//TODO
+	}
+
+	newErr := u.authClient.DeleteUserAuth(context.TODO(), id)
+	if newErr != nil {
+		return errors.NewError("auth deletion error", 500)
 	}
 	erro := u.userRepository.DeleteUser(id)
 	if erro != nil {

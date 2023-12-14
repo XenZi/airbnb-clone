@@ -27,10 +27,9 @@ func main() {
 	mongoService, err := service.New(timeoutContext, logger)
 	//env
 	reservationsServiceHost := os.Getenv("RESERVATIONS_SERVICE_HOST")
-	log.Println("HOST", reservationsServiceHost)
-	log.Println("ctrlf")
 	reservationsServicePort := os.Getenv("RESERVATIONS_SERVICE_PORT")
-	log.Println("PORT", reservationsServicePort)
+	authServiceHost := os.Getenv("AUTH_SERVICE_HOST")
+	authServicePort := os.Getenv("AUTH_SERVICE_PORT")
 
 	//clients
 
@@ -41,6 +40,26 @@ func main() {
 			MaxConnsPerHost:     10,
 		},
 	}
+
+	customAuthServiceClient := &http.Client{
+		Transport: &http.Transport{
+			MaxIdleConns:        10,
+			MaxIdleConnsPerHost: 10,
+			MaxConnsPerHost:     10,
+		},
+	}
+
+	authServiceCircuitBreaker := gobreaker.NewCircuitBreaker(
+		gobreaker.Settings{
+			Name:        "auth-service",
+			MaxRequests: 1,
+			Timeout:     10 * time.Second,
+			Interval:    0,
+			OnStateChange: func(name string, from gobreaker.State, to gobreaker.State) {
+				log.Printf("Circuit Breaker %v: %v -> %v", name, from, to)
+			},
+		},
+	)
 
 	reservationsServiceCircuitBreaker := gobreaker.NewCircuitBreaker(
 		gobreaker.Settings{
@@ -55,7 +74,7 @@ func main() {
 	)
 	validator := utils.NewValidator()
 	reservationsClient := client.NewReservationClient(reservationsServiceHost, reservationsServicePort, customReservationsServiceClient, reservationsServiceCircuitBreaker)
-
+	authClient := client.NewAuthClient(authServiceHost, authServicePort, customAuthServiceClient, authServiceCircuitBreaker)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -64,7 +83,7 @@ func main() {
 	key := os.Getenv("JWT_SECRET")
 	keyByte := []byte(key)
 	jwtService := service.NewJWTService(keyByte)
-	userService := service.NewUserService(userRepo, jwtService, validator, reservationsClient)
+	userService := service.NewUserService(userRepo, jwtService, validator, reservationsClient, authClient)
 	profileHandler := handler.UserHandler{
 		UserService: userService,
 	}

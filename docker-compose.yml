@@ -169,6 +169,8 @@ services:
       - MONGO_DB_URI=mongodb://root:pass@accommodation-db:27017
       - RESERVATIONS_SERVICE_HOST=${RESERVATIONS_SERVICE_HOST}
       - RESERVATIONS_SERVICE_PORT=${RESERVATIONS_SERVICE_PORT}
+      - AUTH_SERVICE_HOST=${AUTH_SERVICE_HOST}
+      - AUTH_SERVICE_PORT=${AUTH_SERVICE_PORT}
     networks:
       - network
     depends_on:
