@@ -85,10 +85,11 @@ func (rh ReservationHandler) GetReservationsByAccommodation(rw http.ResponseWrit
 func (rh *ReservationHandler) DeleteReservationById(rw http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["id"]
+	country := vars["country"]
 
-	deletedReservation, err := rh.ReservationService.DeleteReservationById(id)
+	deletedReservation, err := rh.ReservationService.DeleteReservationById(country, id)
 	if err != nil {
-		utils.WriteErrorResp(err.Message, err.Status, "api/reservations/{id}", rw)
+		utils.WriteErrorResp(err.Message, err.Status, "api/reservations/{country}/{id}", rw)
 		return
 	}
 

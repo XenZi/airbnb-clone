@@ -65,8 +65,8 @@ func (rr *ReservationRepo) CreateTables() {
 	// Create new tables
 	err := rr.session.Query(
 		fmt.Sprintf(`CREATE TABLE IF NOT EXISTS %s
-		(id UUID, user_id text, accommodation_id text, start_date text, end_date text, username text, accommodation_name text,location text,price int,num_of_days int,continent text,date_range text,
-		PRIMARY KEY((continent), id)) WITH CLUSTERING ORDER BY (id ASC)`, "reservations")).Exec()
+		(id UUID, user_id text, accommodation_id text, start_date text, end_date text, username text, accommodation_name text,location text,price int,num_of_days int,continent text,date_range text,is_active boolean,country text,
+		PRIMARY KEY((continent),location,id)) WITH CLUSTERING ORDER BY (location ASC,id ASC)`, "reservations")).Exec()
 	if err != nil {
 		rr.logger.Println(err)
 	}
@@ -88,8 +88,8 @@ func (rr *ReservationRepo) CreateTables() {
 	err = rr.session.Query(
 		fmt.Sprintf(`CREATE TABLE IF NOT EXISTS %s
 			(id UUID, accommodation_id text, start_date text, end_date text, location text, price int, continent text,
-			 PRIMARY KEY((continent), id))
-			WITH CLUSTERING ORDER BY(id ASC)`, "free_accommodation")).Exec()
+			 PRIMARY KEY((continent),location, id))
+			WITH CLUSTERING ORDER BY(location ASC,id ASC)`, "free_accommodation")).Exec()
 
 	if err != nil {
 		rr.logger.Println(err)
@@ -220,16 +220,36 @@ func (rr *ReservationRepo) InsertReservation(reservation *domain.Reservation) (*
 
 	dateRangeString := strings.Join(reservation.DateRange, ",")
 
-	err := rr.session.Query(`INSERT INTO reservations (id,user_id,accommodation_id,start_date,end_date,username,accommodation_name,location,price,num_of_days,continent,date_range)
-	VALUES(?,?,?,?,?,?,?,?,?,?,?,?)`, Id, reservation.UserID, reservation.AccommodationID, StartDate, EndDate, reservation.Username, reservation.AccommodationName, reservation.Location, reservation.Price, reservation.NumberOfDays, reservation.Continent, dateRangeString).Exec()
+	countryData := gountries.New()
+	locationParts := strings.Split(reservation.Location, ",")
+	if len(locationParts) < 3 {
+		return nil, errors.NewReservationError(400, "Invalid location format: %s")
+	}
+
+	country := locationParts[2]
+	result, err := countryData.FindCountryByName(country)
+	if err != nil {
+		return nil, errors.NewReservationError(500, err.Error())
+	}
+
+	continent := result.Continent
+
+	err = rr.session.Query(`INSERT INTO reservations (id,user_id,accommodation_id,start_date,end_date,username,accommodation_name,location,price,num_of_days,
+		continent,date_range,is_active,country)
+	VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)`, Id, reservation.UserID, reservation.AccommodationID, StartDate, EndDate, reservation.Username,
+		reservation.AccommodationName, reservation.Location, reservation.Price, reservation.NumberOfDays, continent, dateRangeString, true, country).Exec()
 	if err != nil {
 		rr.logger.Println(err)
 		return nil, err
 	}
+
 	reservation.Id = Id
 	reservation.StartDate = StartDate
 	reservation.EndDate = EndDate
+	reservation.Country = country
+	reservation.Continent = continent
 	rr.logger.Println(reservation)
+
 	return reservation, nil
 }
 
@@ -249,11 +269,23 @@ func (rr *ReservationRepo) InsertReservation(reservation *domain.Reservation) (*
 		return reservation, nil
 	}
 */
-func (rr *ReservationRepo) DeleteById(id string) (*domain.ReservationById, *errors.ReservationError) {
-	err := rr.session.Query(`DELETE FROM reservations WHERE id = ?`, id).Exec()
+func (rr *ReservationRepo) DeleteById(country string, id string) (*domain.ReservationById, *errors.ReservationError) {
+	countryData := gountries.New()
+	locationParts := strings.Split(country, ",")
+	if len(locationParts) < 3 {
+		return nil, errors.NewReservationError(400, "Invalid location format: %s")
+	}
+	countryName := locationParts[2]
+	result, err := countryData.FindCountryByName(countryName)
+	if err != nil {
+		return nil, errors.NewReservationError(500, err.Error())
+	}
+	continent := result.Continent
+	err = rr.session.Query(`UPDATE reservations SET is_active = false WHERE continent = ? AND country = ? AND id = ?`, continent, countryName, id).Exec()
 	if err != nil {
 		rr.logger.Println(err)
 		return nil, errors.NewReservationError(500, "Unable to delete, database error")
 	}
+
 	return nil, nil
 }

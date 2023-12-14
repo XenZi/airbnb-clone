@@ -73,8 +73,8 @@ func (s *ReservationService) GetReservationsByAccommodation(accommodationID stri
 	return reservations, nil
 }
 
-func (s *ReservationService) DeleteReservationById(id string) (*domain.ReservationById, *errors.ReservationError) {
-	deletedReservation, err := s.repo.DeleteById(id)
+func (s *ReservationService) DeleteReservationById(country string, id string) (*domain.ReservationById, *errors.ReservationError) {
+	deletedReservation, err := s.repo.DeleteById(country, id)
 	if err != nil {
 		return nil, errors.NewReservationError(500, err.Error())
 	}
