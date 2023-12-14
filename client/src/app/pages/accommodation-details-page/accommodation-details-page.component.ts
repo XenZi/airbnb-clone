@@ -50,7 +50,7 @@ export class AccommodationDetailsPageComponent {
     this.accommodationsService
       .getAccommodationById(this.accommodationID as string)
       .subscribe((data) => {
-        this.accommodation = data;
+        this.accommodation = data.data;
       });
   }
 

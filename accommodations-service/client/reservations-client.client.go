@@ -77,15 +77,13 @@ func (rc ReservationsClient) SendCreatedReservationsAvailabilities(ctx context.C
 	return errors.NewError("Nothing to parse", 500)
 }
 
-func (rc ReservationsClient) CheckAvailabilityForAccommodations(ctx context.Context, accommodationIDs []string, startDate, endDate string) ([]string, *errors.ErrorStruct) {
+func (rc ReservationsClient) CheckAvailabilityForAccommodations(ctx context.Context, accommodationIDs []string, dateRange []string) ([]string, *errors.ErrorStruct) {
 	availabilityCheck := struct {
 		AccommodationIDs []string `json:"accommodationIds"`
-		StartDate        string   `json:"startDate"`
-		EndDate          string   `json:"endDate"`
+		DateRange        []string `json:"dateRange"`
 	}{
 		AccommodationIDs: accommodationIDs,
-		StartDate:        startDate,
-		EndDate:          endDate,
+		DateRange:        dateRange,
 	}
 
 	jsonData, err := json.Marshal(availabilityCheck)
