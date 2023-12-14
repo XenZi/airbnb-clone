@@ -74,7 +74,7 @@ func (rh ReservationHandler) GetReservationsByAccommodation(rw http.ResponseWrit
 
 	reservations, err := rh.ReservationService.GetReservationsByAccommodation(accommodationID)
 	if err != nil {
-		utils.WriteErrorResp(err.Message, err.Status, "api/accommodation/sreservations/{accommodationID}", rw)
+		utils.WriteErrorResp(err.Message, err.Status, "api/sreservations/accommodation/{accommodationID}", rw)
 		return
 	}
 
@@ -86,12 +86,12 @@ func (rh ReservationHandler) GetAvailableDates(rw http.ResponseWriter, r *http.R
 
 	err := json.NewDecoder(r.Body).Decode(&request)
 	if err != nil {
-		utils.WriteErrorResp(err.Error(), 500, "api/accommodation/dates", rw)
+		utils.WriteErrorResp(err.Error(), 500, "api/reservations/accommodation/dates", rw)
 		return
 	}
-	avl, err := rh.ReservationService.GetAvailableDates(request.AccommodationID, request.StartDate, request.EndDate)
-	if err != nil {
-		utils.WriteErrorResp(err.Error(), 500, "api/accommodation/dates", rw)
+	avl, erro := rh.ReservationService.GetAvailableDates(request.AccommodationID, request.StartDate, request.EndDate)
+	if erro != nil {
+		utils.WriteErrorResp(erro.Error(), 500, "api/reservations/accommodation/dates", rw)
 		return
 	}
 	utils.WriteResp(avl, 201, rw)
@@ -102,13 +102,14 @@ func (rh ReservationHandler) ReservationsInDateRangeHandler(w http.ResponseWrite
 
 	err := json.NewDecoder(r.Body).Decode(&request)
 	if err != nil {
-		utils.WriteErrorResp(err.Error(), 500, "api/accommodations/reservations", w)
+		utils.WriteErrorResp(err.Error(), 500, "api/reservations/accommodations", w)
 		return
 	}
 
-	reservations, err := rh.ReservationService.ReservationsInDateRange(request.AccommodationIDs, request.DateRange)
-	if err != nil {
-		utils.WriteErrorResp(err.Error(), 500, "api/accommodations/reservations", w)
+	reservations, erro := rh.ReservationService.ReservationsInDateRange(request.AccommodationIDs, request.DateRange)
+	log.Println(reservations)
+	if erro != nil {
+		utils.WriteErrorResp(erro.Error(), 500, "api/reservations/accommodations", w)
 		return
 	}
 	utils.WriteResp(reservations, 201, w)

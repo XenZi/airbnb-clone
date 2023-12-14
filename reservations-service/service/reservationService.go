@@ -64,10 +64,10 @@ func (s *ReservationService) GetReservationsByUser(userID string) ([]domain.Rese
 	}
 	return reservations, nil
 }
-func (s *ReservationService) ReservationsInDateRange(accommodationIDs []string, dateRange []string) ([]domain.Reservation, *errors.ReservationError) {
+func (s *ReservationService) ReservationsInDateRange(accommodationIDs []string, dateRange []string) ([]string, *errors.ReservationError) {
 	reservations, err := s.repo.ReservationsInDateRange(accommodationIDs, dateRange)
 	if err != nil {
-		return nil, errors.NewReservationError(500, err.Error())
+		return nil, err
 	}
 	return reservations, nil
 }

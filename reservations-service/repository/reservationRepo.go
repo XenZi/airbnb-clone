@@ -114,7 +114,8 @@ func (rr *ReservationRepo) DropTables() {
 
 func (rr *ReservationRepo) GetReservationsByAccommodation(id string) ([]domain.Reservation, error) {
 
-	scanner := rr.session.Query(`SELECT id,accommodation_id, user_id, start_date, end_date,accommodation_name,location,price,num_of_days,date_range,country FROM reservations WHERE is_active = true AND accommodation_id = ? `,
+	scanner := rr.session.Query(`SELECT id,accommodation_id, user_id, start_date, end_date,accommodation_name,location,price,
+	num_of_days,date_range,country FROM reservations WHERE is_active = true AND accommodation_id = ?  ALLOW FILTERING`,
 		id).Iter().Scanner()
 
 	var reservations []domain.Reservation
@@ -166,7 +167,7 @@ func (rr *ReservationRepo) InsertAvailability(reservation *domain.FreeReservatio
 	Id, _ := gocql.RandomUUID()
 	countryData := gountries.New()
 	locationParts := strings.Split(reservation.Location, ",")
-	if len(locationParts) < 2 {
+	if len(locationParts) < 3 {
 		return nil, errors.NewReservationError(400, "Invalid location format: %s")
 	}
 
@@ -289,11 +290,11 @@ func (rr *ReservationRepo) DeleteById(country string, id string) (*domain.Reserv
 
 	return nil, nil
 }
-func (rr *ReservationRepo) ReservationsInDateRange(accommodationIDs []string, dateRange []string) ([]domain.Reservation, *errors.ReservationError) {
-	var result []domain.Reservation
+func (rr *ReservationRepo) ReservationsInDateRange(accommodationIDs []string, dateRange []string) ([]string, *errors.ReservationError) {
+	var result []string
 
 	query := `
-        SELECT id, accommodation_id, start_date, end_date
+        SELECT accommodation_id
         FROM reservations 
         WHERE accommodation_id IN ? 
         AND start_date <= ? AND end_date >= ?
@@ -301,8 +302,8 @@ func (rr *ReservationRepo) ReservationsInDateRange(accommodationIDs []string, da
 
 	iter := rr.session.Query(query, accommodationIDs, dateRange[0], dateRange[len(dateRange)-1]).Iter()
 
-	var reservation domain.Reservation
-	for iter.Scan(&reservation.Id, &reservation.AccommodationID, &reservation.StartDate, &reservation.EndDate) {
+	var reservation string
+	for iter.Scan(&reservation) {
 		result = append(result, reservation)
 	}
 

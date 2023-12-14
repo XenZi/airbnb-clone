@@ -45,10 +45,10 @@ func main() {
 	}
 	router := mux.NewRouter()
 	router.HandleFunc("/", reservationsHandler.CreateReservation).Methods("POST")
+	router.HandleFunc("/accommodations", reservationsHandler.ReservationsInDateRangeHandler).Methods("GET")
 	router.HandleFunc("/availability", reservationsHandler.CreateAvailability).Methods("POST")
 	router.HandleFunc("/user/{userId}", reservationsHandler.GetReservationsByUser).Methods("GET")
-	router.HandleFunc("/accommodations/reservations/{accommodationID}", reservationsHandler.GetReservationsByAccommodation).Methods("GET")
-	router.HandleFunc("/accommodations/reservations", reservationsHandler.ReservationsInDateRangeHandler).Methods("GET")
+	router.HandleFunc("/accommodations/{accommodationID}", reservationsHandler.GetReservationsByAccommodation).Methods("GET")
 	router.HandleFunc("/accommodation/dates", reservationsHandler.GetAvailableDates).Methods("GET")
 	router.HandleFunc("/{country}/{id}", reservationsHandler.DeleteReservationById).Methods("PUT")
 
