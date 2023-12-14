@@ -2,48 +2,65 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Accommodation } from 'src/app/domains/entity/accommodation-model';
+import { UserAuth } from 'src/app/domains/entity/user-auth.model';
 import { ReservationService } from 'src/app/services/reservation-service/reservation.service';
+import { UserService } from 'src/app/services/user/user.service';
 
 @Component({
   selector: 'app-reservation-form',
   templateUrl: 'form-create-reservation.component.html',
-  styleUrls: ['form-create-reservation.component.scss']
+  styleUrls: ['form-create-reservation.component.scss'],
 })
 export class ReservationFormComponent implements OnInit {
   reservationForm!: FormGroup;
-  @Input() accommodation!:Accommodation
-
-  constructor(private fb: FormBuilder, private reservationService: ReservationService) {}
+  @Input() accommodation!: Accommodation;
+  user: UserAuth | null = null;
+  constructor(
+    private fb: FormBuilder,
+    private reservationService: ReservationService,
+    private userService: UserService
+  ) {}
 
   ngOnInit() {
     this.initializeForm();
+    this.user = this.userService.getLoggedUser();
   }
 
   initializeForm() {
     this.reservationForm = this.fb.group({
-      startDate: ['', Validators.required],
-      endDate: ['', Validators.required],
+      range: ['', [Validators.required]],
     });
   }
 
-  submitReservation() {
-    if (this.reservationForm.valid) {
-      const reservationData = this.reservationForm.value;
-      reservationData.accommodationID = this.accommodation.id
-      reservationData.location = this.accommodation.location
-      reservationData.accommodationName = this.accommodation.name
-      this.reservationService.createReservation(reservationData).subscribe(
-        (response: any) => {
-          console.log('Reservation created successfully:', response); 
-        },
-        (error: any) => {
-          console.error('Error creating reservation:', error);
-      
-        }
-      );
-    } else {
-      console.log('Form is not valid. Please check the input fields.');
-    }
+  handleDateChange(rangeDates: Date[]) {
+    console.log(rangeDates);
+    const formattedRange = rangeDates.map((date) => date.toUTCString());
+    this.reservationForm.get('range')?.setValue(formattedRange);
   }
-  
+
+  submitReservation() {
+    if (!this.reservationForm.valid) {
+      console.log('not valid');
+      return;
+    }
+    let startDate: Date = this.reservationForm.value.range[0];
+    let endDate: Date =
+      this.reservationForm.value.range[
+        this.reservationForm.value.range.length - 1
+      ];
+    let userID: string = this.user?.id as string;
+    let username: string = this.user?.username as string;
+    let accommodationName: string = this.accommodation.name;
+    let location: string = this.accommodation.location;
+    let price: number = 50;
+    console.log(
+      startDate,
+      endDate,
+      userID,
+      username,
+      accommodationName,
+      location,
+      price
+    );
+  }
 }

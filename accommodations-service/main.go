@@ -76,8 +76,8 @@ func main() {
 	getAllAccommodations := router.Methods(http.MethodGet).Subrouter()
 	getAllAccommodations.HandleFunc("/", accommodationsHandler.GetAllAccommodations)
 
-	// getAccommodationsById := router.Methods(http.MethodGet).Subrouter()
-	// getAccommodationsById.HandleFunc("/{id}", accommodationsHandler.GetAccommodationById)
+	getAccommodationsById := router.Methods(http.MethodGet).Subrouter()
+	getAccommodationsById.HandleFunc("/{id}", accommodationsHandler.GetAccommodationById)
 
 	postAccommodationForId := router.Methods(http.MethodPost).Subrouter()
 	postAccommodationForId.HandleFunc("/", accommodationsHandler.CreateAccommodationById)

@@ -3,28 +3,7 @@
   (ngSubmit)="submitReservation()"
   class="form"
 >
-  <div class="form__group">
-    <label for="startDate" class="form__label">Start Date</label>
-    <input
-      type="date"
-      id="startDate"
-      class="form__input"
-      formControlName="startDate"
-    />
-    <div class="form__error-container"></div>
-  </div>
-
-  <div class="form__group">
-    <label for="endDate" class="form__label">End Date</label>
-    <input
-      type="date"
-      id="endDate"
-      class="form__input"
-      formControlName="endDate"
-    />
-    <div class="form__error-container"></div>
-  </div>
-  <app-calendar></app-calendar>
+  <app-calendar (datesChanged)="handleDateChange($event)"></app-calendar>
   <app-button size="md" color="rose" class="form__button" type="submit"
     >Confirm</app-button
   >
