@@ -57,7 +57,6 @@ export class SimpleProfileMenuComponent {
       action: () => {
         this.callUpdateProfile();
       },
-      
     },
     {
       icon: 'fa-solid fa-user',
@@ -65,7 +64,7 @@ export class SimpleProfileMenuComponent {
       action: () => {
         this.callNewAccommodation();
       },
-    }
+    },
   ];
   guestItems: SimpleProfileMenuItem[] = [
     {
@@ -119,11 +118,14 @@ export class SimpleProfileMenuComponent {
   callUpdateProfile() {
     this.modalService.open(UpdateUserComponent, 'Update your profile', {});
   }
-  callNewAccommodation(){
-    this.modalService.open(FormCreateAccommodationComponent, 'Create accommodation',{});
-
+  callNewAccommodation() {
+    this.modalService.open(
+      FormCreateAccommodationComponent,
+      'Create accommodation',
+      {}
+    );
   }
   callLogout() {
     this.authService.logout();
-  } 
+  }
 }

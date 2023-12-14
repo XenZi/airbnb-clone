@@ -128,10 +128,27 @@ func (a AuthHandler) UpdateCredentials(r http.ResponseWriter, h *http.Request) {
 		return
 	}
 	userID := h.Context().Value("userID").(string)
-	res, err := a.UserService.UpdateCredentials(userID, requestData)
+	ctx, cancel := context.WithTimeout(h.Context(), time.Second * 5)
+	defer cancel()
+	res, err := a.UserService.UpdateCredentials(ctx, userID, requestData)
 	if err != nil {
 		utils.WriteErrorResp(err.GetErrorMessage(), err.GetErrorStatus(), "api/update-credentials", r)
 		return
 	}
 	utils.WriteResp(res, 201, r)
+}
+
+func (a AuthHandler) DeleteUser(r http.ResponseWriter, h *http.Request) {
+	vars := mux.Vars(h)
+	id := vars["id"]
+	if id == "" {
+		utils.WriteErrorResp("Bad request", 400, "api/confirm-account", r)
+		return
+	}
+	resp, err := a.UserService.DeleteUserById(id)
+	if err != nil {
+		utils.WriteErrorResp(err.GetErrorMessage(), err.GetErrorStatus(), "api/delete", r)
+		return
+	}
+	utils.WriteResp(resp, 200, r)
 }

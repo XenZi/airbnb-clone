@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, EventEmitter, Output } from '@angular/core';
 import { CalendarModule } from 'primeng/calendar';
 @Component({
   selector: 'app-calendar',
@@ -7,11 +7,26 @@ import { CalendarModule } from 'primeng/calendar';
 })
 export class CalendarComponent {
   rangeDates: Date[] | undefined;
-  invalidDates!: Array<Date>;
+  @Output() datesChanged = new EventEmitter<Date[]>();
+  constructor() {}
 
-  constructor() {
-    let invalidDate = new Date();
-    invalidDate.setDate(invalidDate.getDate() - 1);
-    this.invalidDates = [new Date(), invalidDate];
+  onDatesChange(): void {
+    if (this.rangeDates && this.rangeDates.length === 2) {
+      const fullRange = this.getFullDateRange(
+        this.rangeDates[0],
+        this.rangeDates[1]
+      );
+      this.datesChanged.emit(fullRange);
+    }
+  }
+
+  private getFullDateRange(startDate: Date, endDate: Date): Date[] {
+    let dates = [];
+    let currentDate = new Date(startDate);
+    while (currentDate <= endDate) {
+      dates.push(new Date(currentDate));
+      currentDate.setDate(currentDate.getDate() + 1);
+    }
+    return dates;
   }
 }

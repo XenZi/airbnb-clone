@@ -19,6 +19,9 @@ type Reservation struct {
 	Price             int        `json:"price"`
 	NumberOfDays      int        `json:"numOfDays"`
 	Continent         string     `json:"continent"`
+	DateRange         []string   `json:"dateRange"`
+	IsActive          bool       `json:"isActive"`
+	Country           string     `json:"country"`
 }
 
 type FreeReservation struct {
@@ -32,7 +35,7 @@ type FreeReservation struct {
 }
 type ReservationById []*Reservation
 
-func NewReservation(id gocql.UUID, userID, accommodationID string, startDate, endDate, username, accommodationName, location string, price, numOfDays int, continent string) *Reservation {
+func NewReservation(id gocql.UUID, userID, accommodationID string, startDate, endDate, username, accommodationName, location string, price, numOfDays int, continent string, dateRange []string, isActive bool, country string) *Reservation {
 	return &Reservation{
 		Id:                id,
 		UserID:            userID,
@@ -45,6 +48,9 @@ func NewReservation(id gocql.UUID, userID, accommodationID string, startDate, en
 		Price:             price,
 		NumberOfDays:      numOfDays,
 		Continent:         continent,
+		DateRange:         dateRange,
+		IsActive:          isActive,
+		Country:           country,
 	}
 
 }

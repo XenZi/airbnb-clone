@@ -64,21 +64,68 @@ func (uc UserClient) SendCreatedUser(ctx context.Context, id string, user domain
 		return err
 	}
 	resp := cbResp.(*http.Response)
-	anResp := struct {
-		ID        string `json:"id"`
-		FirstName string `json:"firstName"`
-		LastName  string `json:"lastName"`
-		Email     string `json:"email"`
-		Residence string `json:"residence"`
-		Role      string `json:"role"`
-		Username  string `json:"username"`
-		Age       int    `json:"age"`
-	}{}
+	anResp := domains.BaseErrorHttpResponse{}
 
 	err = json.NewDecoder(resp.Body).Decode(&anResp)
 	if err != nil {
 		return err
 	}
 	log.Println(anResp)
+	return nil
+}
+
+func (uc UserClient) SendUpdateCredentials(ctx context.Context,updatedUser domains.User) error {
+	userForUserService := struct {
+		ID        string `json:"id"`
+		Email     string `json:"email"`
+		Username  string `json:"username"`
+	}{
+		ID:        updatedUser.ID.Hex(),
+		Email:     updatedUser.Email,
+		Username:  updatedUser.Username,
+	}
+	jsonData, err := json.Marshal(userForUserService)
+	if err != nil {
+		return fmt.Errorf("error marshalling user data: %v", err)
+	}
+	requestBody := bytes.NewReader(jsonData)
+	cbResp, err := uc.circuitBreaker.Execute(func() (interface{}, error) {
+		req, err := http.NewRequestWithContext(ctx, http.MethodPost, uc.address+"/creds/" + updatedUser.ID.Hex(), requestBody)
+		if err != nil {
+			log.Println(err)
+			return nil, err
+		}
+		return uc.client.Do(req)
+	})
+	log.Println("TESTTTT")
+
+	if err != nil {
+		log.Println("ERR FROM GGG ", err)
+		return err
+	}
+	resp := cbResp.(*http.Response)
+	anResp := domains.BaseErrorHttpResponse{}
+	successfullResp := domains.BaseHttpResponse{}
+	err = json.NewDecoder(resp.Body).Decode(&successfullResp)
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+
+	log.Println("AnResp", successfullResp)
+
+	if anResp.Status >= 400 && anResp.Status <= 500 {
+		log.Println("Test")
+		return nil
+	}
+	
+	err = json.NewDecoder(resp.Body).Decode(&successfullResp)
+	if err != nil {
+		log.Println("ERR U SUCC ERROR CAST", err)
+
+		return err
+	}
+
+	log.Println("RESP", successfullResp)
 	return nil
 }

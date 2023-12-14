@@ -28,7 +28,8 @@ func (r *ReservationHandler) CreateReservation(rw http.ResponseWriter, h *http.R
 	decoder.DisallowUnknownFields()
 	var res domain.Reservation
 	if err := decoder.Decode(&res); err != nil {
-		utils.WriteErrorResp("Internal server error", 500, "api/reservations", rw)
+		utils.WriteErrorResp(err.Error(), 500, "api/reservations", rw)
+		return
 	}
 	newRes, err := r.ReservationService.CreateReservation(res)
 	if err != nil {
@@ -67,14 +68,28 @@ func (rh *ReservationHandler) GetReservationsByUser(rw http.ResponseWriter, r *h
 	rw.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(rw).Encode(reservations)
 }
+func (rh ReservationHandler) GetReservationsByAccommodation(rw http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	accommodationID := vars["accommodationID"]
+
+	reservations, err := rh.ReservationService.GetReservationsByAccommodation(accommodationID)
+	if err != nil {
+		utils.WriteErrorResp(err.Message, err.Status, "api/accommodation/sreservations/{accommodationID}", rw)
+		return
+	}
+
+	rw.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(rw).Encode(reservations)
+}
 
 func (rh *ReservationHandler) DeleteReservationById(rw http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["id"]
+	country := vars["country"]
 
-	deletedReservation, err := rh.ReservationService.DeleteReservationById(id)
+	deletedReservation, err := rh.ReservationService.DeleteReservationById(country, id)
 	if err != nil {
-		utils.WriteErrorResp(err.Message, err.Status, "api/reservations/{id}", rw)
+		utils.WriteErrorResp(err.Message, err.Status, "api/reservations/{country}/{id}", rw)
 		return
 	}
 

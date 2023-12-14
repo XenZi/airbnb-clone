@@ -1,0 +1,39 @@
+.form-search {
+  padding: 10px;
+  width: 100%;
+}
+
+.form-search__container {
+  display: flex;
+}
+
+.form-search__box {
+  margin-right: 5px;
+}
+
+.form-search__label {
+  font-size: 12px;
+  display: block;
+  margin-bottom: 5px;
+}
+
+.form-search__input {
+  padding: 5px;
+  border-radius: 10px;
+  background-color: #fff;
+  border: 1px solid #eee;
+}
+
+.form-search__button {
+  padding: 5px;
+  background-color: #ff5977;
+  border: none;
+  cursor: pointer;
+  height: 29px;
+  align-self: flex-end;
+  margin-left: 5px;
+  border-radius: 10px;
+}
+.form-search__icon {
+  color: #fff;
+}

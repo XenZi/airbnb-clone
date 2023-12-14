@@ -7,12 +7,13 @@ import (
 	"accommodations-service/services"
 	"accommodations-service/utils"
 	"context"
-	"github.com/sony/gobreaker"
 	"log"
 	"net/http"
 	"os"
 	"os/signal"
 	"time"
+
+	"github.com/sony/gobreaker"
 
 	gorillaHandlers "github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
