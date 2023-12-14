@@ -140,7 +140,7 @@ func (v *Validator) ValidateUser(newUser *domain.CreateUser) {
 	v.ValidateField("LastName", newUser.LastName, MinLength(2), StartsWithCapital())
 	v.ValidateField("Email", newUser.Email, IsEmail)
 	v.ValidateField("Residence", newUser.Residence, MinLength(3), MinDigits(1))
-	v.ValidateIntField("Age", newUser.Age, ValidAge(18))
+	// v.ValidateIntField("Age", newUser.Age, ValidAge(18))
 	foundErrors := v.GetErrors()
 	if len(foundErrors) > 0 {
 		for field, message := range foundErrors {

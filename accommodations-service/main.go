@@ -7,12 +7,13 @@ import (
 	"accommodations-service/services"
 	"accommodations-service/utils"
 	"context"
-	"github.com/sony/gobreaker"
 	"log"
 	"net/http"
 	"os"
 	"os/signal"
 	"time"
+
+	"github.com/sony/gobreaker"
 
 	gorillaHandlers "github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
@@ -75,8 +76,8 @@ func main() {
 	getAllAccommodations := router.Methods(http.MethodGet).Subrouter()
 	getAllAccommodations.HandleFunc("/", accommodationsHandler.GetAllAccommodations)
 
-	getAccommodationsById := router.Methods(http.MethodGet).Subrouter()
-	getAccommodationsById.HandleFunc("/{id}", accommodationsHandler.GetAccommodationById)
+	// getAccommodationsById := router.Methods(http.MethodGet).Subrouter()
+	// getAccommodationsById.HandleFunc("/{id}", accommodationsHandler.GetAccommodationById)
 
 	postAccommodationForId := router.Methods(http.MethodPost).Subrouter()
 	postAccommodationForId.HandleFunc("/", accommodationsHandler.CreateAccommodationById)

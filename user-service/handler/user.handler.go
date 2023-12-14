@@ -2,11 +2,13 @@ package handler
 
 import (
 	"encoding/json"
-	"github.com/gorilla/mux"
+	"log"
 	"net/http"
 	"user-service/domain"
 	"user-service/service"
 	"user-service/utils"
+
+	"github.com/gorilla/mux"
 )
 
 type UserHandler struct {
@@ -53,6 +55,7 @@ func (u UserHandler) CredsHandler(rw http.ResponseWriter, h *http.Request) {
 		utils.WriteErrorResponse(err.Error(), 500, "api/update", rw)
 		return
 	}
+	log.Println("DOES IT GET IN HERE BUD", updateData)
 	user, err := u.UserService.UpdateUserCreds(updateData)
 	if err != nil {
 		utils.WriteErrorResponse(err.GetErrorMessage(), err.GetErrorStatus(), "api/update", rw)

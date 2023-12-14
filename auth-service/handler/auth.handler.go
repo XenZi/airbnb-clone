@@ -128,7 +128,9 @@ func (a AuthHandler) UpdateCredentials(r http.ResponseWriter, h *http.Request) {
 		return
 	}
 	userID := h.Context().Value("userID").(string)
-	res, err := a.UserService.UpdateCredentials(userID, requestData)
+	ctx, cancel := context.WithTimeout(h.Context(), time.Second * 5)
+	defer cancel()
+	res, err := a.UserService.UpdateCredentials(ctx, userID, requestData)
 	if err != nil {
 		utils.WriteErrorResp(err.GetErrorMessage(), err.GetErrorStatus(), "api/update-credentials", r)
 		return

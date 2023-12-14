@@ -41,7 +41,9 @@ import { CalendarComponent } from './components/calendar/calendar.component';
 import { CalendarModule } from 'primeng/calendar';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { FormUpdateCredentialsComponent } from './forms/form-update-credentials/form-update-credentials.component';
-
+import { NotificationsComponent } from './components/notifications/notifications.component';
+import { SearchComponent } from './components/search/search.component';
+import { FormSearchComponent } from './forms/form-search/form-search.component';
 @NgModule({
   declarations: [
     AppComponent,
@@ -76,7 +78,9 @@ import { FormUpdateCredentialsComponent } from './forms/form-update-credentials/
     ReservationComponent,
     CalendarComponent,
     FormUpdateCredentialsComponent,
-    
+    NotificationsComponent,
+    SearchComponent,
+    FormSearchComponent,
   ],
   imports: [
     BrowserModule,
