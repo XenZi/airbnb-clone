@@ -74,12 +74,45 @@ func (rh ReservationHandler) GetReservationsByAccommodation(rw http.ResponseWrit
 
 	reservations, err := rh.ReservationService.GetReservationsByAccommodation(accommodationID)
 	if err != nil {
-		utils.WriteErrorResp(err.Message, err.Status, "api/accommodation/sreservations/{accommodationID}", rw)
+		utils.WriteErrorResp(err.Message, err.Status, "api/sreservations/accommodation/{accommodationID}", rw)
 		return
 	}
 
 	rw.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(rw).Encode(reservations)
+}
+func (rh ReservationHandler) GetAvailableDates(rw http.ResponseWriter, r *http.Request) {
+	var request domain.CheckAvailabilityRequest
+
+	err := json.NewDecoder(r.Body).Decode(&request)
+	if err != nil {
+		utils.WriteErrorResp(err.Error(), 500, "api/reservations/accommodation/dates", rw)
+		return
+	}
+	avl, erro := rh.ReservationService.GetAvailableDates(request.AccommodationID, request.StartDate, request.EndDate)
+	if erro != nil {
+		utils.WriteErrorResp(erro.Error(), 500, "api/reservations/accommodation/dates", rw)
+		return
+	}
+	utils.WriteResp(avl, 201, rw)
+
+}
+func (rh ReservationHandler) ReservationsInDateRangeHandler(w http.ResponseWriter, r *http.Request) {
+	var request domain.ReservationsInDateRangeRequest
+
+	err := json.NewDecoder(r.Body).Decode(&request)
+	if err != nil {
+		utils.WriteErrorResp(err.Error(), 500, "api/reservations/accommodations", w)
+		return
+	}
+
+	reservations, erro := rh.ReservationService.ReservationsInDateRange(request.AccommodationIDs, request.DateRange)
+	log.Println(reservations)
+	if erro != nil {
+		utils.WriteErrorResp(erro.Error(), 500, "api/reservations/accommodations", w)
+		return
+	}
+	utils.WriteResp(reservations, 201, w)
 }
 
 func (rh *ReservationHandler) DeleteReservationById(rw http.ResponseWriter, r *http.Request) {
