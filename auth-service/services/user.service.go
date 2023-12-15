@@ -76,10 +76,17 @@ func (u *UserService) CreateUser(ctx context.Context, registerUser domains.Regis
 	if encError != nil {
 		return nil, encError
 	}
+	errFromUserService := u.userClient.SendCreatedUser(ctx, newUser.ID.Hex(), registerUser)
+	if errFromUserService != nil {
+		_, err := u.userRepository.DeleteUserById(newUser.ID.Hex())
+		if err != nil {
+			return nil, err
+		}
+		return nil, errFromUserService
+	}
 	go func() {
 		u.mailClient.SendAccountConfirmationEmail(registerUser.Email, token)
 	}()
-	u.userClient.SendCreatedUser(ctx, newUser.ID.Hex(), registerUser)
 	return &domains.UserDTO{
 		ID:       string(id[1 : len(id)-1]),
 		Email:    registerUser.Email,
@@ -251,11 +258,15 @@ func (u UserService) UpdateCredentials(ctx context.Context, id string, updatedDa
 		return nil, errors.NewError(newError.Error(),500)
 	}
 	updatedData.ID = objectID
+	errFromCredentialsUpdate := u.userClient.SendUpdateCredentials(ctx, updatedData)
+	if errFromCredentialsUpdate != nil {
+		return nil, errFromCredentialsUpdate
+	}
 	_, err := u.userRepository.UpdateUserCredentials(updatedData)
 	if err != nil {
 		return nil, err
 	}
-	u.userClient.SendUpdateCredentials(ctx, updatedData)
+
 	return &domains.BaseMessageResponse{
 		Message: "You have successfully updated your credentials, please log in again.",
 	}, nil
