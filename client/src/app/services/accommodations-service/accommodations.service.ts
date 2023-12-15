@@ -61,7 +61,8 @@ export class AccommodationsService {
             ToastNotificationType.Success
           );
           this.modalService.close();
-          this.router.navigate(['/']);
+          // this.router.navigate(['/']);
+          window.location.reload();
         },
         error: (err) => {
           console.log(err);
