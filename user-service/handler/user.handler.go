@@ -87,7 +87,7 @@ func (u UserHandler) GetUserById(rw http.ResponseWriter, h *http.Request) {
 func (u UserHandler) DeleteHandler(rw http.ResponseWriter, h *http.Request) {
 	vars := mux.Vars(h)
 	id := vars["id"]
-	err := u.UserService.DeleteUser(id)
+	err := u.UserService.DeleteUser("Guest", id)
 	if err != nil {
 		utils.WriteErrorResponse(err.GetErrorMessage(), err.GetErrorStatus(), "api/delete", rw)
 		return
