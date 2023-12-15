@@ -37,7 +37,7 @@ export class AccommodationsService {
     maxNumOfVisitors: number,
     availableAccommodationDates: DateAvailability[],
     location:string
-
+    
   ): void {
     this.http
       .post(`${apiURL}/accommodations/`, {
@@ -147,16 +147,19 @@ export class AccommodationsService {
       });
   }
 
-  public search(city:string,country:string,numOfVisitors:string): Observable<any> {
+  public search(city:string,country:string,numOfVisitors:string,startDate:string,endDate:string): Observable<any> {
 
     this.router.navigate(['/search'], {
       queryParams: {
         city: city,
         country: country,
-        numOfVisitors: numOfVisitors
+        numOfVisitors: numOfVisitors,
+        startDate:startDate,
+        endDate:endDate,
       }
     });
-    return this.http.get<any>(`${apiURL}/accommodations/search?city=${city}&country=${country}&numOfVisitors=${numOfVisitors}`);
+    console.log("pocetni datum je",startDate)
+    return this.http.get<any>(`${apiURL}/accommodations/search?city=${city}&country=${country}&numOfVisitors=${numOfVisitors}&startDate=${startDate}&endDate=${endDate}`);
         
   }
 

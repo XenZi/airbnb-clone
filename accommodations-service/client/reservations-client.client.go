@@ -78,6 +78,7 @@ func (rc ReservationsClient) SendCreatedReservationsAvailabilities(ctx context.C
 }
 
 func (rc ReservationsClient) CheckAvailabilityForAccommodations(ctx context.Context, accommodationIDs []string, dateRange []string) ([]string, *errors.ErrorStruct) {
+	log.Println("Uslo u Check")
 	availabilityCheck := struct {
 		AccommodationIDs []string `json:"accommodationIDs"`
 		DateRange        []string `json:"dateRange"`
@@ -93,51 +94,61 @@ func (rc ReservationsClient) CheckAvailabilityForAccommodations(ctx context.Cont
 
 	requestBody := bytes.NewReader(jsonData)
 
-	var responseAccommodationIDs []string
-
 	cbResp, err := rc.circuitBreaker.Execute(func() (interface{}, error) {
-		req, err := http.NewRequestWithContext(ctx, http.MethodPost, rc.address+"/availabilityFinder", requestBody)
+		req, err := http.NewRequestWithContext(ctx, http.MethodGet, rc.address+"/accommodations", requestBody)
 		if err != nil {
 			log.Println(err)
 			return nil, err
 		}
 		req.Header.Set("Content-Type", "application/json")
 
-		resp, err := rc.client.Do(req)
-		if err != nil {
-			return nil, err
-		}
-		defer resp.Body.Close()
+		return rc.client.Do(req)
 
-		if resp.StatusCode != http.StatusOK {
-			return nil, fmt.Errorf("non-success status code received: %d", resp.StatusCode)
-		}
-
-		var responseData struct {
-			AccommodationIDs []string `json:"accommodationIDs"`
-		}
-
-		if err := json.NewDecoder(resp.Body).Decode(&responseData); err != nil {
-			return nil, err
-		}
-
-		responseAccommodationIDs = responseData.AccommodationIDs
-
-		return resp, nil
 	})
-
 	if err != nil {
-		log.Println("ERR FROM GGG ", err)
-		return nil, errors.NewError("Failed to perform HTTP request", http.StatusInternalServerError)
+		return nil, errors.NewError("Internal server error", http.StatusInternalServerError)
+	}
+	response := cbResp.(*http.Response)
+	log.Println("odgovor je", response)
+	if response.StatusCode == 201 {
+		resp := domain.BaseHttpResponse{}
+		errO := json.NewDecoder(response.Body).Decode(&resp)
+		if errO != nil {
+			return nil, errors.NewError("Error decoding json", 500)
+		}
+		if resp.Data == nil {
+			var stringSlice []string
+			// Use stringSlice or return it as needed
+			return stringSlice, nil
+		}
+		log.Println(resp.Data)
+		dataSlice, ok := resp.Data.([]interface{})
+		if !ok {
+			fmt.Println("Data is not a []interface{}")
+			return nil, errors.NewError("Error slicing", 500)
+		}
+
+		stringSlice := make([]string, len(dataSlice))
+		for i, item := range dataSlice {
+			if str, isString := item.(string); isString {
+				stringSlice[i] = str
+			} else {
+				fmt.Printf("Element at index %d is not a string\n", i)
+			}
+		}
+
+		log.Println("zauzete akomodacije", stringSlice)
+		return stringSlice, nil
+	} else {
+		resp := domain.BaseErrorHttpResponse{}
+		errO := json.NewDecoder(response.Body).Decode(&resp)
+		if errO != nil {
+			return nil, errors.NewError("Error decoding json", 500)
+		}
+		log.Println(resp)
+
+		return nil, errors.NewError(resp.Error, resp.Status)
+
 	}
 
-	resp := cbResp.(*http.Response)
-	anResp := domain.BaseErrorHttpResponse{}
-
-	if err := json.NewDecoder(resp.Body).Decode(&anResp); err != nil {
-		return nil, errors.NewError("Failed to parse response body", http.StatusInternalServerError)
-	}
-	log.Println(anResp)
-
-	return responseAccommodationIDs, nil
 }

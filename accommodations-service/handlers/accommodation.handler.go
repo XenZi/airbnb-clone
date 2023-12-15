@@ -136,8 +136,14 @@ func (a *AccommodationsHandler) SearchAccommodations(w http.ResponseWriter, r *h
 		return
 	}
 
-	// Call the AccommodationService to perform the search
-	accommodations, errS := a.AccommodationService.SearchAccommodations(city, country, numOfVisitors)
+	startDate := r.URL.Query().Get("startDate")
+	endDate := r.URL.Query().Get("endDate")
+
+	// Handle empty dateRange as needed
+
+	ctx, cancel := context.WithTimeout(r.Context(), time.Second*5)
+	defer cancel()
+	accommodations, errS := a.AccommodationService.SearchAccommodations(city, country, numOfVisitors, startDate, endDate, ctx)
 
 	if errS != nil {
 		utils.WriteErrorResp(errS.GetErrorMessage(), http.StatusInternalServerError, "api/accommodations/BILOSTA", w)

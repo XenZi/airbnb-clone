@@ -13,6 +13,8 @@ export class SearchPageComponent {
   city!: string;
   country!: string;
   numOfVisitors!: string;
+  startDate!:string;
+  endDate!:string
 
   constructor(private accommodationService: AccommodationsService,private router: Router,
     private route: ActivatedRoute,
@@ -23,7 +25,8 @@ export class SearchPageComponent {
       this.city = params['city'] || ''; // Retrieve the 'city' parameter value or set an empty string as default
       this.country = params['country'] || ''; // Retrieve the 'country' parameter value or set an empty string as default
       this.numOfVisitors = params['numOfVisitors'] || "1"; // Retrieve the 'numOfVisitors' parameter value as a number or set 0 as default
-      
+      this.startDate=params['startDate'] || ""
+      this.endDate=params['endDate']||""
       // Once you have the query parameters, you can use them to perform the search
       
     });
@@ -32,7 +35,7 @@ export class SearchPageComponent {
 
   private loadSearchedAccommodations(): void {
     console.log(this.city,this.country,this.numOfVisitors)
-    this.accommodationService.search(this.city as string,this.country as string,this.numOfVisitors as string).subscribe({
+    this.accommodationService.search(this.city as string,this.country as string,this.numOfVisitors as string,this.startDate as string,this.endDate as string).subscribe({
       next: (response) => {
         this.accommodations = response.data;
         console.log(this.accommodations)
