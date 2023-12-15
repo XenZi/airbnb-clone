@@ -9,19 +9,23 @@ import { AccommodationsService } from 'src/app/services/accommodations-service/a
   styleUrls: ['./base-page.component.scss'],
 })
 export class BasePageComponent {
-  accommodations!: Observable<Accommodation[]>;
+  accommodations!: Accommodation[];
 
   constructor(private accommodationService: AccommodationsService) {}
 
   ngOnInit() {
     this.loadAccommodations();
-    console.log(localStorage.getItem('user'))
-    
   }
 
-  private loadAccommodations() {
-    this.accommodations = this.accommodationService.loadAccommodations();
+  private loadAccommodations(): void {
+    this.accommodationService.loadAccommodations().subscribe({
+      next: (response) => {
+        this.accommodations = response.data;
+        
+      },
+      error: (error) => {
+        console.log(error);
+      },
+    });
   }
-
-  
 }

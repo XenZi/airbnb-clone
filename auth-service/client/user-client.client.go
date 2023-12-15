@@ -2,6 +2,7 @@ package client
 
 import (
 	"auth-service/domains"
+	"auth-service/errors"
 	"bytes"
 	"context"
 	"encoding/json"
@@ -26,7 +27,7 @@ func NewUserClient(host, port string, client *http.Client, circuitBreaker *gobre
 	}
 }
 
-func (uc UserClient) SendCreatedUser(ctx context.Context, id string, user domains.RegisterUser) error {
+func (uc UserClient) SendCreatedUser(ctx context.Context, id string, user domains.RegisterUser) *errors.ErrorStruct {
 	userForUserService := struct {
 		ID        string `json:"id"`
 		FirstName string `json:"firstName"`
@@ -48,7 +49,7 @@ func (uc UserClient) SendCreatedUser(ctx context.Context, id string, user domain
 	}
 	jsonData, err := json.Marshal(userForUserService)
 	if err != nil {
-		return fmt.Errorf("error marshalling user data: %v", err)
+		return errors.NewError(err.Error(), 500)
 	}
 	requestBody := bytes.NewReader(jsonData)
 	cbResp, err := uc.circuitBreaker.Execute(func() (interface{}, error) {
@@ -58,23 +59,30 @@ func (uc UserClient) SendCreatedUser(ctx context.Context, id string, user domain
 		}
 		return uc.client.Do(req)
 	})
-
 	if err != nil {
-		log.Println("ERR FROM GGG ", err)
-		return err
+		return errors.NewError(err.Error(), 500)
 	}
 	resp := cbResp.(*http.Response)
-	anResp := domains.BaseErrorHttpResponse{}
-
-	err = json.NewDecoder(resp.Body).Decode(&anResp)
-	if err != nil {
-		return err
+	if resp.StatusCode >= 200 && resp.StatusCode < 400 {
+		baseResp := domains.BaseHttpResponse{}
+		err := json.NewDecoder(resp.Body).Decode(&baseResp)
+		if err != nil {
+			return errors.NewError(err.Error(), 500)
+		}
+		log.Println("Base resp valid", baseResp)
+		return nil
 	}
-	log.Println(anResp)
-	return nil
+	baseResp := domains.BaseErrorHttpResponse{}
+	err = json.NewDecoder(resp.Body).Decode(&baseResp)
+	if err != nil {
+		return errors.NewError(err.Error(), 500)
+	}
+	log.Println(baseResp)
+	log.Println(baseResp.Error)
+	return errors.NewError(baseResp.Error, baseResp.Status)
 }
 
-func (uc UserClient) SendUpdateCredentials(ctx context.Context,updatedUser domains.User) error {
+func (uc UserClient) SendUpdateCredentials(ctx context.Context,updatedUser domains.User) *errors.ErrorStruct {
 	userForUserService := struct {
 		ID        string `json:"id"`
 		Email     string `json:"email"`
@@ -86,7 +94,7 @@ func (uc UserClient) SendUpdateCredentials(ctx context.Context,updatedUser domai
 	}
 	jsonData, err := json.Marshal(userForUserService)
 	if err != nil {
-		return fmt.Errorf("error marshalling user data: %v", err)
+		return errors.NewError(err.Error(), 500)
 	}
 	requestBody := bytes.NewReader(jsonData)
 	cbResp, err := uc.circuitBreaker.Execute(func() (interface{}, error) {
@@ -97,35 +105,23 @@ func (uc UserClient) SendUpdateCredentials(ctx context.Context,updatedUser domai
 		}
 		return uc.client.Do(req)
 	})
-	log.Println("TESTTTT")
-
 	if err != nil {
-		log.Println("ERR FROM GGG ", err)
-		return err
+		return errors.NewError(err.Error(), 500)	
 	}
 	resp := cbResp.(*http.Response)
-	anResp := domains.BaseErrorHttpResponse{}
-	successfullResp := domains.BaseHttpResponse{}
-	err = json.NewDecoder(resp.Body).Decode(&successfullResp)
-	if err != nil {
-		log.Println(err)
-		return err
-	}
-
-	log.Println("AnResp", successfullResp)
-
-	if anResp.Status >= 400 && anResp.Status <= 500 {
-		log.Println("Test")
+	if resp.StatusCode >= 200 && resp.StatusCode < 400 {
+		baseResp := domains.BaseHttpResponse{}
+		err := json.NewDecoder(resp.Body).Decode(&baseResp)
+		if err != nil {
+			return errors.NewError(err.Error(), 500)
+		}
 		return nil
 	}
-	
-	err = json.NewDecoder(resp.Body).Decode(&successfullResp)
+	baseResp := domains.BaseErrorHttpResponse{}
+	err = json.NewDecoder(resp.Body).Decode(&baseResp)
 	if err != nil {
-		log.Println("ERR U SUCC ERROR CAST", err)
-
-		return err
+		return errors.NewError(err.Error(), 500)
 	}
+	return errors.NewError(baseResp.Error, baseResp.Status)
 
-	log.Println("RESP", successfullResp)
-	return nil
 }

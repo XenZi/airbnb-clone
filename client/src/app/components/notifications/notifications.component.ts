@@ -28,6 +28,7 @@ export class NotificationsComponent {
         .getAllNotificationsForUser(this.user.id)
         .subscribe({
           next: (data) => {
+            console.log(data);
             this.notifications = data.data;
           },
         });

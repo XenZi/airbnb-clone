@@ -38,7 +38,7 @@ export class SimpleProfileMenuComponent {
   loggedItems: SimpleProfileMenuItem[] = [
     {
       icon: 'fa-solid fa-user',
-      title: 'Update profile',
+      title: 'Update credentials',
       action: () => {
         this.callUpdateProfile();
       },
@@ -56,7 +56,7 @@ export class SimpleProfileMenuComponent {
       icon: 'fa-solid fa-user',
       title: 'Host',
       action: () => {
-        this.callUpdateProfile();
+        this.callNavigateToProfile();
       },
     },
     {

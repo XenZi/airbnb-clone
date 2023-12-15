@@ -7,7 +7,7 @@ import { ModalService } from '../modal/modal.service';
 import { ToastService } from '../toast/toast.service';
 import { ToastNotificationType } from 'src/app/domains/enums/toast-notification-type.enum';
 import { Router } from '@angular/router';
-import { Observable } from 'rxjs';
+import { Observable, map } from 'rxjs';
 import { Accommodation } from 'src/app/domains/entity/accommodation-model';
 import { DateAvailability } from 'src/app/domains/entity/date-availability.model';
 
@@ -30,14 +30,13 @@ export class AccommodationsService {
     username: string,
     name: string,
     address: string,
-    city:string,
-    country:string,
+    city: string,
+    country: string,
     conveniences: string[],
     minNumOfVisitors: number,
     maxNumOfVisitors: number,
     availableAccommodationDates: DateAvailability[],
-    location:string
-
+    location: string
   ): void {
     this.http
       .post(`${apiURL}/accommodations/`, {
@@ -51,7 +50,7 @@ export class AccommodationsService {
         minNumOfVisitors: Number(minNumOfVisitors),
         maxNumOfVisitors: Number(maxNumOfVisitors),
         availableAccommodationDates,
-        location
+        location,
       })
       .subscribe({
         next: (data) => {
@@ -62,6 +61,7 @@ export class AccommodationsService {
           );
           this.modalService.close();
           this.router.navigate(['/']);
+          window.location.reload();
         },
         error: (err) => {
           console.log(err);
@@ -76,11 +76,10 @@ export class AccommodationsService {
     // window.location.reload();
   }
 
-  public loadAccommodations(): Observable<Accommodation[]> {
-    return this.http.get<Accommodation[]>(`${apiURL}/accommodations/`);
+  public loadAccommodations(): Observable<any> {
+    return this.http.get<any>(`${apiURL}/accommodations/`);
   }
-
-  public getAccommodationById(id: string): Observable<Accommodation> {
+  public getAccommodationById(id: string): Observable<any> {
     return this.http.get<Accommodation>(`${apiURL}/accommodations/${id}`);
   }
 
@@ -93,7 +92,7 @@ export class AccommodationsService {
           ToastNotificationType.Success
         );
         this.router.navigate(['/']);
-        window.location.reload();
+        // window.location.reload();
       },
       error: (err) => {
         this.toastSerice.showToast(
@@ -109,18 +108,16 @@ export class AccommodationsService {
     id: string,
     name: string,
     address: string,
-    city:string,
-    country:string,
-    conveniences: string,
+    city: string,
+    conveniences: string[],
     minNumOfVisitors: number,
-    maxNumOfVisitors: number,
+    maxNumOfVisitors: number
   ): void {
     this.http
       .put(`${apiURL}/accommodations/${id}`, {
         name,
         address,
         city,
-        country,
         conveniences,
         minNumOfVisitors,
         maxNumOfVisitors,
@@ -144,5 +141,27 @@ export class AccommodationsService {
           );
         },
       });
+  }
+
+  public search(
+    city: string,
+    country: string,
+    numOfVisitors: string,
+    startDate: string,
+    endDate: string
+  ): Observable<any> {
+    this.router.navigate(['/search'], {
+      queryParams: {
+        city: city,
+        country: country,
+        numOfVisitors: numOfVisitors,
+        startDate: startDate,
+        endDate: endDate,
+      },
+    });
+    console.log('pocetni datum je', startDate);
+    return this.http.get<any>(
+      `${apiURL}/accommodations/search?city=${city}&country=${country}&numOfVisitors=${numOfVisitors}&startDate=${startDate}&endDate=${endDate}`
+    );
   }
 }

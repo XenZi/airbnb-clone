@@ -3,6 +3,7 @@ package utils
 import (
 	"accommodations-service/domain"
 	"fmt"
+	"log"
 	"regexp"
 	"strconv"
 	"time"
@@ -57,6 +58,9 @@ func (v *Validator) ValidateField(fieldName string, value string, rules ...Valid
 func (v *Validator) GetErrors() map[string]string {
 	return v.Errors
 }
+func (v *Validator) ClearErrors() {
+	v.Errors = make(map[string]string)
+}
 
 func IsName(value string) bool {
 	nameRegex := `^[a-zA-Z0-9, ]*$`
@@ -81,6 +85,11 @@ func MinLength(minLength int) ValidationRule {
 		return len(value) >= minLength
 	}
 }
+func IsAddress(value string) bool {
+	addressRegex := `^[a-zA-Z0-9 ,]+$`
+	isValid, _ := regexp.MatchString(addressRegex, value)
+	return isValid
+}
 
 func IsDateYYYYMMDD(input string) bool {
 	dateRegex := regexp.MustCompile(`^(19|20)\d{2}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$`)
@@ -89,9 +98,9 @@ func IsDateYYYYMMDD(input string) bool {
 
 func (v *Validator) ValidateAccommodation(accommodation *domain.Accommodation) {
 	v.ValidateField("Name", accommodation.Name, MinLength(2), IsName)
-	v.ValidateField("Address", accommodation.Address, MinLength(2))
+	v.ValidateField("Address", accommodation.Address, MinLength(2), IsAddress)
 	v.ValidateField("City", accommodation.City, MinLength(2), IsLocationOrConvenience)
-	v.ValidateField("Country", accommodation.Country, MinLength(2), IsLocationOrConvenience)
+
 	v.ValidateField("MinNumOfVisitors", strconv.Itoa(accommodation.MinNumOfVisitors), IsNumber)
 	v.ValidateField("MaxNumOfVisitors", strconv.Itoa(accommodation.MaxNumOfVisitors), IsNumber)
 	if accommodation.MinNumOfVisitors > accommodation.MaxNumOfVisitors {
@@ -107,31 +116,46 @@ func (v *Validator) ValidateAccommodation(accommodation *domain.Accommodation) {
 	}
 }
 
-func (v *Validator) ValidateAvailabilities(availabilities *domain.AvailableAccommodationDates) {
-	v.ValidateField("StartDate", availabilities.StartDate, IsDateYYYYMMDD)
-	v.ValidateField("EndDate", availabilities.EndDate, IsDateYYYYMMDD)
-	v.ValidateField("Price", strconv.Itoa(availabilities.Price), IsNumber)
-	layout := "2023-02-01"
-	currentDate := time.Now()
-	StartDateDate, err := time.Parse(layout, availabilities.StartDate)
-	if err != nil {
-		v.Errors["StartDate"] = "StartDate is not formatted correctly"
-	}
-	EndDateDate, err := time.Parse(layout, availabilities.EndDate)
-	if err != nil {
-		v.Errors["EndDate"] = "EndDate is not formatted correctly"
-	}
-	if StartDateDate.Before(currentDate) && EndDateDate.Before(currentDate) && EndDateDate.Before(currentDate) {
-		v.Errors["EndDate"] = "Dates are not selected correctly"
-	}
+func (v *Validator) ValidateAvailabilities(availabilities *domain.CreateAccommodation) {
+	layout := "2006-01-02" // Date layout format
 
-	foundErrors := v.GetErrors()
+	for _, availability := range availabilities.AvailableAccommodationDates {
+		// Validate StartDate
+		startDateParsed, err := time.Parse(layout, availability.StartDate)
+		log.Println("Parsovan start date", startDateParsed)
+		if err != nil {
+			v.Errors["StartDate"] = "StartDate is not formatted correctly"
+		}
 
-	if len(foundErrors) > 0 {
-		for field, message := range foundErrors {
-			fmt.Printf("%s: %s\n", field, message)
+		// Validate EndDate
+		endDateParsed, err := time.Parse(layout, availability.EndDate)
+		if err != nil {
+			v.Errors["EndDate"] = "EndDate is not formatted correctly"
+		}
+		log.Println("Parsovan end date", endDateParsed)
+
+		// Check date logic errors
+		currentDate := time.Now()
+		//log.Println(startDateParsed.After(endDateParsed))
+		//log.Println(startDateParsed.Before(currentDate))
+		//log.Println(endDateParsed.Before(currentDate))
+
+		if startDateParsed.After(endDateParsed) || startDateParsed.Before(currentDate) || endDateParsed.Before(currentDate) {
+			v.Errors["DateLogic"] = "Dates are not selected correctly"
+		}
+
+		// Validate Price
+		v.ValidateField("MaxNumOfVisitors", strconv.Itoa(availability.Price), IsNumber)
+
+		foundErrors := v.GetErrors()
+
+		if len(foundErrors) > 0 {
+			for field, message := range foundErrors {
+				fmt.Printf("%s: %s\n", field, message)
+			}
 		}
 	}
+
 }
 
 func (v *Validator) ValidateName(name string) {

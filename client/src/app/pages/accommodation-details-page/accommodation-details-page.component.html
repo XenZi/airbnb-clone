@@ -14,6 +14,27 @@
         
         <app-reservation-form [accommodation]="accommodation" [accommodationID]="accommodationID"></app-reservation-form>
       </div>
+      <div
+        class="accommodation-details__row flex-row"
+        *ngIf="
+          this.isUserLogged && this.userLogged?.id == this.accommodation.userId
+        "
+      >
+        <app-button
+          size="md"
+          color="blue"
+          class=""
+          (onClick)="this.callUpdateAccommodation()"
+          >Update</app-button
+        >
+        <app-button
+          size="md"
+          color="blue"
+          class=""
+          (onClick)="this.callDeleteAccommodation()"
+          >Delete</app-button
+        >
+      </div>
     </div>
   </div>
 </div>
