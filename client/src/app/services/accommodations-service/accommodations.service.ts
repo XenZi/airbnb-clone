@@ -30,14 +30,13 @@ export class AccommodationsService {
     username: string,
     name: string,
     address: string,
-    city:string,
-    country:string,
+    city: string,
+    country: string,
     conveniences: string[],
     minNumOfVisitors: number,
     maxNumOfVisitors: number,
     availableAccommodationDates: DateAvailability[],
-    location:string
-    
+    location: string
   ): void {
     this.http
       .post(`${apiURL}/accommodations/`, {
@@ -51,7 +50,7 @@ export class AccommodationsService {
         minNumOfVisitors: Number(minNumOfVisitors),
         maxNumOfVisitors: Number(maxNumOfVisitors),
         availableAccommodationDates,
-        location
+        location,
       })
       .subscribe({
         next: (data) => {
@@ -79,8 +78,6 @@ export class AccommodationsService {
 
   public loadAccommodations(): Observable<any> {
     return this.http.get<any>(`${apiURL}/accommodations/`);
-      
-    
   }
   public getAccommodationById(id: string): Observable<any> {
     return this.http.get<Accommodation>(`${apiURL}/accommodations/${id}`);
@@ -111,10 +108,10 @@ export class AccommodationsService {
     id: string,
     name: string,
     address: string,
-    city:string,
-    conveniences: string,
+    city: string,
+    conveniences: string[],
     minNumOfVisitors: number,
-    maxNumOfVisitors: number,
+    maxNumOfVisitors: number
   ): void {
     this.http
       .put(`${apiURL}/accommodations/${id}`, {
@@ -146,21 +143,25 @@ export class AccommodationsService {
       });
   }
 
-  public search(city:string,country:string,numOfVisitors:string,startDate:string,endDate:string): Observable<any> {
-
+  public search(
+    city: string,
+    country: string,
+    numOfVisitors: string,
+    startDate: string,
+    endDate: string
+  ): Observable<any> {
     this.router.navigate(['/search'], {
       queryParams: {
         city: city,
         country: country,
         numOfVisitors: numOfVisitors,
-        startDate:startDate,
-        endDate:endDate,
-      }
+        startDate: startDate,
+        endDate: endDate,
+      },
     });
-    console.log("pocetni datum je",startDate)
-    return this.http.get<any>(`${apiURL}/accommodations/search?city=${city}&country=${country}&numOfVisitors=${numOfVisitors}&startDate=${startDate}&endDate=${endDate}`);
-        
+    console.log('pocetni datum je', startDate);
+    return this.http.get<any>(
+      `${apiURL}/accommodations/search?city=${city}&country=${country}&numOfVisitors=${numOfVisitors}&startDate=${startDate}&endDate=${endDate}`
+    );
   }
-
-  
 }

@@ -1,77 +1,68 @@
-<form [formGroup]="updateAccommodationForm" (ngSubmit)="onSubmit($event)" class="form">
-    <div class="form__group">
-      <label for="name" class="form__label">Name</label>
-      <input
-        type="text"
-        id="name"
-        class="form__input"
-        
-        formControlName="name"
-      />
-      
-    </div>
-    <div class="form__group">
-      <label for="address" class="form__label">Address</label>
-      <input
-        type="text"
-        id="location"
-        class="form__input"
-        
-        formControlName="address"
-      />
-      
-    </div>
-    <div class="form__group">
-      <label for="city" class="form__label">City</label>
-      <input
-        type="text"
-        id="location"
-        class="form__input"
-        
-        formControlName="city"
-      />
-      
-    </div>
-    <div class="form__group">
-      <label for="conveniences" class="form__label">Conveniences</label>
-      <input
-        type="text"
-        id="conveniences"
-        class="form__input"
-        
-        formControlName="conveniences"
-      />
-      <div class="form__error-container">
-        
+<form
+  [formGroup]="updateAccommodationForm"
+  (ngSubmit)="onSubmit($event)"
+  class="form"
+>
+  <div class="form__group">
+    <label for="name" class="form__label">Name</label>
+    <input type="text" id="name" class="form__input" formControlName="name" />
+  </div>
+  <div class="form__group">
+    <label for="address" class="form__label">Address</label>
+    <input
+      type="text"
+      id="location"
+      class="form__input"
+      formControlName="address"
+    />
+  </div>
+  <div class="form__group">
+    <label for="city" class="form__label">City</label>
+    <input
+      type="text"
+      id="location"
+      class="form__input"
+      formControlName="city"
+    />
+  </div>
+  <div class="form__group" formArrayName="conveniences">
+    <label class="form__label">Conveniences</label>
+    <div class="form__checkboxes">
+      <div
+        *ngFor="let convenience of convenienceFormArray.controls; let i = index"
+      >
+        <label>
+          <input type="checkbox" [formControlName]="i" />
+          {{ convenienceList[i] }}
+        </label>
       </div>
     </div>
-    <div class="form__group">
-      <label for="minNumOfVisitors" class="form__label">Minimum number of visitors</label>
-      <input
-        type="number"
-        id="minNumOfVisitors"
-        class="form__input"
-        
-        formControlName="minNumOfVisitors"
-      />
-      
-    </div>
-    <div class="form__group">
-        <label for="maxNumOfVisitors" class="form__label">Maximum number of visitors</label>
-        <input
-          type="number"
-          id="maxNumOfVisitors"
-          class="form__input"
-          
-          formControlName="maxNumOfVisitors"
-        />
-       
-    </div>
-   
-    <app-button size="md" color="rose" class="form__button" type="submit">
-        Update Accommodation
-    </app-button
-    >
-  </form>
-  
+  </div>
 
+  <div class="form__group">
+    <label for="minNumOfVisitors" class="form__label"
+      >Minimum number of visitors</label
+    >
+    <input
+      type="number"
+      id="minNumOfVisitors"
+      class="form__input"
+      formControlName="minNumOfVisitors"
+    />
+  </div>
+  <div class="form__group">
+    <label for="maxNumOfVisitors" class="form__label"
+      >Maximum number of visitors</label
+    >
+    <input
+      type="number"
+      id="maxNumOfVisitors"
+      class="form__input"
+      formControlName="maxNumOfVisitors"
+    />
+  </div>
+
+  <app-button size="md" color="rose" class="form__button" type="submit">
+    Update Accommodation
+  </app-button>
+</form>
