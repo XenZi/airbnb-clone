@@ -216,8 +216,7 @@ func (u UserService) ChangePassword(data domains.ChangePassword, userID string) 
 	if err != nil {
 		return nil, err
 	}
-
-	if u.passwordService.CheckPasswordHash(data.Password, user.Password) == false {
+	if u.passwordService.CheckPasswordHash(data.OldPassword, user.Password) == false {
 		return nil, errors.NewError("Old password doesn't match", 400)
 	}
 
