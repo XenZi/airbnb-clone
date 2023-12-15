@@ -67,9 +67,9 @@ export class FormUpdateUserProfileComponent {
         this.updateProfileForm = this.formBuilder.group({
           firstName: [this.user.firstName, Validators.required],
           lastName: [this.user.lastName, Validators.required],
-          email: [this.user.email, Validators.required],
+          // email: [this.user.email, Validators.required],
           residence: [this.user.residence, Validators.required],
-          username: [this.user.username, Validators.required],
+          // username: [this.user.username, Validators.required],
           age: [this.user.age, Validators.required],
         });
       },
@@ -118,10 +118,10 @@ export class FormUpdateUserProfileComponent {
       this.user.id,
       this.updateProfileForm.value.firstName,
       this.updateProfileForm.value.lastName,
-      this.updateProfileForm.value.email,
+      this.user.email,
       this.updateProfileForm.value.residence,
       this.user.role,
-      this.updateProfileForm.value.username,
+      this.user.username,
       this.updateProfileForm.value.age
     );
   }
