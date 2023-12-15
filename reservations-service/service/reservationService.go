@@ -1,6 +1,7 @@
 package service
 
 import (
+	"log"
 	"reservation-service/domain"
 	"reservation-service/errors"
 	"reservation-service/repository"
@@ -25,7 +26,7 @@ func (r ReservationService) CreateReservation(reservation domain.Reservation) (*
 	if len(validationErrors) > 0 {
 		return nil, errors.NewReservationError(400, "Validation failed")
 	}
-
+	log.Println(reservation.StartDate, reservation.EndDate)
 	available, err := r.IsAvailable(reservation.AccommodationID, reservation.StartDate, reservation.EndDate)
 	if err != nil {
 		return nil, err
@@ -33,6 +34,13 @@ func (r ReservationService) CreateReservation(reservation domain.Reservation) (*
 
 	if !available {
 		return nil, errors.NewReservationError(400, "Accommodation not available for the specified date range")
+	}
+	reserved, erro := r.IsReserved(reservation.AccommodationID, reservation.StartDate, reservation.EndDate)
+	if erro != nil {
+		return nil, erro
+	}
+	if reserved {
+		return nil, errors.NewReservationError(400, "Accommodation not available for the specified date range1")
 	}
 	createdReservation, insertErr := r.repo.InsertReservation(&reservation)
 	if insertErr != nil {
@@ -104,6 +112,15 @@ func (s *ReservationService) DeleteReservationById(country string, id string) (*
 func (s *ReservationService) IsAvailable(accommodationID string, startDate, endDate string) (bool, *errors.ReservationError) {
 
 	available, err := s.repo.IsAvailable(accommodationID, startDate, endDate)
+	if err != nil {
+		return false, errors.NewReservationError(400, "Accommodation not available")
+	}
+
+	return available, nil
+}
+func (s *ReservationService) IsReserved(accommodationID string, startDate, endDate string) (bool, *errors.ReservationError) {
+
+	available, err := s.repo.IsReserved(accommodationID, startDate, endDate)
 	if err != nil {
 		return false, errors.NewReservationError(400, "Accommodation not available")
 	}

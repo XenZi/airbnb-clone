@@ -117,10 +117,10 @@ func WordBan(value string) bool {
 }
 
 func (v *Validator) ValidateReservation(reservation *domain.Reservation) {
-	/*v.ValidateField("username", reservation.Username, MinLength(2), MaxLength(15), WordBan)
-	v.ValidateField("accommodationName", reservation.AccommodationName, MinLength(2), MaxLength(15), WordBan)
-	v.ValidateField("startDate", reservation.StartDate, DateNotAfter(reservation.StartDate, reservation.EndDate), DateNotInPast())
-	v.ValidateField("endDate", reservation.EndDate, DateNotBefore(reservation.EndDate, reservation.StartDate), DateNotInPast())*/
+	/*	v.ValidateField("username", reservation.Username, MinLength(2), MaxLength(15), WordBan)
+		v.ValidateField("accommodationName", reservation.AccommodationName, MinLength(2), MaxLength(15), WordBan)
+		v.ValidateField("startDate", reservation.StartDate, DateNotAfter(reservation.StartDate, reservation.EndDate), DateNotInPast())
+		v.ValidateField("endDate", reservation.EndDate, DateNotBefore(reservation.EndDate, reservation.StartDate), DateNotInPast()) */
 	foundErrors := v.GetErrors()
 	if len(foundErrors) > 0 {
 		for field, message := range foundErrors {

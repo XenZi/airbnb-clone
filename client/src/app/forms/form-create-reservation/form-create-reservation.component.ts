@@ -14,6 +14,7 @@ import { UserService } from 'src/app/services/user/user.service';
 export class ReservationFormComponent implements OnInit {
   reservationForm!: FormGroup;
   @Input() accommodation!: Accommodation;
+  @Input() accommodationID!: string
   user: UserAuth | null = null;
   constructor(
     private fb: FormBuilder,
@@ -54,15 +55,20 @@ export class ReservationFormComponent implements OnInit {
       return;
     }
     let userID: string = this.user?.id as string;
-    let accommodationID: string = this.accommodation.id 
+    let accommodationID: string = this.accommodationID
+    let startDate: string = this.reservationForm.value.range[0] 
+    let endDate: string = this.reservationForm.value.range[this.reservationForm.value.range.length - 1]
     let username: string = this.user?.username as string;
     let accommodationName: string = this.accommodation.name;
     let location: string = "bb,Belgrade,Serbia";
     let price: number = 50;
     let numOfDays: number = this.reservationForm.value.range.length;
     let dateRange: string[] = this.reservationForm.value.range;
+    console.log(this.accommodation)
     let reservationData = {"userID": userID,
     "accommodationID": accommodationID,
+    "startDate": startDate,
+    "endDate": endDate,
     "username": username,
     "accommodationName": accommodationName,
     "location": location,
@@ -76,6 +82,8 @@ export class ReservationFormComponent implements OnInit {
     console.log(
       userID,
       accommodationID,
+      startDate,
+      endDate,
       username,
       accommodationName,
       location,
