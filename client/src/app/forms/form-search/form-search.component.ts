@@ -34,6 +34,7 @@ export class FormSearchComponent {
       this.searchForm.value.guestsNumber
     );
     this.searchAccommodations()
+    
     console.log(this.searchAccommodations())
     console.log(this.searchForm.value.dateRange[0])
     

@@ -61,7 +61,7 @@ export class AccommodationsService {
             ToastNotificationType.Success
           );
           this.modalService.close();
-          // this.router.navigate(['/']);
+          this.router.navigate(['/']);
           window.location.reload();
         },
         error: (err) => {
@@ -95,7 +95,7 @@ export class AccommodationsService {
           ToastNotificationType.Success
         );
         this.router.navigate(['/']);
-        window.location.reload();
+        // window.location.reload();
       },
       error: (err) => {
         this.toastSerice.showToast(
@@ -156,11 +156,15 @@ export class AccommodationsService {
         startDate:startDate,
         endDate:endDate,
       }
+      
     });
     console.log("pocetni datum je",startDate)
+    
     return this.http.get<any>(`${apiURL}/accommodations/search?city=${city}&country=${country}&numOfVisitors=${numOfVisitors}&startDate=${startDate}&endDate=${endDate}`);
+    
         
   }
+  
 
   
 }
