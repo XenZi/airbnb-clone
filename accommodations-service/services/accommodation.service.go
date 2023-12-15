@@ -57,7 +57,12 @@ func (as *AccommodationService) CreateAccommodation(accommodation domain.CreateA
 	}
 	id := newAccommodation.Id.Hex()
 
-	as.reservationsClient.SendCreatedReservationsAvailabilities(ctx, id, accommodation)
+	err := as.reservationsClient.SendCreatedReservationsAvailabilities(ctx, id, accommodation)
+	if err != nil {
+		as.DeleteAccommodation(id)
+		return nil, errors.NewError("Service is not responding correcrtly", 500)
+	}
+
 	return &domain.AccommodationDTO{
 		Id:               id,
 		Name:             accommodation.Name,
