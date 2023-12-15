@@ -44,7 +44,7 @@ export class FormUpdateAccommodationComponent {
     setTimeout(() => {
       this.updateAccommodationForm = this.formBuilder.group({
         name: [this.accommodation.name, Validators.required],
-        location:[this.accommodation.location, Validators.required],
+        location:[this.accommodation.city, Validators.required],
         conveniences:[this.accommodation.conveniences, Validators.required],
         minNumOfVisitors:[this.accommodation.minNumOfVisitors, Validators.required],
         maxNumOfVisitors:[this.accommodation.maxNumOfVisitors, Validators.required],

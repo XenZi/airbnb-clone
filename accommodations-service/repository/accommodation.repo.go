@@ -94,7 +94,7 @@ func (ar *AccommodationRepo) UpdateAccommodationById(accommodation do.Accommodat
 		{Key: "$set", Value: bson.D{
 			{Key: "address", Value: accommodation.Address},
 			{Key: "city", Value: accommodation.City},
-			{Key: "country", Value: accommodation.Country},
+
 			{Key: "name", Value: accommodation.Name},
 			{Key: "conveniences", Value: accommodation.Conveniences},
 			{Key: "minNumOfVisitors", Value: accommodation.MinNumOfVisitors},
@@ -123,4 +123,56 @@ func (ar *AccommodationRepo) DeleteAccommodationById(id string) *errors.ErrorStr
 	}
 
 	return nil
+}
+
+func (ar *AccommodationRepo) SearchAccommodations(city, country string, numOfVisitors int) ([]do.Accommodation, *errors.ErrorStruct) {
+	accommodationCollection := ar.cli.Database("accommodations-service").Collection("accommodations")
+	filter := bson.M{}
+
+	// Build the filter based on the provided parameters
+	if city != "" {
+		filter["city"] = city
+	}
+	if country != "" {
+		filter["country"] = country
+	}
+
+	if numOfVisitors > 0 {
+		filter["$and"] = bson.A{
+			bson.M{"minNumOfVisitors": bson.M{"$lte": numOfVisitors}},
+			bson.M{"maxNumOfVisitors": bson.M{"$gte": numOfVisitors}},
+		}
+	}
+
+	// Perform the search using the constructed filter
+	var accommodations []do.Accommodation // Replace Accommodation with your struct type
+	ctx := context.TODO()
+
+	// Apply the filter and retrieve accommodations
+	cursor, err := accommodationCollection.Find(ctx, filter)
+	if err != nil {
+		return nil, errors.NewError("Unable to find accommodations, database error", 500)
+	}
+	defer func(cursor *mongo.Cursor, ctx context.Context) {
+		err := cursor.Close(ctx)
+		if err != nil {
+
+		}
+	}(cursor, ctx)
+
+	// Iterate through the results and decode them into accommodations slice
+	for cursor.Next(ctx) {
+		var accommodation do.Accommodation // Replace Accommodation with your struct type
+		if err := cursor.Decode(&accommodation); err != nil {
+			return nil, errors.NewError("Unable to decode accommodations,error", 500)
+		}
+		accommodations = append(accommodations, accommodation)
+	}
+
+	if err := cursor.Err(); err != nil {
+		return nil, errors.NewError("Unable to find accommodations, database error", 500)
+	}
+	log.Println(accommodations)
+
+	return accommodations, nil
 }

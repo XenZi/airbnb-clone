@@ -7,9 +7,9 @@ import (
 	"accommodations-service/repository"
 	"accommodations-service/utils"
 	"context"
-	"log"
-
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"log"
+	"time"
 )
 
 type AccommodationService struct {
@@ -162,4 +162,84 @@ func (as *AccommodationService) DeleteAccommodation(accommodationID string) (*do
 	}
 
 	return existingAccommodation, nil
+}
+
+func (as *AccommodationService) SearchAccommodations(city, country string, numOfVisitors int, startDate string, endDate string, ctx context.Context) ([]domain.Accommodation, *errors.ErrorStruct) {
+	log.Println("USLO U SERVIS")
+	accommodations, err := as.accommodationRepository.SearchAccommodations(city, country, numOfVisitors)
+	if err != nil {
+		// Handle the error returned by the repository
+		return nil, errors.NewError("Failed to find accommodations", 500) // Modify according to your error handling approach
+	}
+	var accommodationIDs []string
+	for _, acc := range accommodations {
+		accommodationIDs = append(accommodationIDs, acc.Id.Hex())
+	}
+	log.Println(accommodationIDs)
+	if startDate == "" || endDate == "" {
+		return accommodations, nil
+	}
+	dateRange, err := generateDateRange(startDate, endDate)
+	if err != nil {
+		// Handle the error returned by the repository
+		return nil, errors.NewError("Failed to generate dateRange", 500) // Modify according to your error handling approach
+	}
+	log.Println("dateRange je", dateRange)
+
+	reservedIDs, err := as.reservationsClient.CheckAvailabilityForAccommodations(ctx, accommodationIDs, dateRange)
+	if err != nil {
+		return nil, errors.NewError("Failed to get reserved ids ", 500)
+	}
+	log.Println("Reservisani idevi", reservedIDs)
+	log.Println("Sve nadjene akomodacije", accommodations)
+	filteredAccommodations := removeAccommodations(accommodations, reservedIDs)
+	log.Println("filtrirane akomodacije", filteredAccommodations)
+
+	return filteredAccommodations, nil
+}
+
+func removeAccommodations(accommodations []domain.Accommodation, accommodationIDs []string) []domain.Accommodation {
+	var filteredAccommodations []domain.Accommodation
+
+	// Create a map for faster lookup of accommodationIDs
+	idMap := make(map[string]bool)
+	for _, id := range accommodationIDs {
+		idMap[id] = true
+	}
+
+	// Check accommodations against accommodationIDs and remove if necessary
+	for _, acc := range accommodations {
+		if idMap[acc.Id.Hex()] {
+			// If the ID exists in accommodationIDs, exclude it from filteredAccommodations
+			continue
+		}
+		filteredAccommodations = append(filteredAccommodations, acc)
+	}
+
+	return filteredAccommodations
+}
+
+func generateDateRange(startDateStr, endDateStr string) ([]string, *errors.ErrorStruct) {
+	startDate, err := time.Parse("2006-01-02", startDateStr)
+	if err != nil {
+		if err != nil {
+			// Handle the error returned by the repository
+			return nil, errors.NewError("Failed to parse date", 500) // Modify according to your error handling approach
+		}
+	}
+
+	endDate, err := time.Parse("2006-01-02", endDateStr)
+	if err != nil {
+		if err != nil {
+			// Handle the error returned by the repository
+			return nil, errors.NewError("Failed to parse date", 500) // Modify according to your error handling approach
+		}
+	}
+
+	var dates []string
+	for currentDate := startDate; !currentDate.After(endDate); currentDate = currentDate.AddDate(0, 0, 1) {
+		dates = append(dates, currentDate.Format("2006-01-02"))
+	}
+
+	return dates, nil
 }

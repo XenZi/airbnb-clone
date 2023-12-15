@@ -7,7 +7,7 @@ import { ModalService } from '../modal/modal.service';
 import { ToastService } from '../toast/toast.service';
 import { ToastNotificationType } from 'src/app/domains/enums/toast-notification-type.enum';
 import { Router } from '@angular/router';
-import { Observable } from 'rxjs';
+import { Observable, map } from 'rxjs';
 import { Accommodation } from 'src/app/domains/entity/accommodation-model';
 import { DateAvailability } from 'src/app/domains/entity/date-availability.model';
 
@@ -37,7 +37,7 @@ export class AccommodationsService {
     maxNumOfVisitors: number,
     availableAccommodationDates: DateAvailability[],
     location:string
-
+    
   ): void {
     this.http
       .post(`${apiURL}/accommodations/`, {
@@ -76,11 +76,12 @@ export class AccommodationsService {
     // window.location.reload();
   }
 
-  public loadAccommodations(): Observable<Accommodation[]> {
-    return this.http.get<Accommodation[]>(`${apiURL}/accommodations/`);
+  public loadAccommodations(): Observable<any> {
+    return this.http.get<any>(`${apiURL}/accommodations/`);
+      
+    
   }
-
-  public getAccommodationById(id: string): Observable<Accommodation> {
+  public getAccommodationById(id: string): Observable<any> {
     return this.http.get<Accommodation>(`${apiURL}/accommodations/${id}`);
   }
 
@@ -145,4 +146,22 @@ export class AccommodationsService {
         },
       });
   }
+
+  public search(city:string,country:string,numOfVisitors:string,startDate:string,endDate:string): Observable<any> {
+
+    this.router.navigate(['/search'], {
+      queryParams: {
+        city: city,
+        country: country,
+        numOfVisitors: numOfVisitors,
+        startDate:startDate,
+        endDate:endDate,
+      }
+    });
+    console.log("pocetni datum je",startDate)
+    return this.http.get<any>(`${apiURL}/accommodations/search?city=${city}&country=${country}&numOfVisitors=${numOfVisitors}&startDate=${startDate}&endDate=${endDate}`);
+        
+  }
+
+  
 }

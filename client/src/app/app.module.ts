@@ -44,6 +44,7 @@ import { FormUpdateCredentialsComponent } from './forms/form-update-credentials/
 import { NotificationsComponent } from './components/notifications/notifications.component';
 import { SearchComponent } from './components/search/search.component';
 import { FormSearchComponent } from './forms/form-search/form-search.component';
+import { SearchPageComponent } from './pages/search-page/search-page.component';
 @NgModule({
   declarations: [
     AppComponent,
@@ -81,6 +82,7 @@ import { FormSearchComponent } from './forms/form-search/form-search.component';
     NotificationsComponent,
     SearchComponent,
     FormSearchComponent,
+    SearchPageComponent,
   ],
   imports: [
     BrowserModule,

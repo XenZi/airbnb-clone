@@ -30,7 +30,7 @@ export class ReservationFormComponent implements OnInit {
     if (this.reservationForm.valid) {
       const reservationData = this.reservationForm.value;
       reservationData.accommodationID = this.accommodation.id
-      reservationData.location = this.accommodation.location
+      reservationData.location = this.accommodation.city
       reservationData.accommodationName = this.accommodation.name
       this.reservationService.createReservation(reservationData).subscribe(
         (response: any) => {

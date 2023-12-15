@@ -8,6 +8,7 @@ import { RoleGuardService } from './guards/role-guard.service';
 import { UserProfilePageComponent } from './pages/user-profile-page/user-profile-page.component';
 import { ReservationFormComponent } from './forms/form-create-reservation/form-create-reservation.component';
 import { AccommodationDetailsPageComponent } from './pages/accommodation-details-page/accommodation-details-page.component';
+import { SearchPageComponent } from './pages/search-page/search-page.component';
 
 const routes: Routes = [
   {
@@ -25,6 +26,10 @@ const routes: Routes = [
   {
     path: 'accommodations/:id',
     component: AccommodationDetailsPageComponent,
+  },
+  {
+    path: 'search',
+    component: SearchPageComponent,
   },
   {
     path: 'role-based-page',
