@@ -33,7 +33,8 @@ func main() {
 	port := os.Getenv("PORT")
 	userServiceHost := os.Getenv("USER_SERVICE_HOST")
 	userServicePort := os.Getenv("USER_SERVICE_PORT")
-	
+	notificationServiceHost := os.Getenv("NOTIFICATION_SERVICE_HOST")
+	notificationServicePort := os.Getenv("NOTIFICATION_SERVICE_PORT")
 	// clients
 
 	customHttpMailClient := &http.Client{Timeout: time.Second * 10}
@@ -58,8 +59,29 @@ func main() {
 			},
 		},
 	)
-
 	userClient := client.NewUserClient(userServiceHost, userServicePort, customUserServiceClient, userServiceCircuitBreaker)
+
+	customNotificationServiceClient := &http.Client{
+		Transport: &http.Transport{
+			MaxIdleConns: 10,
+			MaxIdleConnsPerHost: 10,
+			MaxConnsPerHost: 10,
+		},
+	}
+	
+	notificationServiceCircuitBreaker := gobreaker.NewCircuitBreaker(
+		gobreaker.Settings{
+			Name: "notification-service",
+			MaxRequests: 1,
+			Timeout: 10 * time.Second,
+			Interval: 0,
+			OnStateChange: func(name string, from gobreaker.State, to gobreaker.State) {
+				log.Printf("Circuit Breaker %v: %v -> %v", name, from, to)
+			},
+		},
+	)
+
+	notificationClient := client.NewNotificationClient(notificationServiceHost, notificationServicePort, customNotificationServiceClient, notificationServiceCircuitBreaker)
 	// services
 	mongoService, err := services.New(timeoutContext, logger)
 	if err != nil {
@@ -75,7 +97,7 @@ func main() {
 	keyByte := []byte(jwtSecretKey)
 	jwtService := services.NewJWTService(keyByte)
 	encryptionService := &services.EncryptionService{SecretKey: secretKey}
-	userService := services.NewUserService(userRepo, passwordService, jwtService, validator, encryptionService, mailClient, userClient)
+	userService := services.NewUserService(userRepo, passwordService, jwtService, validator, encryptionService, mailClient, userClient, notificationClient)
 	authHandler := handler.AuthHandler{
 		UserService: userService,
 	}

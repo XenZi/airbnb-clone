@@ -20,6 +20,7 @@ type UserService struct {
 	encryptionService *EncryptionService
 	mailClient        client.MailClientInterface
 	userClient 		  *client.UserClient
+	notificationClient *client.NotificationClient
 }
 
 func NewUserService(userRepo *repository.UserRepository,
@@ -28,7 +29,8 @@ func NewUserService(userRepo *repository.UserRepository,
 	validator *utils.Validator,
 	encryptionService *EncryptionService,
 	mailClient client.MailClientInterface,
-	userClient *client.UserClient) *UserService {
+	userClient *client.UserClient,
+	notificationClient *client.NotificationClient) *UserService {
 	return &UserService{
 		userRepository:    userRepo,
 		passwordService:   passwordService,
@@ -37,6 +39,7 @@ func NewUserService(userRepo *repository.UserRepository,
 		encryptionService: encryptionService,
 		mailClient:        mailClient,
 		userClient: userClient,
+		notificationClient: notificationClient,
 	}
 }
 func (u *UserService) CreateUser(ctx context.Context, registerUser domains.RegisterUser) (*domains.UserDTO, *errors.ErrorStruct) {
@@ -87,6 +90,10 @@ func (u *UserService) CreateUser(ctx context.Context, registerUser domains.Regis
 	go func() {
 		u.mailClient.SendAccountConfirmationEmail(registerUser.Email, token)
 	}()
+	errFromNotificationService := u.notificationClient.CreateNewUserStructNotification(ctx, newUser.ID.Hex())
+	if errFromNotificationService != nil {
+		log.Println("ERR FROM NOTIFICATION", errFromNotificationService)
+	}
 	return &domains.UserDTO{
 		ID:       string(id[1 : len(id)-1]),
 		Email:    registerUser.Email,
