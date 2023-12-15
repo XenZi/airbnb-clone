@@ -84,6 +84,7 @@ export class ProfileService {
         this.router.navigate(['/'])
         this.authService.logout()
         
+        
       },
       error: (err) => {
         this.toastSerice.showToast(

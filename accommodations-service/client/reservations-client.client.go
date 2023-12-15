@@ -28,6 +28,7 @@ func NewReservationsClient(host, port string, client *http.Client, circuitBreake
 
 func (rc ReservationsClient) SendCreatedReservationsAvailabilities(ctx context.Context, id string, accommodation domain.CreateAccommodation) *errors.ErrorStruct {
 	log.Println(len(accommodation.AvailableAccommodationDates))
+
 	for i := 0; i < len(accommodation.AvailableAccommodationDates); i++ {
 
 		log.Println("OVO JE ID", accommodation.AvailableAccommodationDates[i].StartDate)
