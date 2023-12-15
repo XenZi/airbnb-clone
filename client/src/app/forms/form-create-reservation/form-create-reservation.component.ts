@@ -16,6 +16,7 @@ export class ReservationFormComponent implements OnInit {
   @Input() accommodation!: Accommodation;
   @Input() accommodationID!: string
   user: UserAuth | null = null;
+  availabilityData: any[] = [];
   constructor(
     private fb: FormBuilder,
     private reservationService: ReservationService,
@@ -23,8 +24,16 @@ export class ReservationFormComponent implements OnInit {
   ) {}
 
   ngOnInit() {
+    let accommodationID: string = this.accommodationID
     this.initializeForm();
     this.user = this.userService.getLoggedUser();
+    this.reservationService.getAvailability(accommodationID).subscribe({next: (data) => {
+      console.log(data)
+      this.availabilityData = data
+    },error: (err) => {
+      console.log(err)
+    }})
+    
   }
 
   initializeForm() {

@@ -21,6 +21,12 @@ export class ReservationService {
     private router: Router,
     private userService: UserService 
   ) {}
+  
+  getAvailability(accommodationID: string): Observable<any> {
+    const url = `${this.apiURL}/reservations/${accommodationID}/availability`;
+    console.log(url)
+    return this.http.get(url);
+  }
 
   createReservation(reservationData: any): void {
     console.log("USLO");

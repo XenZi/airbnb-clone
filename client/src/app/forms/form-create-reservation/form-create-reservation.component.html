@@ -7,4 +7,8 @@
   <app-button size="md" color="rose" class="form__button" type="submit"
     >Confirm</app-button
   >
+  <ul>
+    <li *ngFor="let date of availabilityData">{{date.startDate}} - {{date.endDate}} - {{date.price}}</li>
+    </ul>
 </form>
+
