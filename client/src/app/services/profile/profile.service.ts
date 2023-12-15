@@ -10,6 +10,7 @@ import { Router } from '@angular/router';
 import { Observable } from 'rxjs';
 import { User } from 'src/app/domains/entity/user-profile.model';
 import { Role } from 'src/app/domains/enums/roles.enum';
+import { AuthService } from '../auth-service/auth.service';
 
 @Injectable({
   providedIn: 'root'
@@ -20,6 +21,7 @@ export class ProfileService {
     private localStorageService: LocalStorageService,
     private http: HttpClient,
     private modalService: ModalService,
+    private authService: AuthService,
     private toastSerice: ToastService,
     private router: Router
   ) {}
@@ -80,6 +82,8 @@ export class ProfileService {
           ToastNotificationType.Success
         );
         this.router.navigate(['/'])
+        this.authService.logout()
+        
       },
       error: (err) => {
         this.toastSerice.showToast(
