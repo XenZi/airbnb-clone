@@ -7,9 +7,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/sony/gobreaker"
 	"log"
 	"net/http"
+
+	"github.com/sony/gobreaker"
 )
 
 type ReservationsClient struct {
@@ -65,13 +66,24 @@ func (rc ReservationsClient) SendCreatedReservationsAvailabilities(ctx context.C
 			return errors.NewError("Nothing to parse", 500)
 		}
 		resp := cbResp.(*http.Response)
-		anResp := domain.BaseErrorHttpResponse{}
-
-		err = json.NewDecoder(resp.Body).Decode(&anResp)
-		if err != nil {
-			return errors.NewError("Nothing to parse", 500)
+		if resp.StatusCode >= 200 && resp.StatusCode < 400 {
+			baseResp := domain.BaseHttpResponse{}
+			err := json.NewDecoder(resp.Body).Decode(&baseResp)
+			if err != nil {
+				return errors.NewError(err.Error(), 500)
+			}
+			log.Println("Base resp valid", baseResp)
+			return nil
 		}
-		log.Println(anResp)
+		baseResp := domain.BaseErrorHttpResponse{}
+		err = json.NewDecoder(resp.Body).Decode(&baseResp)
+		if err != nil {
+			return errors.NewError(err.Error(), 500)
+		}
+		log.Println(baseResp)
+		log.Println(baseResp.Error)
+		return errors.NewError(baseResp.Error, baseResp.Status)
+	
 
 	}
 
