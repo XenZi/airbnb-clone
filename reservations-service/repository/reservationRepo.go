@@ -87,9 +87,9 @@ func (rr *ReservationRepo) CreateTables() {
 	*/
 	err = rr.session.Query(
 		fmt.Sprintf(`CREATE TABLE IF NOT EXISTS %s
-			(id UUID, accommodation_id text, start_date text, end_date text, location text, price int, continent text,
-			 PRIMARY KEY((continent),location, id))
-			WITH CLUSTERING ORDER BY(location ASC,id ASC)`, "free_accommodation")).Exec()
+			(id UUID, accommodation_id text, start_date text, end_date text, location text, price int, continent text,country text,
+			 PRIMARY KEY((continent),country, id))
+			WITH CLUSTERING ORDER BY(country ASC,id ASC)`, "free_accommodation")).Exec()
 
 	if err != nil {
 		rr.logger.Println(err)
@@ -180,9 +180,9 @@ func (rr *ReservationRepo) InsertAvailability(reservation *domain.FreeReservatio
 	continent := result.Continent
 
 	err = rr.session.Query(`
-		INSERT INTO free_accommodation (id, accommodation_id, start_date, end_date, location, price, continent)
-		VALUES(?, ?, ?, ?, ?, ?, ?)
-	`, Id, reservation.AccommodationID, reservation.StartDate, reservation.EndDate, reservation.Location, reservation.Price, continent).Exec()
+		INSERT INTO free_accommodation (id, accommodation_id, start_date, end_date, location, price, continent,country)
+		VALUES(?, ?, ?, ?, ?, ?, ?,?)
+	`, Id, reservation.AccommodationID, reservation.StartDate, reservation.EndDate, reservation.Location, reservation.Price, continent, country).Exec()
 	if err != nil {
 		rr.logger.Println(err)
 		return nil, err
@@ -190,6 +190,7 @@ func (rr *ReservationRepo) InsertAvailability(reservation *domain.FreeReservatio
 
 	reservation.Id = Id
 	reservation.Continent = continent
+	reservation.Country = country
 	return reservation, nil
 }
 
@@ -197,16 +198,16 @@ func (rr *ReservationRepo) AvailableDates(accommodationID, startDate, endDate st
 	var result []domain.FreeReservation
 
 	query := `
-        SELECT id, accommodation_id, start_date, end_date, location, price
+        SELECT id, accommodation_id, start_date, end_date, location, price,country
         FROM free_accommodation 
         WHERE accommodation_id = ? 
         AND start_date <= ? AND end_date >= ?
         ALLOW FILTERING`
 
-	iter := rr.session.Query(query, accommodationID, endDate, startDate).Iter()
+	iter := rr.session.Query(query, accommodationID, startDate, endDate).Iter()
 
 	var reservation domain.FreeReservation
-	for iter.Scan(&reservation.Id, &reservation.AccommodationID, &reservation.StartDate, &reservation.EndDate, &reservation.Location, &reservation.Price) {
+	for iter.Scan(&reservation.Id, &reservation.AccommodationID, &reservation.StartDate, &reservation.EndDate, &reservation.Location, &reservation.Price, reservation.Country) {
 		result = append(result, reservation)
 	}
 
@@ -335,4 +336,33 @@ func (rr *ReservationRepo) IsAvailable(accommodationID, startDate, endDate strin
 		return false, errors.NewReservationError(500, "Unable to check availability, database error")
 	}
 	return true, nil
+}
+
+func (rr *ReservationRepo) CheckAvailabilityForAccommodation(accommodationID string) ([]domain.GetAvailabilityForAccommodation, *errors.ReservationError) {
+	var result []domain.GetAvailabilityForAccommodation
+
+	query := `
+    SELECT start_date, end_date,price
+    FROM free_accommodation 
+    WHERE accommodation_id = ? 
+    ALLOW FILTERING`
+
+	iter := rr.session.Query(query, accommodationID).Iter()
+	var startDate string
+	var endDate string
+	var price int
+	var avl domain.GetAvailabilityForAccommodation
+	for iter.Scan(&startDate, &endDate, &price) {
+		avl.StartDate = startDate
+		avl.EndDate = endDate
+		avl.Price = price
+		result = append(result, avl)
+	}
+	if err := iter.Close(); err != nil {
+		rr.logger.Println(err)
+		return nil, errors.NewReservationError(500, "Unable to check availability, database error")
+	}
+
+	return result, nil
+
 }
