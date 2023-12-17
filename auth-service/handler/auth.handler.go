@@ -154,3 +154,7 @@ func (a AuthHandler) DeleteUser(r http.ResponseWriter, h *http.Request) {
 	}
 	utils.WriteResp(resp, 200, r)
 }
+
+func (a AuthHandler) All(r http.ResponseWriter, h *http.Request) {
+	utils.WriteResp("Cool", 200, r)
+}

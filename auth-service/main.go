@@ -5,6 +5,7 @@ import (
 	"auth-service/handler"
 	"auth-service/middlewares"
 	"auth-service/repository"
+	"auth-service/security"
 	"auth-service/services"
 	"auth-service/utils"
 	"context"
@@ -87,9 +88,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
 	validator := utils.NewValidator()
-
 	userRepo := repository.NewUserRepository(
 		mongoService.GetCli(), logger)
 	passwordService := services.NewPasswordService()
@@ -101,7 +100,11 @@ func main() {
 	authHandler := handler.AuthHandler{
 		UserService: userService,
 	}
-
+	accessControl := security.NewAccessControl()
+	err = accessControl.LoadAccessConfig("./security/rbac.json")
+	if err != nil {
+		log.Fatalf("Error loading access configuration: %v", err)
+	}
 	// router definitions
 
 	router := mux.NewRouter()
@@ -113,7 +116,7 @@ func main() {
 	router.HandleFunc("/change-password", middlewares.ValidateJWT(authHandler.ChangePassword)).Methods("POST")
 	router.HandleFunc("/update-credentials", middlewares.ValidateJWT(authHandler.UpdateCredentials)).Methods("POST")
 	router.HandleFunc("/{id}", authHandler.DeleteUser).Methods("DELETE")
-	
+	router.HandleFunc("/all", middlewares.ValidateJWT(middlewares.RoleValidator(accessControl, authHandler.All))).Methods("GET")
 	// server definitions
 
 	if len(port) == 0 {
