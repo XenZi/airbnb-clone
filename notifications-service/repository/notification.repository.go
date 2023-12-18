@@ -57,12 +57,21 @@ func (nr NotificationRepository) FindOneUserNotificationByID(id string) (*domain
 func (nr NotificationRepository) UpdateNotificationByID(userNotification *domains.UserNotification) (*domains.UserNotification, *errors.ErrorStruct) {
 	userCollection := nr.cli.Database("notifications").Collection("notifications")
 	filter := bson.D{{"_id", userNotification.ID}}
-	update := bson.D{{"$set", bson.D{
-		{"notifications", userNotification.Notifications},
-	}}}
+	
+	if len(userNotification.Notifications) > 5 {
+		userNotification.Notifications = userNotification.Notifications[:5]
+	}
+
+	update := bson.M{
+		"$set": bson.M{
+			"notifications": userNotification.Notifications,
+		},
+	}
+
 	_, err := userCollection.UpdateOne(context.TODO(), filter, update)
 	if err != nil {
 		return nil, errors.NewError(err.Error(), 500)
 	}
+
 	return userNotification, nil
 }
