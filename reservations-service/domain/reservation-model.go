@@ -22,6 +22,7 @@ type Reservation struct {
 	DateRange         []string   `json:"dateRange"`
 	IsActive          bool       `json:"isActive"`
 	Country           string     `json:"country"`
+	HostID            string     `json:"hostID"`
 }
 
 type FreeReservation struct {
@@ -33,6 +34,7 @@ type FreeReservation struct {
 	Price           int        `json:"price"`
 	Continent       string     `json:"continent"`
 	Country         string     `json:"country"`
+	HostID          string     `json:"hostID"`
 }
 type ReservationsInDateRangeRequest struct {
 	AccommodationIDs []string `json:"accommodationIDs"`
