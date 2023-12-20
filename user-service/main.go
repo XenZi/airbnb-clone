@@ -15,6 +15,7 @@ import (
 	"time"
 	"user-service/client"
 	"user-service/handler"
+	"user-service/middleware"
 	"user-service/repository"
 	"user-service/service"
 	"user-service/utils"
@@ -30,6 +31,8 @@ func main() {
 	reservationsServicePort := os.Getenv("RESERVATIONS_SERVICE_PORT")
 	authServiceHost := os.Getenv("AUTH_SERVICE_HOST")
 	authServicePort := os.Getenv("AUTH_SERVICE_PORT")
+	accServiceHost := os.Getenv("ACCOMMODATION_SERVICE_HOST")
+	accServicePort := os.Getenv("ACCOMMODATION_SERVICE_PORT")
 
 	//clients
 
@@ -42,6 +45,14 @@ func main() {
 	}
 
 	customAuthServiceClient := &http.Client{
+		Transport: &http.Transport{
+			MaxIdleConns:        10,
+			MaxIdleConnsPerHost: 10,
+			MaxConnsPerHost:     10,
+		},
+	}
+
+	customAccServiceClient := &http.Client{
 		Transport: &http.Transport{
 			MaxIdleConns:        10,
 			MaxIdleConnsPerHost: 10,
@@ -72,9 +83,22 @@ func main() {
 			},
 		},
 	)
+	accommodationServiceCircuitBreaker := gobreaker.NewCircuitBreaker(
+		gobreaker.Settings{
+			Name:        "accommodation-service",
+			MaxRequests: 1,
+			Timeout:     10 * time.Second,
+			Interval:    0,
+			OnStateChange: func(name string, from gobreaker.State, to gobreaker.State) {
+				log.Printf("Circuit Breaker %v: %v -> %v", name, from, to)
+			},
+		},
+	)
+
 	validator := utils.NewValidator()
 	reservationsClient := client.NewReservationClient(reservationsServiceHost, reservationsServicePort, customReservationsServiceClient, reservationsServiceCircuitBreaker)
 	authClient := client.NewAuthClient(authServiceHost, authServicePort, customAuthServiceClient, authServiceCircuitBreaker)
+	accClient := client.NewAccClient(accServiceHost, accServicePort, customAccServiceClient, accommodationServiceCircuitBreaker)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -83,17 +107,17 @@ func main() {
 	key := os.Getenv("JWT_SECRET")
 	keyByte := []byte(key)
 	jwtService := service.NewJWTService(keyByte)
-	userService := service.NewUserService(userRepo, jwtService, validator, reservationsClient, authClient)
+	userService := service.NewUserService(userRepo, jwtService, validator, reservationsClient, authClient, accClient)
 	profileHandler := handler.UserHandler{
 		UserService: userService,
 	}
 	router := mux.NewRouter()
 
 	router.HandleFunc("/create", profileHandler.CreateHandler).Methods("POST")
-	router.HandleFunc("/{id}", profileHandler.UpdateHandler).Methods("PUT")
+	router.HandleFunc("/{id}", middleware.ValidateJWT(profileHandler.UpdateHandler)).Methods("PUT")
 	router.HandleFunc("/all", profileHandler.GetAllHandler).Methods("GET")
-	router.HandleFunc("/{id}", profileHandler.GetUserById).Methods("GET")
-	router.HandleFunc("/{id}", profileHandler.DeleteHandler).Methods("DELETE")
+	router.HandleFunc("/{id}", middleware.ValidateJWT(profileHandler.GetUserById)).Methods("GET")
+	router.HandleFunc("/{id}", middleware.ValidateJWT(profileHandler.DeleteHandler)).Methods("DELETE")
 	//better endpoint?
 	router.HandleFunc("/creds/{id}", profileHandler.CredsHandler).Methods("POST")
 	port := os.Getenv("PORT")
