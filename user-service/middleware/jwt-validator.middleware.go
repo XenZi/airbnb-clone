@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"context"
+	"github.com/dgrijalva/jwt-go"
 	"net/http"
 	"os"
 	"strings"
@@ -16,19 +17,19 @@ func ValidateJWT(next http.HandlerFunc) http.HandlerFunc {
 		})
 
 		if err != nil || !token.Valid {
-			utils.WriteErrorResp("Unathorized", 401, r.URL.Path, w)
+			utils.WriteErrorResponse("Unathorized", 401, r.URL.Path, w)
 			return
 		}
 
 		claims, ok := token.Claims.(jwt.MapClaims)
 		if !ok {
-			utils.WriteErrorResp("Unathorized", 401, r.URL.Path, w)
+			utils.WriteErrorResponse("Unathorized", 401, r.URL.Path, w)
 			return
 		}
 
 		userID, ok := claims["userID"].(string)
 		if !ok {
-			utils.WriteErrorResp("Unathorized", 401, r.URL.Path, w)
+			utils.WriteErrorResponse("Unathorized", 401, r.URL.Path, w)
 			return
 		}
 

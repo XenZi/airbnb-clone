@@ -116,7 +116,7 @@ func main() {
 	router.HandleFunc("/create", profileHandler.CreateHandler).Methods("POST")
 	router.HandleFunc("/{id}", middleware.ValidateJWT(profileHandler.UpdateHandler)).Methods("PUT")
 	router.HandleFunc("/all", profileHandler.GetAllHandler).Methods("GET")
-	router.HandleFunc("/{id}", middleware.ValidateJWT(profileHandler.GetUserById)).Methods("GET")
+	router.HandleFunc("/{id}", profileHandler.GetUserById).Methods("GET")
 	router.HandleFunc("/{id}", middleware.ValidateJWT(profileHandler.DeleteHandler)).Methods("DELETE")
 	//better endpoint?
 	router.HandleFunc("/creds/{id}", profileHandler.CredsHandler).Methods("POST")
