@@ -39,18 +39,18 @@ func main() {
 			MaxConnsPerHost: 10,
 		},
 	}
-	mailCircuitBreaker := gobreaker.NewCircuitBreaker(
-		gobreaker.Settings{
-			Name: "mail-service",
-			MaxRequests: 1,
-			Timeout: 10 * time.Second,
-			Interval: 0,
-			OnStateChange: func(name string, from gobreaker.State, to gobreaker.State) {
-				log.Printf("Circuit Breaker %v: %v -> %v", name, from, to)
-			},
-		},
-	)
-	mailClient := client.NewMailClient(mailHost, mailPort, customMailClient, mailCircuitBreaker)
+	// mailCircuitBreaker := gobreaker.NewCircuitBreaker(
+	// 	gobreaker.Settings{
+	// 		Name: "mail-service",
+	// 		MaxRequests: 1,
+	// 		Timeout: 10 * time.Second,
+	// 		Interval: 0,
+	// 		OnStateChange: func(name string, from gobreaker.State, to gobreaker.State) {
+	// 			log.Printf("Circuit Breaker %v: %v -> %v", name, from, to)
+	// 		},
+	// 	},
+	// )
+	mailClient := client.NewMailClient(mailHost, mailPort, customMailClient)
 
 	customUserServiceClient := &http.Client{
 		Transport: &http.Transport{

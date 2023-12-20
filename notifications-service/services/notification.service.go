@@ -2,7 +2,6 @@ package services
 
 import (
 	"context"
-	"log"
 	"notifications-service/client"
 	"notifications-service/domains"
 	"notifications-service/errors"
@@ -54,21 +53,9 @@ func (ns NotificationService) PushNewNotificationToUser(ctx context.Context, id 
 	if errFromUser != nil {
 		return nil, errFromUser
 	}
-    go func(ctx context.Context) {
-        // Check if the context is done before proceeding
-        select {
-        case <-ctx.Done():
-            // Log the context cancellation or timeout
-            log.Printf("Context cancelled or timed out: %v", ctx.Err())
-            return
-        default:
-            // Context is not done, proceed with sending mail
-            if err := ns.mailClient.SendMailNotification(ctx, notification, user.Email); err != nil {
-                // Log the error
-                log.Printf("Error sending mail notification: %v", err)
-            }
-        }
-    }(ctx)
+    go func() {
+		ns.mailClient.SendMailNotification(notification, user.Email);
+    }()
 
 	return &domains.UserNotificationDTO{
 		ID: repoResp.ID.Hex(),

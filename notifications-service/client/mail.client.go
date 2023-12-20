@@ -2,15 +2,11 @@ package client
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
 	"notifications-service/domains"
-	"notifications-service/errors"
-
-	"github.com/sony/gobreaker"
 )
 
 type MailNotification struct {
@@ -21,53 +17,46 @@ type MailNotification struct {
 type MailClient struct {
 	address string
 	client  *http.Client
-	circuitBreaker *gobreaker.CircuitBreaker
 }
 
-func NewMailClient(host, port string, client *http.Client, circuitBreaker *gobreaker.CircuitBreaker) *MailClient {
+func NewMailClient(host, port string, client *http.Client) *MailClient {
 	return &MailClient{
-		address:        fmt.Sprintf("http://%s:%s", host, port),
-		client:         client,
-		circuitBreaker: circuitBreaker,
+		address: fmt.Sprintf("http://%s:%s", host, port),
+		client:  http.DefaultClient,
 	}
 }
 
-func(mc MailClient) SendMailNotification(ctx context.Context, notification domains.Notification, email string) *errors.ErrorStruct{
-	mailNotification := MailNotification{
-		Text: notification.Text,
-		Email: email,
-	}
-	jsonData, err := json.Marshal(mailNotification)
-	if err != nil {
-		return errors.NewError(err.Error(), 500)
-	}
-	requestBody := bytes.NewReader(jsonData)
-	cbResp, err := mc.circuitBreaker.Execute(func() (interface{}, error) {
-		req, err := http.NewRequestWithContext(ctx, http.MethodPost, mc.address+"/send-notification-information", requestBody)
+func (mc MailClient) request(method, url string, payload interface{}) (*http.Response, error) {
+	var bodyReader *bytes.Reader
+
+	if payload != nil {
+		reqBytes, err := json.Marshal(payload)
 		if err != nil {
+			log.Println(err)
 			return nil, err
 		}
-		return mc.client.Do(req)
-	})
+		bodyReader = bytes.NewReader(reqBytes)
+	}
+
+	httpReq, err := http.NewRequest(method, url, bodyReader)
 	if err != nil {
-		return errors.NewError(err.Error(), 500)
+		log.Println(err)
+		return nil, err
 	}
-	resp := cbResp.(*http.Response)
-	if resp.StatusCode >= 200 && resp.StatusCode < 400 {
-		baseResp := domains.BaseHttpResponse{}
-		err := json.NewDecoder(resp.Body).Decode(&baseResp)
-		if err != nil {
-			return errors.NewError(err.Error(), 500)
-		}
-		log.Println("Base resp valid", baseResp)
-		return nil
+
+	return mc.client.Do(httpReq)
+}
+
+func (mc MailClient) SendMailNotification(notification domains.Notification, email string) {
+	req := MailNotification{
+		Email: email,
+		Text: notification.Text,
 	}
-	baseResp := domains.BaseErrorHttpResponse{}
-	err = json.NewDecoder(resp.Body).Decode(&baseResp)
-	if err != nil {
-		return errors.NewError(err.Error(), 500)
+	requestURL := mc.address + "/send-notification-information"
+	res, err := mc.request(http.MethodPost, requestURL, req)
+	if err != nil || res.StatusCode != 502 {
+		log.Println(err)
+		return
 	}
-	log.Println(baseResp)
-	log.Println(baseResp.Error)
-	return errors.NewError(baseResp.Error, baseResp.Status)
+	log.Println("Mail has been sent")
 }
