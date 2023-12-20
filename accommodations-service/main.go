@@ -80,6 +80,8 @@ func main() {
 
 	router.HandleFunc("/{id}", accommodationsHandler.DeleteAccommodationById).Methods("DELETE")
 
+	router.HandleFunc("/user/{id}", accommodationsHandler.DeleteAccommodationsByUserId).Methods("DELETE")
+
 	router.HandleFunc("/search", accommodationsHandler.SearchAccommodations).Methods("GET")
 
 	router.HandleFunc("/{id}", accommodationsHandler.GetAccommodationById).Methods("GET")

@@ -119,6 +119,20 @@ func (a *AccommodationsHandler) DeleteAccommodationById(rw http.ResponseWriter, 
 	rw.WriteHeader(http.StatusNoContent) // HTTP 204 No Content for successful deletion
 }
 
+func (a *AccommodationsHandler) DeleteAccommodationsByUserId(rw http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	userId := vars["id"]
+	log.Println("user id je:", userId)
+
+	err := a.AccommodationService.DeleteAccommodationsByUserId(userId)
+	if err != nil {
+		utils.WriteErrorResp(err.GetErrorMessage(), http.StatusInternalServerError, "api/accommodations/"+userId, rw)
+		return
+	}
+
+	utils.WriteResp("successfully deleted accommodations", 201, rw)
+}
+
 func (a *AccommodationsHandler) SearchAccommodations(w http.ResponseWriter, r *http.Request) {
 
 	city := r.URL.Query().Get("city")
