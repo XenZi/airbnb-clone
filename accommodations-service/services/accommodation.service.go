@@ -172,6 +172,16 @@ func (as *AccommodationService) DeleteAccommodation(accommodationID string) (*do
 	return existingAccommodation, nil
 }
 
+func (as *AccommodationService) DeleteAccommodationsByUserId(userID string) *errors.ErrorStruct {
+
+	deleteErr := as.accommodationRepository.DeleteAccommodationsByUserId(userID)
+	if deleteErr != nil {
+		return deleteErr
+	}
+
+	return nil
+}
+
 func (as *AccommodationService) SearchAccommodations(city, country string, numOfVisitors int, startDate string, endDate string, ctx context.Context) ([]domain.Accommodation, *errors.ErrorStruct) {
 	log.Println("USLO U SERVIS")
 	accommodations, err := as.accommodationRepository.SearchAccommodations(city, country, numOfVisitors)

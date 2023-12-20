@@ -125,6 +125,25 @@ func (ar *AccommodationRepo) DeleteAccommodationById(id string) *errors.ErrorStr
 	return nil
 }
 
+func (ar *AccommodationRepo) DeleteAccommodationsByUserId(id string) *errors.ErrorStruct {
+	accommodationCollection := ar.cli.Database("accommodations-service").Collection("accommodations")
+	userId := id
+	filter := bson.M{"userId": userId} // Assuming userId is the field representing the user ID
+
+	result, err := accommodationCollection.DeleteMany(context.TODO(), filter)
+	if err != nil {
+		ar.logger.Println(err)
+		return errors.NewError("Unable to delete, database error", 500)
+	}
+
+	// Check the number of deleted documents if needed
+
+	deletedCount := result.DeletedCount
+	log.Println(deletedCount)
+
+	return nil
+}
+
 func (ar *AccommodationRepo) SearchAccommodations(city, country string, numOfVisitors int) ([]do.Accommodation, *errors.ErrorStruct) {
 	accommodationCollection := ar.cli.Database("accommodations-service").Collection("accommodations")
 	filter := bson.M{}
