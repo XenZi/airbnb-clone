@@ -1,11 +1,13 @@
 package handlers
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 	"notifications-service/domains"
 	"notifications-service/services"
 	"notifications-service/utils"
+	"time"
 
 	"github.com/gorilla/mux"
 )
@@ -50,7 +52,9 @@ func (nh NotificationHandler) CreateNewNotificationForUser(rw http.ResponseWrite
 		utils.WriteErrorResp(err.Error(), 500, "api/notifications", rw)
 		return
 	}
-	resp, err := nh.service.PushNewNotificationToUser(id, requestData)
+	ctx, cancel := context.WithTimeout(h.Context(), 10 * time.Second)
+	defer cancel()
+	resp, err := nh.service.PushNewNotificationToUser(ctx, id, requestData)
 	if err != nil {
 		utils.WriteErrorResp(err.GetErrorMessage(), err.GetErrorStatus(), "api/notifications", rw)
 		return

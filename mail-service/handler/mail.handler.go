@@ -56,3 +56,19 @@ func (m MailHandler) SendPasswordResetEmail(rw http.ResponseWriter, h *http.Requ
 		return
 	}
 }
+
+func (m MailHandler) SendNotification(rw http.ResponseWriter, h *http.Request) {
+	decoder := json.NewDecoder(h.Body)
+	decoder.DisallowUnknownFields()
+	var mailNotification domains.NotificationMail
+	if err := decoder.Decode(&mailNotification); err != nil {
+		utils.WriteErrorResp(err.Error(), 500, "api/login", rw)
+		return
+	}
+	err := m.mailService.SendNotification(mailNotification)
+	if err != nil {
+		utils.WriteErrorResp(err.GetErrorMessage(), err.GetErrorStatus(), "/api/send-notification", rw)
+		return
+	}
+	utils.WriteResp("Successfully gone", 200, rw)
+}

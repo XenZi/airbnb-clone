@@ -8,6 +8,7 @@ type UserNotification struct {
 }
 
 type Notification struct {
+	Mail string `json:"mail"`
 	Text string `json:"text"`
 	CreatedAt string `json:"createdAt"`
 	IsOpened bool `json:"isOpened"`

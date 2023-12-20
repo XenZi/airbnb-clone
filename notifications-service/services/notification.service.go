@@ -1,6 +1,9 @@
 package services
 
 import (
+	"context"
+	"log"
+	"notifications-service/client"
 	"notifications-service/domains"
 	"notifications-service/errors"
 	"notifications-service/repository"
@@ -11,12 +14,16 @@ import (
 
 type NotificationService struct {
 	repo *repository.NotificationRepository
+	mailClient *client.MailClient
+	userClient *client.UserClient
 }
 
 
-func NewNotificationService(repo *repository.NotificationRepository) *NotificationService {
+func NewNotificationService(repo *repository.NotificationRepository, mailClient *client.MailClient, userClient *client.UserClient) *NotificationService {
 	return &NotificationService{
 		repo: repo,
+		mailClient: mailClient,
+		userClient: userClient,
 	}
 }
 
@@ -31,7 +38,7 @@ func (ns NotificationService) CreateNewUserNotification(id string)  (*domains.Us
 	}, nil
 }
 
-func (ns NotificationService) PushNewNotificationToUser(id string, notification domains.Notification) (*domains.UserNotificationDTO, *errors.ErrorStruct){
+func (ns NotificationService) PushNewNotificationToUser(ctx context.Context, id string, notification domains.Notification) (*domains.UserNotificationDTO, *errors.ErrorStruct){
 	userNotification, err := ns.repo.FindOneUserNotificationByID(id)
 	if err != nil {
 		return nil, err
@@ -43,6 +50,26 @@ func (ns NotificationService) PushNewNotificationToUser(id string, notification 
 	if err != nil {
 		return nil, err
 	}
+	user, errFromUser := ns.userClient.GetAllInformationsByUserID(ctx, id)
+	if errFromUser != nil {
+		return nil, errFromUser
+	}
+    go func(ctx context.Context) {
+        // Check if the context is done before proceeding
+        select {
+        case <-ctx.Done():
+            // Log the context cancellation or timeout
+            log.Printf("Context cancelled or timed out: %v", ctx.Err())
+            return
+        default:
+            // Context is not done, proceed with sending mail
+            if err := ns.mailClient.SendMailNotification(ctx, notification, user.Email); err != nil {
+                // Log the error
+                log.Printf("Error sending mail notification: %v", err)
+            }
+        }
+    }(ctx)
+
 	return &domains.UserNotificationDTO{
 		ID: repoResp.ID.Hex(),
 		Notifications: repoResp.Notifications,

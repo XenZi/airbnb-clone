@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 	"net/http"
+	"notifications-service/client"
 	"notifications-service/handlers"
 	"notifications-service/repository"
 	"notifications-service/services"
@@ -13,6 +14,7 @@ import (
 
 	gorillaHandlers "github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
+	"github.com/sony/gobreaker"
 )
 
 
@@ -23,7 +25,53 @@ func main() {
 
 	// env definitions
 	port := os.Getenv("PORT")
+	mailHost := os.Getenv("MAIL_SERVICE_HOST")
+	mailPort := os.Getenv("MAIL_SERVICE_PORT") 
+	userServiceHost := os.Getenv("USER_SERVICE_HOST")
+	userServicePort := os.Getenv("USER_SERVICE_PORT")
 
+	// commms
+
+	customMailClient := &http.Client{
+		Transport: &http.Transport{
+			MaxIdleConns: 10,
+			MaxIdleConnsPerHost: 10,
+			MaxConnsPerHost: 10,
+		},
+	}
+	mailCircuitBreaker := gobreaker.NewCircuitBreaker(
+		gobreaker.Settings{
+			Name: "mail-service",
+			MaxRequests: 1,
+			Timeout: 10 * time.Second,
+			Interval: 0,
+			OnStateChange: func(name string, from gobreaker.State, to gobreaker.State) {
+				log.Printf("Circuit Breaker %v: %v -> %v", name, from, to)
+			},
+		},
+	)
+	mailClient := client.NewMailClient(mailHost, mailPort, customMailClient, mailCircuitBreaker)
+
+	customUserServiceClient := &http.Client{
+		Transport: &http.Transport{
+			MaxIdleConns: 10,
+			MaxIdleConnsPerHost: 10,
+			MaxConnsPerHost: 10,
+		},
+	}
+	
+	userServiceCircuitBreaker := gobreaker.NewCircuitBreaker(
+		gobreaker.Settings{
+			Name: "user-service",
+			MaxRequests: 1,
+			Timeout: 10 * time.Second,
+			Interval: 0,
+			OnStateChange: func(name string, from gobreaker.State, to gobreaker.State) {
+				log.Printf("Circuit Breaker %v: %v -> %v", name, from, to)
+			},
+		},
+	)
+	userClient := client.NewUserClient(userServiceHost, userServicePort, customUserServiceClient, userServiceCircuitBreaker)
 
 	// services
 
@@ -32,7 +80,7 @@ func main() {
 		log.Fatal(err)
 	}
 	notificationRepository := repository.NewNotificationRepository(mongoService.GetCli(), logger)
-	notificationService := services.NewNotificationService(notificationRepository)
+	notificationService := services.NewNotificationService(notificationRepository, mailClient, userClient)
 	notificationHandler := handlers.NewNotificationHandler(notificationService)
 	
 	

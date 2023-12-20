@@ -38,6 +38,10 @@ services:
     environment:
       - PORT=8080
       - MONGO_DB_URI=mongodb://root:pass@notifications-db:27017
+      - MAIL_SERVICE_HOST=${MAIL_SERVICE_HOST}
+      - MAIL_SERVICE_PORT=${MAIL_SERVICE_PORT}
+      - USER_SERVICE_HOST=${USER_SERVICE_HOST}
+      - USER_SERVICE_PORT=${USER_SERVICE_PORT}
     networks:
       - network
 
