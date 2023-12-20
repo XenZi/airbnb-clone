@@ -90,7 +90,7 @@ func (u UserHandler) DeleteHandler(rw http.ResponseWriter, h *http.Request) {
 	ctx := h.Context()
 	role := ctx.Value("role")
 	log.Println(role.(string))
-	err := u.UserService.DeleteUser(role, id)
+	err := u.UserService.DeleteUser(role.(string), id)
 	if err != nil {
 		utils.WriteErrorResponse(err.GetErrorMessage(), err.GetErrorStatus(), "api/delete", rw)
 		return
