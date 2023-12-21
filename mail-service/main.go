@@ -33,6 +33,7 @@ func main() {
 
 	router.HandleFunc("/confirm-new-account", mailHandler.SendAccountConfirmationEmail).Methods("POST")
 	router.HandleFunc("/request-reset-password", mailHandler.SendPasswordResetEmail).Methods("POST")
+	router.HandleFunc("/send-notification-information", mailHandler.SendNotification).Methods("POST")
 	// server
 
 	port := os.Getenv("PORT")

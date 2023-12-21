@@ -1,0 +1,54 @@
+
+body {
+    font-family:'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+   
+    margin: 0;
+    padding: 0;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 20px auto;
+    padding: 20px;
+    
+}
+
+.profile {
+    width: 80%;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.profile__header {
+    text-align: left;
+}
+
+
+.profile__name {
+    margin-top: 10px;
+}
+
+.profile__info {
+    margin-top: 20px;
+}
+
+.profile__info-item {
+    margin-bottom: 10px;
+}
+
+.profile__label {
+    font-weight: bold;
+    margin-right: 10px;
+}
+
+.profile__value {
+    color: #333;
+}
+
+.update__button {
+    padding-top: 30px;
+    display: block;
+    margin: 0 auto;
+    width: 150px;
+    color: #000000;
+}

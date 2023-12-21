@@ -15,6 +15,7 @@ type ConfirmMailLink struct {
 const (
 	CONFIRM_ACCOUNT_TEMPLATE string = "templates/confirm-account-template.html"
 	RESET_PASSWORD_TEMPLATE string = "templates/reset-password-template.html"
+	NOTIFICATION_PROVIDER_TEMPLATE string = "templates/notification-provider-template.html"
 )
 
 func NewMailService(sender *domains.Sender) *MailService {
@@ -54,5 +55,20 @@ func (m MailService) SendPasswordReset(requestResetPassword domains.RequestReset
 		[]string{}); err != nil {
 		return err
 	}
+	return nil
+}
+
+func (m MailService) SendNotification(mailNotification domains.NotificationMail) *errors.ErrorStruct {
+	if err := m.sender.SendHTMLEmail(
+		NOTIFICATION_PROVIDER_TEMPLATE,
+		[]string{
+			mailNotification.Email,
+		},
+		[]string{},
+		"Notification",
+		mailNotification,
+		[]string{}); err != nil {
+			return err
+		}
 	return nil
 }

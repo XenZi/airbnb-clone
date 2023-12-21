@@ -1,64 +1,14 @@
-
-<form [formGroup]="reservationForm" (ngSubmit)="submitReservation()" class="form">
-
-  <div class="form__group">
-    <label for="startDate" class="form__label">Start Date</label>
-    <input
-      type="date"
-      id="startDate"
-      class="form__input"
-      formControlName="startDate"
-    />
-    <div class="form__error-container">
-    </div>
-  </div>
-
-  <div class="form__group">
-    <label for="endDate" class="form__label">End Date</label>
-    <input
-      type="date"
-      id="endDate"
-      class="form__input"
-      formControlName="endDate"
-    />
-    <div class="form__error-container">
-    </div>
-  </div>
-
-  <div class="form__group">
-    <label for="username" class="form__label">Username</label>
-    <input
-      type="text"
-      id="username"
-      class="form__input"
-      placeholder="Enter username"
-      formControlName="username"
-    />
-    <div class="form__error-container">
-      <p
-        *ngIf="
-          reservationForm.get('username')?.hasError('required') &&
-          reservationForm.get('username')?.touched
-        "
-        class="form__error"
-      >
-        Username is required.
-      </p>
-    </div>
-  </div>
-
-  <div class="form__group">
-    <label for="accommodationName" class="form__label">Accommodation Name</label>
-    <input
-      type="text"
-      id="accommodationName"
-      class="form__input"
-      placeholder="Enter accommodation name"
-      formControlName="accommodationName"
-    />
-    <div class="form__error-container">
-    </div>
-  </div>
-
-  <button type="submit" class="form__button">Create Reservation</button>
+<form
+  [formGroup]="reservationForm"
+  (ngSubmit)="submitReservation()"
+  class="form"
+>
+  <app-calendar (datesChanged)="handleDateChange($event)"></app-calendar>
+  <app-button size="md" color="rose" class="form__button" type="submit"
+    >Confirm</app-button
+  >
+  <ul>
+    <li *ngFor="let date of availabilityData">{{date.startDate}} - {{date.endDate}} - {{date.price}}</li>
+    </ul>
 </form>
+

@@ -1,0 +1,33 @@
+<div
+  class="notifications"
+  *ngIf="isUserLogged || notifications"
+  (click)="clickBox()"
+>
+  <div class="notifications__container">
+    <div class="notifications__top-box">
+      <i class="fa-regular fa-bell notifications__icon"></i>
+      <div
+        class="notifications__new-notification"
+        *ngIf="unreadedNotifications"
+      ></div>
+    </div>
+    <div
+      *ngIf="notifications"
+      class="notifications__lower-box"
+      [ngClass]="{ 'notifications__lower-box--active': isClicked == true }"
+    >
+      <div
+        class="notifications__box"
+        *ngFor="let notification of notifications.notifications"
+        ngClass="{'notifications__box--readed': notification.isOpened == true}"
+      >
+        <p class="notifications__text">
+          {{ notification.text }}
+        </p>
+        <p class="notifications__date">
+          {{ notification.createdAt.split(" ")[0] }}
+        </p>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,6 +1,7 @@
 package middlewares
 
 import (
+	"auth-service/utils"
 	"context"
 	"net/http"
 	"os"
@@ -17,23 +18,24 @@ func ValidateJWT(next http.HandlerFunc) http.HandlerFunc {
 		})
 
 		if err != nil || !token.Valid {
-			http.Error(w, "Unauthorized - Invalid token", http.StatusUnauthorized)
+			utils.WriteErrorResp("Unathorized", 401, r.URL.Path, w)
 			return
 		}
 
 		claims, ok := token.Claims.(jwt.MapClaims)
 		if !ok {
-			http.Error(w, "Unauthorized - Invalid token claims", http.StatusUnauthorized)
+			utils.WriteErrorResp("Unathorized", 401, r.URL.Path, w)
 			return
 		}
 
 		userID, ok := claims["userID"].(string)
 		if !ok {
-			http.Error(w, "Unauthorized - User ID not found in token claims", http.StatusUnauthorized)
+			utils.WriteErrorResp("Unathorized", 401, r.URL.Path, w)
 			return
 		}
 
 		ctx := context.WithValue(r.Context(), "userID", userID)
+		ctx = context.WithValue(r.Context(), "role", claims["role"])
 		r = r.WithContext(ctx)
 
 		next.ServeHTTP(w, r)	

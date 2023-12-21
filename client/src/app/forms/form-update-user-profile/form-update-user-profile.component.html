@@ -1,0 +1,154 @@
+<form [formGroup]="updateProfileForm" (ngSubmit)="onSubmit($event)" class="form">
+    <div class="form__group">
+      <label for="firstName" class="form__label">First Name</label>
+      <input
+        type="text"
+        id="firstName"
+        class="form__input"
+        placeholder="Write down your first name..."
+        formControlName="firstName"
+      />
+      <div class="form__error-container">
+        <p
+          *ngIf="
+            updateProfileForm.get('firstName')?.hasError('required') &&
+            updateProfileForm.get('firstName')?.touched
+          "
+          class="form__error"
+        >
+          First Name is required.
+        </p>
+      </div>
+    </div>
+    <div class="form__group">
+        <label for="lastName" class="form__label">Last Name</label>
+        <input
+          type="text"
+          id="lastName"
+          class="form__input"
+          placeholder="Write down your last name..."
+          formControlName="lastName"
+        />
+        <div class="form__error-container">
+          <p
+            *ngIf="
+              updateProfileForm.get('lastName')?.hasError('required') &&
+              updateProfileForm.get('lastName')?.touched
+            "
+            class="form__error"
+          >
+            Last Name is required.
+          </p>
+        </div>
+      </div>
+    <!-- <div class="form__group">
+        <label for="email" class="form__label">Email</label>
+        <input
+        type="email"
+        id="email"
+        class="form__input"
+        placeholder="you@example.com"
+        formControlName="email"
+      />
+      <div class="form__error-container">
+        <p
+          *ngIf="
+            updateProfileForm.get('email')?.hasError('required') &&
+            updateProfileForm.get('email')?.touched
+          "
+          class="form__error"
+        >
+          Email is required.
+        </p>
+        <p
+          *ngIf="
+            updateProfileForm.get('email')?.hasError('email') &&
+            updateProfileForm.get('email')?.touched
+          "
+          class="form__error"
+        >
+          Please enter a valid email.
+        </p>
+      </div>
+    </div> -->
+    <div class="form__group">
+        <label for="residence" class="form__label">Current Place</label>
+        <input
+          type="text"
+          id="residence"
+          class="form__input"
+          placeholder="Write down your current place..."
+          formControlName="residence"
+        />
+        <div class="form__error-container">
+          <p
+            *ngIf="
+              updateProfileForm.get('residence')?.hasError('required') &&
+              updateProfileForm.get('residence')?.touched
+            "
+            class="form__error"
+          >
+            Current Place is required.
+          </p>
+        </div>
+      </div>
+    <!-- <div class="form__group">
+      <label for="username" class="form__label">Username</label>
+      <input
+        type="text"
+        id="username"
+        class="form__input"
+        placeholder="Write down your username..."
+        formControlName="username"
+      />
+      <div class="form__error-container">
+        <p
+          *ngIf="
+            updateProfileForm.get('username')?.hasError('required') &&
+            updateProfileForm.get('username')?.touched
+          "
+          class="form__error"
+        >
+          Username is required.
+        </p>
+        <p
+          *ngIf="
+            updateProfileForm.get('username')?.hasError('username') &&
+            updateProfileForm.get('username')?.touched
+          "
+          class="form__error"
+        >
+          Please enter a valid username.
+        </p>
+      </div>
+    </div> -->
+
+
+    <div class="form__group">
+        <label for="age" class="form__label">Age</label>
+        <input
+          type="number"
+          id="age"
+          class="form__input"
+          placeholder=""
+          formControlName="age"
+        />
+        <div class="form__error-container">
+          <p
+            *ngIf="
+              updateProfileForm.get('age')?.hasError('required') &&
+              updateProfileForm.get('age')?.touched
+            "
+            class="form__error"
+          >
+            Age is required.
+          </p>
+        </div>
+      </div>
+
+    
+    <app-button size="md" color="rose" class="form__button" type="submit"
+      >Update</app-button
+    >
+  </form>
+  

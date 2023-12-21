@@ -6,7 +6,10 @@ import (
 	"auth-service/errors"
 	"auth-service/repository"
 	"auth-service/utils"
+	"context"
 	"log"
+
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type UserService struct {
@@ -16,6 +19,8 @@ type UserService struct {
 	validator         *utils.Validator
 	encryptionService *EncryptionService
 	mailClient        client.MailClientInterface
+	userClient 		  *client.UserClient
+	notificationClient *client.NotificationClient
 }
 
 func NewUserService(userRepo *repository.UserRepository,
@@ -23,7 +28,9 @@ func NewUserService(userRepo *repository.UserRepository,
 	jwtService *JwtService,
 	validator *utils.Validator,
 	encryptionService *EncryptionService,
-	mailClient client.MailClientInterface) *UserService {
+	mailClient client.MailClientInterface,
+	userClient *client.UserClient,
+	notificationClient *client.NotificationClient) *UserService {
 	return &UserService{
 		userRepository:    userRepo,
 		passwordService:   passwordService,
@@ -31,9 +38,11 @@ func NewUserService(userRepo *repository.UserRepository,
 		validator:         validator,
 		encryptionService: encryptionService,
 		mailClient:        mailClient,
+		userClient: userClient,
+		notificationClient: notificationClient,
 	}
 }
-func (u *UserService) CreateUser(registerUser domains.RegisterUser) (*domains.UserDTO, *errors.ErrorStruct) {
+func (u *UserService) CreateUser(ctx context.Context, registerUser domains.RegisterUser) (*domains.UserDTO, *errors.ErrorStruct) {
 	u.validator.ValidateRegisterUser(&registerUser)
 	validatorErrors := u.validator.GetErrors()
 	if len(validatorErrors) > 0 {
@@ -70,10 +79,21 @@ func (u *UserService) CreateUser(registerUser domains.RegisterUser) (*domains.Us
 	if encError != nil {
 		return nil, encError
 	}
-
+	errFromUserService := u.userClient.SendCreatedUser(ctx, newUser.ID.Hex(), registerUser)
+	if errFromUserService != nil {
+		_, err := u.userRepository.DeleteUserById(newUser.ID.Hex())
+		if err != nil {
+			return nil, err
+		}
+		return nil, errFromUserService
+	}
 	go func() {
 		u.mailClient.SendAccountConfirmationEmail(registerUser.Email, token)
 	}()
+	errFromNotificationService := u.notificationClient.CreateNewUserStructNotification(ctx, newUser.ID.Hex())
+	if errFromNotificationService != nil {
+		log.Println("ERR FROM NOTIFICATION", errFromNotificationService)
+	}
 	return &domains.UserDTO{
 		ID:       string(id[1 : len(id)-1]),
 		Email:    registerUser.Email,
@@ -108,7 +128,6 @@ func (u *UserService) LoginUser(loginData domains.LoginUser) (*domains.Successfu
 	}, nil
 }
 
-
 func (u UserService) ConfirmUserAccount(token string) (*domains.UserDTO, *errors.ErrorStruct) {
 	userID, err := u.encryptionService.ValidateToken(token)
 	if err != nil {
@@ -121,15 +140,15 @@ func (u UserService) ConfirmUserAccount(token string) (*domains.UserDTO, *errors
 		return nil, err
 	}
 	return &domains.UserDTO{
-		Username: updatedUser.Username,
-		Email: updatedUser.Email,
-		ID: userID,
-		Role: updatedUser.Role,
+		Username:  updatedUser.Username,
+		Email:     updatedUser.Email,
+		ID:        userID,
+		Role:      updatedUser.Role,
 		Confirmed: updatedUser.Confirmed,
 	}, nil
 }
 
-func (u UserService) RequestResetPassword(email string) (*domains.BaseMessageResponse, *errors.ErrorStruct){
+func (u UserService) RequestResetPassword(email string) (*domains.BaseMessageResponse, *errors.ErrorStruct) {
 	if email == "" {
 		return nil, errors.NewError("Email is empty or incorrect", 400)
 	}
@@ -143,7 +162,7 @@ func (u UserService) RequestResetPassword(email string) (*domains.BaseMessageRes
 		log.Println(err)
 		return nil, errors.NewError(err.GetErrorMessage(), err.GetErrorStatus())
 	}
-	go func(){
+	go func() {
 		u.mailClient.SendRequestResetPassword(email, token)
 	}()
 	return &domains.BaseMessageResponse{
@@ -177,10 +196,10 @@ func (u UserService) ResetPassword(requestData domains.ResetPassword, token stri
 	}
 	user, err := u.userRepository.UpdateUserPassword(userID, hashedPassword)
 	return &domains.UserDTO{
-		Username: user.Username,
-		Email: user.Email,
-		ID: userID,
-		Role: user.Role,
+		Username:  user.Username,
+		Email:     user.Email,
+		ID:        userID,
+		Role:      user.Role,
 		Confirmed: user.Confirmed,
 	}, nil
 }
@@ -197,8 +216,7 @@ func (u UserService) ChangePassword(data domains.ChangePassword, userID string) 
 	if err != nil {
 		return nil, err
 	}
-
-	if u.passwordService.CheckPasswordHash(data.Password, user.Password) == true {
+	if u.passwordService.CheckPasswordHash(data.OldPassword, user.Password) == false {
 		return nil, errors.NewError("Old password doesn't match", 400)
 	}
 
@@ -214,4 +232,65 @@ func (u UserService) ChangePassword(data domains.ChangePassword, userID string) 
 		Message: "You have updated your password",
 	}
 	return &response, nil
+}
+
+func (u UserService) UpdateCredentials(ctx context.Context, id string, updatedData domains.User) (*domains.BaseMessageResponse, *errors.ErrorStruct) {
+	if (updatedData.Email == "" || updatedData.Username == "") {
+		return nil, errors.NewError("Email or username are empty", 400)
+	} 
+	foundUser, _ := u.userRepository.FindUserById(id)
+	if (foundUser.Username == updatedData.Username && foundUser.Email == updatedData.Email) {
+		return &domains.BaseMessageResponse{
+			Message: "You have successfully updated your credentials", 
+		}, nil
 	}
+	if (foundUser.Email != updatedData.Email) {
+		_, err := u.userRepository.FindUserByEmail(updatedData.Email)
+		if err == nil {
+			return  nil, errors.NewError("User with same email already exists", 400)
+		}
+	}
+	if (foundUser.Username != updatedData.Username) {
+		_, err := u.userRepository.FindUserByUsername(updatedData.Username)
+		if err == nil {
+			return nil, errors.NewError("User with same username already exists", 400)
+		}
+	}
+	if u.passwordService.CheckPasswordHash(updatedData.Password, foundUser.Password) == false {
+		return nil, errors.NewError("Password doesn't match", 400)
+	}
+	objectID, newError := primitive.ObjectIDFromHex(id)
+	if newError != nil {
+		return nil, errors.NewError(newError.Error(),500)
+	}
+	updatedData.ID = objectID
+	errFromCredentialsUpdate := u.userClient.SendUpdateCredentials(ctx, updatedData)
+	if errFromCredentialsUpdate != nil {
+		return nil, errFromCredentialsUpdate
+	}
+	_, err := u.userRepository.UpdateUserCredentials(updatedData)
+	if err != nil {
+		return nil, err
+	}
+
+	return &domains.BaseMessageResponse{
+		Message: "You have successfully updated your credentials, please log in again.",
+	}, nil
+}
+
+func (u UserService) DeleteUserById(id string) (*domains.UserDTO, *errors.ErrorStruct) {
+	if id == "" {
+		return nil, errors.NewError("Invalid ID format", 400)
+	}
+	user, err := u.userRepository.DeleteUserById(id)
+	if err != nil {
+		return nil, err
+	}
+	return &domains.UserDTO{
+		Username:  user.Username,
+		Email:     user.Email,
+		ID:        id,
+		Role:      user.Role,
+		Confirmed: user.Confirmed,
+	}, nil
+}

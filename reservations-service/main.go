@@ -44,15 +44,21 @@ func main() {
 		ReservationService: reservationService,
 	}
 	router := mux.NewRouter()
-	router.HandleFunc("/", reservationsHandler.CreateReservationByUser).Methods("POST")
+	router.HandleFunc("/", reservationsHandler.CreateReservation).Methods("POST")
+	router.HandleFunc("/accommodations", reservationsHandler.ReservationsInDateRangeHandler).Methods("GET")
+	router.HandleFunc("/availability", reservationsHandler.CreateAvailability).Methods("POST")
 	router.HandleFunc("/user/{userId}", reservationsHandler.GetReservationsByUser).Methods("GET")
-	router.HandleFunc("/{userId}/{id}", reservationsHandler.DeleteReservationById).Methods("DELETE")
+	router.HandleFunc("/accommodations/{accommodationID}", reservationsHandler.GetReservationsByAccommodation).Methods("GET")
+	router.HandleFunc("/accommodation/dates", reservationsHandler.GetAvailableDates).Methods("GET")
+	router.HandleFunc("/{country}/{id}", reservationsHandler.DeleteReservationById).Methods("PUT")
+	router.HandleFunc("/{accommodationID}/availability", reservationsHandler.GetAvailabilityForAccommodation).Methods("GET")
 
-	cors := gorillaHandlers.CORS(gorillaHandlers.AllowedOrigins([]string{"*"}))
-
+	headersOk := gorillaHandlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"})
+	methodsOk := gorillaHandlers.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "OPTIONS", "DELETE"})
+	originsOk := gorillaHandlers.AllowedOrigins([]string{"http://localhost:4200"})
 	server := http.Server{
 		Addr:         ":" + port,
-		Handler:      cors(router),
+		Handler:      gorillaHandlers.CORS(headersOk, methodsOk, originsOk)(router),
 		IdleTimeout:  120 * time.Second,
 		ReadTimeout:  1 * time.Second,
 		WriteTimeout: 1 * time.Second,

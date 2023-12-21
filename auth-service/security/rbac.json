@@ -1,0 +1,5 @@
+{
+  "/all": ["Host"],
+  "/profile": ["public"],
+  "/test-guest": ["Guest"]
+}

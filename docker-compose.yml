@@ -18,6 +18,30 @@ services:
       - SECRET_KEY=${SECRET_ENCRIPTION_KEY}
       - MAIL_SERVICE_HOST=${MAIL_SERVICE_HOST}
       - MAIL_SERVICE_PORT=${MAIL_SERVICE_PORT}
+      - USER_SERVICE_HOST=${USER_SERVICE_HOST}
+      - USER_SERVICE_PORT=${USER_SERVICE_PORT}
+      - NOTIFICATION_SERVICE_HOST=${NOTIFICATION_SERVICE_HOST}
+      - NOTIFICATION_SERVICE_PORT=${NOTIFICATION_SERVICE_PORT}
+    networks:
+      - network
+
+  notifications-service:
+    build:
+      context: .
+      dockerfile: ./notifications-service/Dockerfile
+    image: notifications-service
+    container_name: notifications-service
+    restart: always
+    hostname: "notifications-server"
+    depends_on:
+      - notifications-db
+    environment:
+      - PORT=8080
+      - MONGO_DB_URI=mongodb://root:pass@notifications-db:27017
+      - MAIL_SERVICE_HOST=${MAIL_SERVICE_HOST}
+      - MAIL_SERVICE_PORT=${MAIL_SERVICE_PORT}
+      - USER_SERVICE_HOST=${USER_SERVICE_HOST}
+      - USER_SERVICE_PORT=${USER_SERVICE_PORT}
     networks:
       - network
 
@@ -73,6 +97,8 @@ services:
     environment:
       - PORT=8080
       - MONGO_DB_URI=mongodb://root:pass@accommodation-db:27017
+      - RESERVATIONS_SERVICE_HOST=${RESERVATIONS_SERVICE_HOST}
+      - RESERVATIONS_SERVICE_PORT=${RESERVATIONS_SERVICE_PORT}
     networks:
       - network
     depends_on:
@@ -119,6 +145,7 @@ services:
         condition: service_healthy
     networks:
       - network
+
   reservations-db:
     image: cassandra
     restart: always
@@ -135,6 +162,67 @@ services:
     networks:
       - network
 
+  user-service:
+    image: user-service
+    build:
+      context: .
+      dockerfile: ./user-service/Dockerfile
+    restart: always
+    container_name: "user-service"
+    hostname: "user-service"
+    environment:
+      - PORT=8080
+      - MONGO_DB_URI=mongodb://root:pass@user-db:27017
+      - RESERVATIONS_SERVICE_HOST=${RESERVATIONS_SERVICE_HOST}
+      - RESERVATIONS_SERVICE_PORT=${RESERVATIONS_SERVICE_PORT}
+      - AUTH_SERVICE_HOST=${AUTH_SERVICE_HOST}
+      - AUTH_SERVICE_PORT=${AUTH_SERVICE_PORT}
+    networks:
+      - network
+    depends_on:
+      user-db:
+        condition: service_healthy
+
+  user-db:
+    image: mongo
+    restart: always
+    ports:
+      - "27019:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: pass
+      MONGO_INITDB_DATABASE: mongoDemo
+    # Docker healtcheck - checks if database is "alive"
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok'
+      interval: 15s
+      timeout: 15s
+      retries: 10
+    volumes:
+      - user-db_store:/data/db
+    networks:
+      - network
+
+  notifications-db:
+    image: mongo
+    restart: always
+    ports:
+      - "27020:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: pass
+      MONGO_INITDB_DATABASE: mongoDemo
+    # Docker healtcheck - checks if database is "alive"
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok'
+      interval: 15s
+      timeout: 15s
+      retries: 10
+    volumes:
+      - notifications-db_store:/data/db
+    networks:
+      - network
+
   api-gateway:
     build:
       context: ./api-gateway/
@@ -148,6 +236,8 @@ services:
       - auth-service
       - accommodations-service
       - reservations-service
+      - user-service
+      - notifications-service
     networks:
       - network
 
@@ -160,3 +250,5 @@ volumes:
   auth-db_store:
   accommodation-db_store:
   cass_store:
+  user-db_store:
+  notifications-db_store:

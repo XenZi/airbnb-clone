@@ -14,7 +14,7 @@ import { customPasswordStrengthValidator } from 'src/app/utils/validations.utils
 })
 export class FormChangePasswordComponent {
   changePasswordForm: FormGroup;
-  errors: string = '';
+  errors: string[] = [];
   constructor(
     private formBuilder: FormBuilder,
     private toastService: ToastService,
@@ -36,19 +36,14 @@ export class FormChangePasswordComponent {
 
   onSubmit(e: Event) {
     e.preventDefault();
+    this.errors = [];
     if (!this.changePasswordForm.valid) {
       Object.keys(this.changePasswordForm.controls).forEach((key) => {
         const controlErrors = this.changePasswordForm.get(key)?.errors;
         if (controlErrors) {
-          this.errors += formatErrors(key);
+          this.errors.push(formatErrors(key));
         }
       });
-      this.toastService.showToast(
-        'Error',
-        this.errors,
-        ToastNotificationType.Error
-      );
-      this.errors = '';
       return;
     }
     if (

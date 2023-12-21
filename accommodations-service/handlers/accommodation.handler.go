@@ -4,10 +4,15 @@ import (
 	"accommodations-service/domain"
 	"accommodations-service/services"
 	"accommodations-service/utils"
+	"context"
 	"encoding/json"
+	"log"
+	"net/http"
+	"strconv"
+	"time"
+
 	"github.com/gorilla/mux"
 	"go.mongodb.org/mongo-driver/bson/primitive"
-	"net/http"
 )
 
 type AccommodationsHandler struct {
@@ -17,24 +22,21 @@ type AccommodationsHandler struct {
 func (a *AccommodationsHandler) CreateAccommodationById(rw http.ResponseWriter, h *http.Request) {
 	decoder := json.NewDecoder(h.Body)
 	decoder.DisallowUnknownFields()
-	var accomm domain.Accommodation
+	var accomm domain.CreateAccommodation
 	if err := decoder.Decode(&accomm); err != nil {
 		utils.WriteErrorResp(err.Error(), 500, "api/accommodations", rw)
 		return
 	}
-	accommodation, err := a.AccommodationService.CreateAccommodation(accomm)
+	ctx, cancel := context.WithTimeout(h.Context(), time.Second*5)
+	defer cancel()
+	accommodation, err := a.AccommodationService.CreateAccommodation(accomm, ctx)
 	if err != nil {
 		utils.WriteErrorResp(err.GetErrorMessage(), 500, "api/accommodations", rw)
 	}
 	rw.Header().Set("Content-Type", "application/json")
 
-	jsonResponse, err1 := json.Marshal(accommodation)
-	if err1 != nil {
-		utils.WriteErrorResp(err.GetErrorMessage(), http.StatusInternalServerError, "api/accommodations", rw)
-		return
-	}
-	rw.Write(jsonResponse)
 	rw.WriteHeader(http.StatusOK)
+	utils.WriteResp(accommodation, 201, rw)
 
 }
 
@@ -46,15 +48,10 @@ func (a *AccommodationsHandler) GetAllAccommodations(rw http.ResponseWriter, r *
 	}
 
 	// Serialize accommodations to JSON and write response
-	jsonResponse, err1 := json.Marshal(accommodations)
-	if err1 != nil {
-		utils.WriteErrorResp(err.GetErrorMessage(), http.StatusInternalServerError, "api/accommodations", rw)
-		return
-	}
 
 	rw.Header().Set("Content-Type", "application/json")
 	rw.WriteHeader(http.StatusOK)
-	rw.Write(jsonResponse)
+	utils.WriteResp(accommodations, 201, rw)
 }
 
 func (a *AccommodationsHandler) GetAccommodationById(rw http.ResponseWriter, r *http.Request) {
@@ -68,15 +65,11 @@ func (a *AccommodationsHandler) GetAccommodationById(rw http.ResponseWriter, r *
 	}
 
 	// Serialize accommodation to JSON and write response
-	jsonResponse, err1 := json.Marshal(accommodation)
-	if err1 != nil {
-		utils.WriteErrorResp(err1.Error(), http.StatusInternalServerError, "api/accommodations/"+accommodationId, rw)
-		return
-	}
 
 	rw.Header().Set("Content-Type", "application/json")
 	rw.WriteHeader(http.StatusOK)
-	rw.Write(jsonResponse)
+
+	utils.WriteResp(accommodation, 201, rw)
 }
 
 func (a *AccommodationsHandler) UpdateAccommodationById(rw http.ResponseWriter, r *http.Request) {
@@ -84,6 +77,12 @@ func (a *AccommodationsHandler) UpdateAccommodationById(rw http.ResponseWriter, 
 	accommodationId := vars["id"]
 	decoder := json.NewDecoder(r.Body)
 	decoder.DisallowUnknownFields()
+
+	_, err := a.AccommodationService.GetAccommodationById(accommodationId)
+	if err != nil {
+		utils.WriteErrorResp(err.GetErrorMessage(), http.StatusInternalServerError, "api/accommodations/"+accommodationId, rw)
+		return
+	}
 
 	var updatedAccommodation domain.Accommodation
 	decodeErr := decoder.Decode(&updatedAccommodation)
@@ -100,16 +99,10 @@ func (a *AccommodationsHandler) UpdateAccommodationById(rw http.ResponseWriter, 
 		return
 	}
 
-	// Serialize updated accommodation to JSON and write response
-	jsonResponse, jsonErr := json.Marshal(accommodation)
-	if jsonErr != nil {
-		utils.WriteErrorResp(err.GetErrorMessage(), http.StatusInternalServerError, "api/accommodations/"+accommodationId, rw)
-		return
-	}
-
 	rw.Header().Set("Content-Type", "application/json")
 	rw.WriteHeader(http.StatusOK)
-	rw.Write(jsonResponse)
+
+	utils.WriteResp(accommodation, 201, rw)
 }
 
 func (a *AccommodationsHandler) DeleteAccommodationById(rw http.ResponseWriter, r *http.Request) {
@@ -124,4 +117,48 @@ func (a *AccommodationsHandler) DeleteAccommodationById(rw http.ResponseWriter, 
 
 	rw.Header().Set("Content-Type", "application/json")
 	rw.WriteHeader(http.StatusNoContent) // HTTP 204 No Content for successful deletion
+}
+
+func (a *AccommodationsHandler) SearchAccommodations(w http.ResponseWriter, r *http.Request) {
+
+	city := r.URL.Query().Get("city")
+	log.Println("grad je", city)
+	country := r.URL.Query().Get("country")
+
+	visitors := r.URL.Query().Get("numOfVisitors")
+	if visitors == "" {
+		visitors = "1"
+	}
+	numOfVisitors, err := strconv.Atoi(visitors)
+
+	if err != nil {
+		utils.WriteErrorResp(err.Error(), 500, "api/accommodations/search", w)
+		return
+	}
+
+	startDate := r.URL.Query().Get("startDate")
+	endDate := r.URL.Query().Get("endDate")
+
+	// Handle empty dateRange as needed
+
+	ctx, cancel := context.WithTimeout(r.Context(), time.Second*5)
+	defer cancel()
+	accommodations, errS := a.AccommodationService.SearchAccommodations(city, country, numOfVisitors, startDate, endDate, ctx)
+
+	if errS != nil {
+		utils.WriteErrorResp(errS.GetErrorMessage(), http.StatusInternalServerError, "api/accommodations/BILOSTA", w)
+		log.Println("greska je,", errS.GetErrorMessage())
+		return
+	}
+
+	// Encode the search results into JSON and send the response
+	//responseJSON, err := json.Marshal(accommodations)
+	if err != nil {
+		http.Error(w, "Failed to marshal JSON", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	utils.WriteResp(accommodations, 201, w)
+
 }

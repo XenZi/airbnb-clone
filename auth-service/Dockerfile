@@ -33,6 +33,7 @@ WORKDIR /root/
 COPY --from=builder /app/main .
 RUN mkdir data
 COPY ./auth-service/data/blacklist-passwords.txt ./data/
+COPY ./auth-service/security/rbac.json ./security/
 
 # Command to run the executable
 CMD ["./main"]

@@ -6,6 +6,10 @@ import { FormRegisterComponent } from 'src/app/forms/form-register/form-register
 import { ModalService } from 'src/app/services/modal/modal.service';
 import { UpdateUserComponent } from '../update-user/update-user.component';
 import { UserService } from 'src/app/services/user/user.service';
+import { FormCreateAccommodationComponent } from 'src/app/forms/form-create-accommodation/form-create-accommodation.component';
+import { Role } from 'src/app/domains/enums/roles.enum';
+import { AuthService } from 'src/app/services/auth-service/auth.service';
+import { Route, Router } from '@angular/router';
 
 @Component({
   selector: 'app-simple-profile-menu',
@@ -31,26 +35,60 @@ export class SimpleProfileMenuComponent {
       },
     },
   ];
-
   loggedItems: SimpleProfileMenuItem[] = [
     {
       icon: 'fa-solid fa-user',
-      title: 'Update profile',
+      title: 'Update credentials',
       action: () => {
         this.callUpdateProfile();
       },
     },
+    {
+      icon: 'fa-solid fa-door-open',
+      title: 'Log out',
+      action: () => {
+        this.callLogout();
+      },
+    },
   ];
-
+  hostItems: SimpleProfileMenuItem[] = [
+    {
+      icon: 'fa-solid fa-user',
+      title: 'Host',
+      action: () => {
+        this.callNavigateToProfile();
+      },
+    },
+    {
+      icon: 'fa-solid fa-user',
+      title: 'Add accommodation',
+      action: () => {
+        this.callNewAccommodation();
+      },
+    },
+  ];
+  guestItems: SimpleProfileMenuItem[] = [
+    {
+      icon: 'fa-solid fa-user',
+      title: 'Guest',
+      action: () => {
+        this.callNavigateToProfile();
+      },
+    },
+  ];
   constructor(
     private modalService: ModalService,
-    private userService: UserService
+    private userService: UserService,
+    private authService: AuthService,
+    private router: Router
   ) {}
 
   ngOnInit() {
     this.isUserLogged = this.userService.getLoggedUser() == null ? false : true;
     this.items = this.isUserLogged
-      ? [...this.items, ...this.loggedItems]
+      ? this.userService.getLoggedUser()?.role == Role.Host
+        ? [...this.loggedItems, ...this.hostItems]
+        : [...this.loggedItems, ...this.guestItems]
       : [...this.items];
   }
 
@@ -72,14 +110,27 @@ export class SimpleProfileMenuComponent {
   }
 
   callRegister() {
-    this.modalService.open(FormRegisterComponent, 'Register');
+    this.modalService.open(FormRegisterComponent, 'Register', {});
   }
 
   callLogin() {
-    this.modalService.open(FormLoginComponent, 'Login');
+    this.modalService.open(FormLoginComponent, 'Login', {});
   }
 
   callUpdateProfile() {
-    this.modalService.open(UpdateUserComponent, 'Update your profile');
+    this.modalService.open(UpdateUserComponent, 'Update your profile', {});
+  }
+  callNewAccommodation() {
+    this.modalService.open(
+      FormCreateAccommodationComponent,
+      'Create accommodation',
+      {}
+    );
+  }
+  callLogout() {
+    this.authService.logout();
+  }
+  callNavigateToProfile() {
+    this.router.navigate(['/profile/' + this.userService.getLoggedUser()?.id])
   }
 }

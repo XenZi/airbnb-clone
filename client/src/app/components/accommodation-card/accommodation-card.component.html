@@ -1,0 +1,18 @@
+<div class="accommodation-card" (click)="clickOnCard()">
+  <div class="accommodation-card__image">
+    <img
+      src="\assets\pictures\air.png"
+      alt="Image"
+      class="accommodation-card__image-item"
+    />
+  </div>
+  <div class="accommodation-card__details">
+    <h2 class="accommodation-card__title">{{ accommodation.name }}</h2>
+    <p class="accommodation-card__location">
+      {{ accommodation.city }}
+    </p>
+    <div class="accommodation-card__price">
+      <p class="accommodation-card__price-value">$143 per night</p>
+    </div>
+  </div>
+</div>

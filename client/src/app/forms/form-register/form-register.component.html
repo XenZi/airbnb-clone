@@ -1,4 +1,11 @@
 <form [formGroup]="registerForm" (ngSubmit)="onSubmit($event)" class="form">
+  <div class="form__errors-box" *ngIf="errors.length > 0">
+    <ul class="form__errors-list">
+      <li class="form__errors-item" *ngFor="let item of errors">
+        {{ item }}
+      </li>
+    </ul>
+  </div>
   <div class="form__group">
     <label for="email" class="form__label">Email</label>
     <input
@@ -144,6 +151,27 @@
     </div>
   </div>
   <div class="form__group">
+    <label for="currentPlace" class="form__label">Age</label>
+    <input
+      type="number"
+      id="age"
+      class="form__input"
+      placeholder="Write down your age..."
+      formControlName="age"
+    />
+    <div class="form__error-container">
+      <p
+        *ngIf="
+          registerForm.get('age')?.hasError('required') &&
+          registerForm.get('age')?.touched
+        "
+        class="form__error"
+      >
+        Age is required.
+      </p>
+    </div>
+  </div>
+  <div class="form__group">
     <label class="form__label">I want to register as</label>
 
     <div class="form__radio-group" *ngFor="let roleName of roles; index as i">
@@ -160,12 +188,12 @@
       }}</label>
     </div>
   </div>
-  <re-captcha
+  <!-- <re-captcha
     (resolved)="resolved($event)"
     (errored)="onErrorCaptcha($event)"
     errorMode="handled"
     siteKey="6LcgAxIpAAAAAGvlUKqkMGr_Oq30dS_U_v-LLWjq"
-  ></re-captcha>
+  ></re-captcha> -->
   <app-button size="md" color="rose" class="form__button" type="submit"
     >Register</app-button
   >

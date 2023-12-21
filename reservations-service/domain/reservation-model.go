@@ -15,10 +15,42 @@ type Reservation struct {
 	EndDate           string     `json:"endDate"`
 	Username          string     `json:"username"`
 	AccommodationName string     `json:"accommodationName"`
+	Location          string     `json:"location"`
+	Price             int        `json:"price"`
+	NumberOfDays      int        `json:"numOfDays"`
+	Continent         string     `json:"continent"`
+	DateRange         []string   `json:"dateRange"`
+	IsActive          bool       `json:"isActive"`
+	Country           string     `json:"country"`
+}
+
+type FreeReservation struct {
+	Id              gocql.UUID `json:"id"`
+	AccommodationID string     `json:"accommodationId"`
+	StartDate       string     `json:"startDate"`
+	EndDate         string     `json:"endDate"`
+	Location        string     `json:"location"`
+	Price           int        `json:"price"`
+	Continent       string     `json:"continent"`
+	Country         string     `json:"country"`
+}
+type ReservationsInDateRangeRequest struct {
+	AccommodationIDs []string `json:"accommodationIDs"`
+	DateRange        []string `json:"dateRange"`
+}
+type CheckAvailabilityRequest struct {
+	AccommodationID string `json:"accommodationId"`
+	StartDate       string `json:"startDate"`
+	EndDate         string `json:"endDate"`
+}
+type GetAvailabilityForAccommodation struct {
+	StartDate string `json:"startDate"`
+	EndDate   string `json:"endDate"`
+	Price     int    `json:"price"`
 }
 type ReservationById []*Reservation
 
-func NewReservation(id gocql.UUID, userID, accommodationID string, startDate, endDate, username, accommodationName string) *Reservation {
+func NewReservation(id gocql.UUID, userID, accommodationID string, startDate, endDate, username, accommodationName, location string, price, numOfDays int, continent string, dateRange []string, isActive bool, country string) *Reservation {
 	return &Reservation{
 		Id:                id,
 		UserID:            userID,
@@ -27,7 +59,15 @@ func NewReservation(id gocql.UUID, userID, accommodationID string, startDate, en
 		EndDate:           endDate,
 		Username:          username,
 		AccommodationName: accommodationName,
+		Location:          location,
+		Price:             price,
+		NumberOfDays:      numOfDays,
+		Continent:         continent,
+		DateRange:         dateRange,
+		IsActive:          isActive,
+		Country:           country,
 	}
+
 }
 
 func (ac *Reservation) ToJSON(w io.Writer) error {

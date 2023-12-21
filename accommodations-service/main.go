@@ -1,18 +1,22 @@
 package main
 
 import (
+	"accommodations-service/client"
 	"accommodations-service/handlers"
 	"accommodations-service/repository"
 	"accommodations-service/services"
 	"accommodations-service/utils"
 	"context"
-	gorillaHandlers "github.com/gorilla/handlers"
-	"github.com/gorilla/mux"
 	"log"
 	"net/http"
 	"os"
 	"os/signal"
 	"time"
+
+	"github.com/sony/gobreaker"
+
+	gorillaHandlers "github.com/gorilla/handlers"
+	"github.com/gorilla/mux"
 )
 
 func main() {
@@ -21,8 +25,38 @@ func main() {
 		port = "8080"
 	}
 	timeoutContext, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
 	logger := log.New(os.Stdout, "[accommodation-api] ", log.LstdFlags)
+
+	//env
+	reservationsServiceHost := os.Getenv("RESERVATIONS_SERVICE_HOST")
+	log.Println("HOST", reservationsServiceHost)
+	reservationsServicePort := os.Getenv("RESERVATIONS_SERVICE_PORT")
+	log.Println("PORT", reservationsServicePort)
+
+	//clients
+
+	customReservationsServiceClient := &http.Client{
+		Transport: &http.Transport{
+			MaxIdleConns:        10,
+			MaxIdleConnsPerHost: 10,
+			MaxConnsPerHost:     10,
+		},
+	}
+
+	reservationsServiceCircuitBreaker := gobreaker.NewCircuitBreaker(
+		gobreaker.Settings{
+			Name:        "reservations-service",
+			MaxRequests: 1,
+			Timeout:     10 * time.Second,
+			Interval:    0,
+			OnStateChange: func(name string, from gobreaker.State, to gobreaker.State) {
+				log.Printf("Circuit Breaker %v: %v -> %v", name, from, to)
+			},
+		},
+	)
 	validator := utils.NewValidator()
+	reservationsClient := client.NewReservationsClient(reservationsServiceHost, reservationsServicePort, customReservationsServiceClient, reservationsServiceCircuitBreaker)
 
 	mongoService, err := services.New(timeoutContext, logger)
 
@@ -31,35 +65,32 @@ func main() {
 	}
 	accommodationRepo := repository.NewAccommodationRepository(
 		mongoService.GetCli(), logger)
-	accommodationService := services.NewAccommodationService(accommodationRepo, validator)
+	accommodationService := services.NewAccommodationService(accommodationRepo, validator, reservationsClient)
 	accommodationsHandler := handlers.AccommodationsHandler{
 		AccommodationService: accommodationService,
 	}
 
-	defer cancel()
-
 	router := mux.NewRouter()
 
-	getAllAccommodations := router.Methods(http.MethodGet).Subrouter()
-	getAllAccommodations.HandleFunc("/", accommodationsHandler.GetAllAccommodations)
+	router.HandleFunc("/", accommodationsHandler.GetAllAccommodations).Methods("GET")
 
-	getAccommodationsById := router.Methods(http.MethodGet).Subrouter()
-	getAccommodationsById.HandleFunc("/{id}", accommodationsHandler.GetAccommodationById)
+	router.HandleFunc("/", accommodationsHandler.CreateAccommodationById).Methods("POST")
 
-	postAccommodationForId := router.Methods(http.MethodPost).Subrouter()
-	postAccommodationForId.HandleFunc("/", accommodationsHandler.CreateAccommodationById)
+	router.HandleFunc("/{id}", accommodationsHandler.UpdateAccommodationById).Methods("PUT")
 
-	putAccommodationForId := router.Methods(http.MethodPut).Subrouter()
-	putAccommodationForId.HandleFunc("/{id}", accommodationsHandler.UpdateAccommodationById)
+	router.HandleFunc("/{id}", accommodationsHandler.DeleteAccommodationById).Methods("DELETE")
 
-	deleteAccommodationsById := router.Methods(http.MethodDelete).Subrouter()
-	deleteAccommodationsById.HandleFunc("/{id}", accommodationsHandler.DeleteAccommodationById)
+	router.HandleFunc("/search", accommodationsHandler.SearchAccommodations).Methods("GET")
 
-	cors := gorillaHandlers.CORS(gorillaHandlers.AllowedOrigins([]string{"*"}))
+	router.HandleFunc("/{id}", accommodationsHandler.GetAccommodationById).Methods("GET")
+
+	headersOk := gorillaHandlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"})
+	methodsOk := gorillaHandlers.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "OPTIONS", "DELETE"})
+	originsOk := gorillaHandlers.AllowedOrigins([]string{"http://localhost:4200"})
 
 	server := http.Server{
 		Addr:         ":" + port,
-		Handler:      cors(router),
+		Handler:      gorillaHandlers.CORS(headersOk, methodsOk, originsOk)(router),
 		IdleTimeout:  120 * time.Second,
 		ReadTimeout:  1 * time.Second,
 		WriteTimeout: 1 * time.Second,
