@@ -159,12 +159,14 @@ func (u *UserService) DeleteUser(role string, id string) *errors.ErrorStruct {
 		}
 	}
 	if role == "Host" {
-		//TODO
+		err := u.accClient.DeleteUserAccommodations(context.TODO(), id)
+		if err != nil {
+			return err
+		}
 	}
 	if role != "Guest" && role != "Host" {
 		return errors.NewError("not allowed by role", 401)
 	}
-
 	newErr := u.authClient.DeleteUserAuth(context.TODO(), id)
 	if newErr != nil {
 		return errors.NewError("auth deletion error", 500)

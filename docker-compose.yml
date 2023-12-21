@@ -172,6 +172,7 @@ services:
     hostname: "user-service"
     environment:
       - PORT=8080
+      - JWT_SECRET=${JWT_SECRET}
       - MONGO_DB_URI=mongodb://root:pass@user-db:27017
       - RESERVATIONS_SERVICE_HOST=${RESERVATIONS_SERVICE_HOST}
       - RESERVATIONS_SERVICE_PORT=${RESERVATIONS_SERVICE_PORT}

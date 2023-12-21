@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"github.com/sony/gobreaker"
-	"log"
 	"net/http"
 	"user-service/errors"
 )
@@ -27,7 +26,6 @@ func (ac AccClient) DeleteUserAccommodations(ctx context.Context, id string) *er
 	cbResp, err := ac.circuitBreaker.Execute(func() (interface{}, error) {
 		req, err := http.NewRequestWithContext(ctx, http.MethodDelete, ac.address+"/user/"+id, http.NoBody)
 		if err != nil {
-			log.Println(err)
 			return nil, err
 		}
 		return ac.client.Do(req)
@@ -36,7 +34,7 @@ func (ac AccClient) DeleteUserAccommodations(ctx context.Context, id string) *er
 		return errors.NewError("internal error", 500)
 	}
 	resp := cbResp.(*http.Response)
-	if resp.StatusCode == 200 {
+	if resp.StatusCode == 201 {
 		return nil
 	}
 	return errors.NewError("internal error", resp.StatusCode)

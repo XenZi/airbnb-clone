@@ -25,8 +25,9 @@ func main() {
 	timeoutContext, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 	logger := log.New(os.Stdout, "[user-api] ", log.LstdFlags)
-	mongoService, err := service.New(timeoutContext, logger)
+
 	//env
+
 	reservationsServiceHost := os.Getenv("RESERVATIONS_SERVICE_HOST")
 	reservationsServicePort := os.Getenv("RESERVATIONS_SERVICE_PORT")
 	authServiceHost := os.Getenv("AUTH_SERVICE_HOST")
@@ -87,7 +88,7 @@ func main() {
 		gobreaker.Settings{
 			Name:        "accommodation-service",
 			MaxRequests: 1,
-			Timeout:     10 * time.Second,
+			Timeout:     30 * time.Second,
 			Interval:    0,
 			OnStateChange: func(name string, from gobreaker.State, to gobreaker.State) {
 				log.Printf("Circuit Breaker %v: %v -> %v", name, from, to)
@@ -95,22 +96,26 @@ func main() {
 		},
 	)
 
-	validator := utils.NewValidator()
 	reservationsClient := client.NewReservationClient(reservationsServiceHost, reservationsServicePort, customReservationsServiceClient, reservationsServiceCircuitBreaker)
 	authClient := client.NewAuthClient(authServiceHost, authServicePort, customAuthServiceClient, authServiceCircuitBreaker)
 	accClient := client.NewAccClient(accServiceHost, accServicePort, customAccServiceClient, accommodationServiceCircuitBreaker)
+
+	// service
+
+	mongoService, err := service.New(timeoutContext, logger)
 	if err != nil {
 		log.Fatal(err)
 	}
 	userRepo := repository.NewUserRepository(mongoService.GetCli(), logger)
-
-	key := os.Getenv("JWT_SECRET")
-	keyByte := []byte(key)
-	jwtService := service.NewJWTService(keyByte)
+	validator := utils.NewValidator()
+	jwtService := service.NewJWTService([]byte(os.Getenv("JWT_SECRET")))
 	userService := service.NewUserService(userRepo, jwtService, validator, reservationsClient, authClient, accClient)
 	profileHandler := handler.UserHandler{
 		UserService: userService,
 	}
+
+	// router
+
 	router := mux.NewRouter()
 
 	router.HandleFunc("/create", profileHandler.CreateHandler).Methods("POST")
@@ -118,8 +123,8 @@ func main() {
 	router.HandleFunc("/all", profileHandler.GetAllHandler).Methods("GET")
 	router.HandleFunc("/{id}", profileHandler.GetUserById).Methods("GET")
 	router.HandleFunc("/{id}", middleware.ValidateJWT(profileHandler.DeleteHandler)).Methods("DELETE")
-	//better endpoint?
 	router.HandleFunc("/creds/{id}", profileHandler.CredsHandler).Methods("POST")
+
 	port := os.Getenv("PORT")
 	if len(port) == 0 {
 		port = "8080"
