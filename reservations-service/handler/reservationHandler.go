@@ -68,6 +68,19 @@ func (rh *ReservationHandler) GetReservationsByUser(rw http.ResponseWriter, r *h
 	rw.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(rw).Encode(reservations)
 }
+func (rh *ReservationHandler) GetReservationsByHost(rw http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	hostID := vars["hostId"]
+
+	reservations, err := rh.ReservationService.GetReservationsByUser(hostID)
+	if err != nil {
+		utils.WriteErrorResp(err.Message, err.Status, "api/reservations/user/{hostId}", rw)
+		return
+	}
+
+	rw.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(rw).Encode(reservations)
+}
 
 func (rh *ReservationHandler) GetAvailabilityForAccommodation(rw http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
