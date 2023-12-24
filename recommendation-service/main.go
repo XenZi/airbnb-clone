@@ -31,9 +31,16 @@ func main() {
 	// routes
 
 	router := mux.NewRouter()
-	router.HandleFunc("/rating/accommodation", ratingHandler.CreateRatingForAccommodation).Methods("POST")
+	router.HandleFunc("/rating/host/{id}", ratingHandler.GetAllRatingsForHost).Methods("GET")
 	router.HandleFunc("/rating/host", ratingHandler.CreateRatingForHost).Methods("POST")
 	router.HandleFunc("/rating/host", ratingHandler.UpdateRatingForHost).Methods("PUT")
+	router.HandleFunc("/rating/host", ratingHandler.DeleteRatingForHost).Methods("DELETE")
+	router.HandleFunc("/rating/accommodation", ratingHandler.CreateRatingForAccommodation).Methods("POST")
+	router.HandleFunc("/rating/accommodation", ratingHandler.UpdateRatingForAccommodation).Methods("PUT")
+	router.HandleFunc("/rating/accommodation", ratingHandler.DeleteRatingForAccommodation).Methods("DELETE")
+
+	// server
+
 	if len(port) == 0 {
 		port = "8080"
 	}

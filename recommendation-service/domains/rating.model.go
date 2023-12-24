@@ -2,7 +2,7 @@ package domains
 
 type RateAccommodation struct {
 	AccommodationID string `json:"accommodationID"`
-	Rate            int    `json:"rate"`
+	Rate            int64    `json:"rate"`
 	Guest         	Guest `json:"guest"`
 }
 

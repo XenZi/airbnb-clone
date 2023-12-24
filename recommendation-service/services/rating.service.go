@@ -16,9 +16,30 @@ func NewRatingService(repo *repository.RatingRepository) *RatingService {
 	}
 }
 
+func (rs RatingService) CreateRatingForAccommodation(rating domains.RateAccommodation) (*domains.RateAccommodation, *errors.ErrorStruct) {
+	resp, err := rs.repo.RateAccommodation(rating)
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
 
-func (rs RatingService) CreateRatingForAccommodation(rating domains.RateAccommodation) {
-	rs.repo.RateAccommodation(rating)
+func (rs RatingService) UpdateRatingForAccommodation(rating domains.RateAccommodation) (*domains.RateAccommodation, *errors.ErrorStruct) {
+	resp, err := rs.repo.UpdateRatingByAccommodationGuest(rating)
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+func (rs RatingService) DeleteRatingForAccommodation(rating domains.RateAccommodation) (*domains.BaseMessageResponse, *errors.ErrorStruct) {
+	err := rs.repo.DeleteRatingByGuestAndAccommodation(rating)
+	if err != nil {
+		return nil, err
+	}
+	return &domains.BaseMessageResponse{
+		Message: "You have successfully deleted your rating for accommodation",
+	}, nil
 }
 
 func (rs RatingService) CreateRatingForHost(rating domains.RateHost) (*domains.RateHost, *errors.ErrorStruct) {
@@ -43,4 +64,14 @@ func (rs RatingService) UpdateRatingForHostAndGuest(rateHost domains.RateHost) (
 		return nil, err
 	}
 	return resp, nil
+}
+
+func (rs RatingService) DeleteRatingBetweenGuestAndHost(rateHost domains.RateHost) (*domains.BaseMessageResponse, *errors.ErrorStruct) {
+	err := rs.repo.DeleteRatingByHostAndUser(rateHost)
+	if err != nil {
+		return nil, err
+	}
+	return &domains.BaseMessageResponse{
+		Message: "You have deleted your message successfully",
+	}, nil
 }
