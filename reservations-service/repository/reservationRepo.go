@@ -112,7 +112,7 @@ func (rr *ReservationRepo) DropTables() {
 	}
 
 	dropTable("reservations")
-	dropTable("free_accommodation")
+	//	dropTable("free_accommodation")
 	dropTable("reservation_by_user")
 	dropTable("reservation_by_host")
 

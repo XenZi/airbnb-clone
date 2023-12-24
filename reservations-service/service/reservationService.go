@@ -49,7 +49,7 @@ func (r ReservationService) CreateReservation(reservation domain.Reservation, ct
 	if insertErr != nil {
 		return nil, errors.NewReservationError(500, "Unable to create reservation: "+insertErr.Error())
 	}
-	r.notification.SendReservationCreatedNotification(ctx, reservation.UserID, "Reservation successfully created")
+	r.notification.SendReservationCreatedNotification(ctx, reservation.HostID, "Reservation successfully created")
 	return createdReservation, nil
 }
 
