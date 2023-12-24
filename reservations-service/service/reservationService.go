@@ -1,9 +1,9 @@
 package service
 
 import (
-	client "command-line-arguments/home/janko33/Documents/airbnb-clone/accommodations-service/client/reservations-client.client.go"
 	"context"
 	"log"
+	"reservation-service/client"
 	"reservation-service/domain"
 	"reservation-service/errors"
 	"reservation-service/repository"

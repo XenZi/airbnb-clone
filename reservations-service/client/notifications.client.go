@@ -56,7 +56,7 @@ func (nc NotificationClient) SendReservationCreatedNotification(ctx context.Cont
 		CreatedAt: time.Now().String(),
 		IsOpened:  false,
 	}
-	reqURL := nc.address + userId
+	reqURL := nc.address + "/" + userId
 	res, err := nc.request(http.MethodPost, reqURL, req)
 	if err != nil || res.StatusCode != 502 {
 		log.Println(err)
