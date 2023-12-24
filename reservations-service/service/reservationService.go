@@ -1,6 +1,8 @@
 package service
 
 import (
+	client "command-line-arguments/home/janko33/Documents/airbnb-clone/accommodations-service/client/reservations-client.client.go"
+	"context"
 	"log"
 	"reservation-service/domain"
 	"reservation-service/errors"
@@ -9,17 +11,18 @@ import (
 )
 
 type ReservationService struct {
-	repo      *repository.ReservationRepo
-	validator *utils.Validator
+	repo         *repository.ReservationRepo
+	validator    *utils.Validator
+	notification *client.NotificationClient
 }
 
-func NewReservationService(repo *repository.ReservationRepo, validator *utils.Validator) *ReservationService {
-	return &ReservationService{repo: repo, validator: validator}
+func NewReservationService(repo *repository.ReservationRepo, validator *utils.Validator, notification *client.NotificationClient) *ReservationService {
+	return &ReservationService{repo: repo, validator: validator, notification: notification}
 }
 
 // service/reservationService.go
 
-func (r ReservationService) CreateReservation(reservation domain.Reservation) (*domain.Reservation, *errors.ReservationError) {
+func (r ReservationService) CreateReservation(reservation domain.Reservation, ctx context.Context) (*domain.Reservation, *errors.ReservationError) {
 	r.validator.ValidateReservation(&reservation)
 	validationErrors := r.validator.GetErrors()
 
@@ -46,7 +49,7 @@ func (r ReservationService) CreateReservation(reservation domain.Reservation) (*
 	if insertErr != nil {
 		return nil, errors.NewReservationError(500, "Unable to create reservation: "+insertErr.Error())
 	}
-
+	r.notification.SendReservationCreatedNotification(ctx, reservation.UserID, "Reservation successfully created")
 	return createdReservation, nil
 }
 

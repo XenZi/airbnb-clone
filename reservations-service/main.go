@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"reservation-service/client"
 	"reservation-service/handler"
 	"reservation-service/repository"
 	"reservation-service/service"
@@ -14,6 +15,7 @@ import (
 
 	gorillaHandlers "github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
+	"github.com/sony/gobreaker"
 )
 
 func main() {
@@ -27,7 +29,33 @@ func main() {
 
 	logger := log.New(os.Stdout, "[reservation-api]", log.LstdFlags)
 	storeLogger := log.New(os.Stdout, "[reservation-store]", log.LstdFlags)
+	notificationServiceHost := os.Getenv("NOTIFICATION_SERVICE_HOST")
+	log.Println("HOST", notificationServiceHost)
+	notificationServicePort := os.Getenv("NOTIFICATION_SERVICE_PORT")
+	log.Println("PORT", notificationServicePort)
+
+	customNotificationServiceClient := &http.Client{
+		Transport: &http.Transport{
+			MaxIdleConns:        10,
+			MaxIdleConnsPerHost: 10,
+			MaxConnsPerHost:     10,
+		},
+	}
+
+	notificationServiceCircuitBreaker := gobreaker.NewCircuitBreaker(
+		gobreaker.Settings{
+			Name:        "notifications-service",
+			MaxRequests: 1,
+			Timeout:     10 * time.Second,
+			Interval:    0,
+			OnStateChange: func(name string, from gobreaker.State, to gobreaker.State) {
+				log.Printf("Circuit Breaker %v: %v -> %v", name, from, to)
+			},
+		},
+	)
+
 	validator := utils.NewValidator()
+	notificationsClient := client.NewNotificationClient(notificationServiceHost, notificationServicePort, customNotificationServiceClient, notificationServiceCircuitBreaker)
 
 	store, err := repository.New(storeLogger)
 	if err != nil {
@@ -39,7 +67,7 @@ func main() {
 	if err != nil {
 		return
 	}
-	reservationService := service.NewReservationService(reservationRepo, validator)
+	reservationService := service.NewReservationService(reservationRepo, validator, notificationsClient)
 	reservationsHandler := handler.ReservationHandler{
 		ReservationService: reservationService,
 	}
