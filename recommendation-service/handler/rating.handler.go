@@ -128,3 +128,18 @@ func (rh RatingHandler) GetAllRatingsForHost(r http.ResponseWriter, h *http.Requ
 	}
 	utils.WriteResp(resp, 200, r)
 }
+
+func (rh RatingHandler) GetAllRatingsForAccommmodation(r http.ResponseWriter, h *http.Request) {
+	vars := mux.Vars(h)
+	id := vars["id"]
+	if id == "" {
+		utils.WriteErrorResp("Bad request", 400, "api/recommondations/host/"+id, r)
+		return
+	}
+	resp, err := rh.service.GetAllAccommodationRatings(id)
+	if err != nil {
+		utils.WriteErrorResp("Bad request", 400, "api/recommondations/host/"+id, r)
+		return
+	}
+	utils.WriteResp(resp, 200, r)
+}

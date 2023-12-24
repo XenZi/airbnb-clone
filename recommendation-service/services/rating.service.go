@@ -32,6 +32,14 @@ func (rs RatingService) UpdateRatingForAccommodation(rating domains.RateAccommod
 	return resp, nil
 }
 
+func (rs RatingService) GetAllAccommodationRatings(id string) (*[]domains.RateAccommodation, *errors.ErrorStruct) {
+	resp, err := rs.repo.GetAllRatingsByAccommodation(id)
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
 func (rs RatingService) DeleteRatingForAccommodation(rating domains.RateAccommodation) (*domains.BaseMessageResponse, *errors.ErrorStruct) {
 	err := rs.repo.DeleteRatingByGuestAndAccommodation(rating)
 	if err != nil {

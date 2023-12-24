@@ -32,6 +32,7 @@ func main() {
 
 	router := mux.NewRouter()
 	router.HandleFunc("/rating/host/{id}", ratingHandler.GetAllRatingsForHost).Methods("GET")
+	router.HandleFunc("/rating/accommodation/{id}", ratingHandler.GetAllRatingsForAccommmodation).Methods("GET")
 	router.HandleFunc("/rating/host", ratingHandler.CreateRatingForHost).Methods("POST")
 	router.HandleFunc("/rating/host", ratingHandler.UpdateRatingForHost).Methods("PUT")
 	router.HandleFunc("/rating/host", ratingHandler.DeleteRatingForHost).Methods("DELETE")
