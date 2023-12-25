@@ -13,6 +13,9 @@ import { User } from 'src/app/domains/entity/user-profile.model';
 import { AccommodationsService } from 'src/app/services/accommodations-service/accommodations.service';
 import { UserService } from 'src/app/services/user/user.service';
 import { formatErrors } from 'src/app/utils/formatter.utils';
+import { ICountry } from 'ngx-country-picker';
+import { Observable } from 'rxjs';
+
 
 @Component({
   selector: 'app-form-create-accommodation',
@@ -30,6 +33,9 @@ export class FormCreateAccommodationComponent {
   ];
   errors: string = '';
   user: UserAuth | null = null;
+  countries: any[] = [];
+  selectedCountry: string = '';
+  country!:string
   constructor(
     private fb: FormBuilder,
     private accommodationsService: AccommodationsService,
@@ -44,11 +50,17 @@ export class FormCreateAccommodationComponent {
       maxNumOfVisitors: [''],
       minNumOfVisitors: [''],
       dateAvailabilities: this.fb.array([this.initDateAvailability()]),
+      pictures: this.fb.array([]),
     });
   }
+  
 
+  
+  
   ngOnInit() {
     this.user = this.userService.getLoggedUser();
+    this.getCountriesData();
+    console.log(this.getCountriesData)
   }
   initDateAvailability(): FormGroup {
     return this.fb.group({
@@ -62,6 +74,20 @@ export class FormCreateAccommodationComponent {
       return this.fb.control(false);
     });
     return this.fb.array(arr);
+  }
+  getCountriesData(): void {
+    this.accommodationsService.getCountries()
+      .subscribe((data: any[]) => {
+        this.countries = data;
+        console.log(this.countries); // Output the countries data to console
+      });
+  }
+
+  onCountrySelection(event: Event): void {
+    const selectedCountryName = (event.target as HTMLSelectElement).value;
+    // Handle the selected country code here
+    console.log('Selected Country Code:', selectedCountryName);
+    this.country=selectedCountryName
   }
 
   get convenienceFormArray(): FormArray {
@@ -96,12 +122,29 @@ export class FormCreateAccommodationComponent {
     return convArray;
   }
 
+  onFileSelected(event: any) {
+    const files = event.target.files;
+    const fileArray = this.createAccommodationForm.get('pictures') as FormArray;
+    
+    fileArray.clear();
+
+    // Add each file to the form array
+    for (let i = 0; i < 1; i++) {
+      const fileControl = this.fb.control(files[i]);
+      fileArray.push(fileControl);
+      console.log(files[i])
+      console.log(fileControl)
+    }
+    
+    
+  }
+
   createLocationCsv():string{
     const address=this.createAccommodationForm.value.address;
     const city=  this.createAccommodationForm.value.city;
-    const country= this.createAccommodationForm.value.country;
-    console.log(address + ","+city +","+country)
-    return address + ","+city +","+country
+    const countryCSV= this.country;
+    console.log(address + ","+city +","+countryCSV)
+    return address + ","+city +","+countryCSV
   }
 
   onSubmit(e: Event) {
@@ -119,6 +162,8 @@ export class FormCreateAccommodationComponent {
       return;
       
     }
+    const files = this.createAccommodationForm.get('pictures');
+    console.log(files?.value)
     console.log(this.dateAvailabilities.value)
     this.accommodationsService.create(
       this.user?.id as string,
@@ -126,12 +171,13 @@ export class FormCreateAccommodationComponent {
       this.createAccommodationForm.value.name,
       this.createAccommodationForm.value.address,
       this.createAccommodationForm.value.city,
-      this.createAccommodationForm.value.country,
+      this.country,
       this.fromBooleanToConveniences(),
       this.createAccommodationForm.value.minNumOfVisitors as number,
       this.createAccommodationForm.value.maxNumOfVisitors as number,
       this.dateAvailabilities.value,
       this.createLocationCsv(),
+      files?.value,
     );
   }
 }

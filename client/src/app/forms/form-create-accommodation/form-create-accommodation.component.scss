@@ -1,0 +1,38 @@
+.countrySelect {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-color: transparent;
+    border: 1px solid #ccc;
+    padding: 10px;
+    font-size: 16px;
+    width: 100%;
+    max-width: 300px; /* Adjust the width as needed */
+    border-radius: 5px;
+  }
+  
+  /* Style the arrow icon */
+  .countrySelect:after {
+    content: '\25BC'; /* Unicode character for down arrow */
+    position: absolute;
+    top: 50%;
+    right: 10px;
+    transform: translateY(-50%);
+    pointer-events: none;
+  }
+  
+  /* Hover effect */
+  .countrySelect:hover {
+    border-color: #999;
+  }
+  
+  /* Focus effect */
+  .countrySelect:focus {
+    outline: none;
+    border-color: #333;
+  }
+  
+  /* Style selected option */
+  .countrySelect option:checked {
+    background-color: #f0f0f0;
+  }

@@ -10,6 +10,7 @@ import { Router } from '@angular/router';
 import { Observable, map } from 'rxjs';
 import { Accommodation } from 'src/app/domains/entity/accommodation-model';
 import { DateAvailability } from 'src/app/domains/entity/date-availability.model';
+import { FormArray } from '@angular/forms';
 
 @Injectable({
   providedIn: 'root',
@@ -25,6 +26,14 @@ export class AccommodationsService {
 
   username = localStorage.getItem('username');
 
+ 
+
+  getCountries(): Observable<any[]> {
+    return this.http.get<any[]>('assets/countries.json');
+  }
+  
+
+
   create(
     userId: string,
     username: string,
@@ -36,7 +45,8 @@ export class AccommodationsService {
     minNumOfVisitors: number,
     maxNumOfVisitors: number,
     availableAccommodationDates: DateAvailability[],
-    location: string
+    location: string,
+    files:FormArray
   ): void {
     this.http
       .post(`${apiURL}/accommodations/`, {
@@ -51,6 +61,7 @@ export class AccommodationsService {
         maxNumOfVisitors: Number(maxNumOfVisitors),
         availableAccommodationDates,
         location,
+        files
       })
       .subscribe({
         next: (data) => {
