@@ -15,6 +15,7 @@ type Accommodation struct {
 	Conveniences     []string           `json:"conveniences" bson:"conveniences"`
 	MinNumOfVisitors int                `json:"minNumOfVisitors" bson:"minNumOfVisitors"`
 	MaxNumOfVisitors int                `json:"maxNumOfVisitors" bson:"maxNumOfVisitors"`
+	ImageIds         []string           `json:"imageIds"`
 }
 
 type CreateAccommodation struct {
@@ -30,6 +31,7 @@ type CreateAccommodation struct {
 	MaxNumOfVisitors            int                           `json:"maxNumOfVisitors" bson:"maxNumOfVisitors"`
 	AvailableAccommodationDates []AvailableAccommodationDates `json:"availableAccommodationDates"`
 	Location                    string                        `json:"location" `
+	Images                      []string                      `json:"images"`
 }
 
 type AvailableAccommodationDates struct {
@@ -51,4 +53,5 @@ type AccommodationDTO struct {
 	Conveniences     []string `json:"conveniences" `
 	MinNumOfVisitors int      `json:"minNumOfVisitors" `
 	MaxNumOfVisitors int      `json:"maxNumOfVisitors" `
+	Images           [][]byte `json:"images"`
 }

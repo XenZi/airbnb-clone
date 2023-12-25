@@ -68,7 +68,10 @@ func main() {
 
 	accommodationRepo := repository.NewAccommodationRepository(
 		mongoService.GetCli(), logger)
-	accommodationService := services.NewAccommodationService(accommodationRepo, validator, reservationsClient)
+	fileStorage := repository.NewFileStorage(logger)
+	defer fileStorage.Close()
+	_ = fileStorage.CreateDirectories()
+	accommodationService := services.NewAccommodationService(accommodationRepo, validator, reservationsClient, fileStorage)
 	accommodationsHandler := handlers.AccommodationsHandler{
 		AccommodationService: accommodationService,
 	}
