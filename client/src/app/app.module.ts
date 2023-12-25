@@ -45,6 +45,7 @@ import { NotificationsComponent } from './components/notifications/notifications
 import { SearchComponent } from './components/search/search.component';
 import { FormSearchComponent } from './forms/form-search/form-search.component';
 import { SearchPageComponent } from './pages/search-page/search-page.component';
+import { CountryPickerModule } from 'ngx-country-picker';
 @NgModule({
   declarations: [
     AppComponent,
@@ -95,6 +96,7 @@ import { SearchPageComponent } from './pages/search-page/search-page.component';
     FormsModule,
     CalendarModule,
     BrowserAnimationsModule,
+    CountryPickerModule,
   ],
   providers: [
     {

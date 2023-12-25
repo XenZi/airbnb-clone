@@ -98,34 +98,14 @@
   </div>
 
   <div class="form__group">
-    <label for="country" class="form__label">Country</label>
-    <input
-      type="text"
-      id="country"
-      class="form__input"
-      placeholder="Write your country..."
-      formControlName="country"
-    />
-    <div class="form__error-container">
-      <p
-        *ngIf="
-          createAccommodationForm.get('country')?.hasError('country') &&
-          createAccommodationForm.get('country')?.touched
-        "
-        class="form__error"
-      >
-        Country is required.
-      </p>
-      <p
-        *ngIf="
-          createAccommodationForm.get('country')?.hasError('country') &&
-          createAccommodationForm.get('country')?.touched
-        "
-        class="form__error"
-      >
-        Please enter a valid country.
-      </p>
-    </div>
+    
+    <select class="countrySelect" (change)="onCountrySelection($event)">
+      <option value="" disabled selected>Select a country</option>
+      <option *ngFor="let country of countries" [value]="country.name">
+        {{ country.name }}
+      </option>
+    </select>
+    
     
   </div>
 
@@ -252,6 +232,7 @@
           />
         </div>
       </div>
+     
       <app-button
         (click)="addDateAvailability()"
         type="button"
@@ -261,6 +242,19 @@
       >
         Add Date Availability
       </app-button>
+    </div>
+    <div class="form__group">
+      <label for="images" class="form__label">Upload Pictures</label>
+      <input
+        type="file"
+        id="images"
+        class="form__input"
+        multiple
+        (change)="onFileSelected($event)"
+      />
+      <div class="form__error-container">
+        <!-- You can add error messages for image upload validation if needed -->
+      </div>
     </div>
   </div>
   <app-button size="md" color="rose" class="form__button" type="submit">
