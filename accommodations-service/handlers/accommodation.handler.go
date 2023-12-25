@@ -126,7 +126,7 @@ func (a *AccommodationsHandler) DeleteAccommodationsByUserId(rw http.ResponseWri
 
 	err := a.AccommodationService.DeleteAccommodationsByUserId(userId)
 	if err != nil {
-		utils.WriteErrorResp(err.GetErrorMessage(), http.StatusInternalServerError, "api/accommodations/"+userId, rw)
+		utils.WriteErrorResp(err.GetErrorMessage(), http.StatusInternalServerError, "api/accommodations/user"+userId, rw)
 		return
 	}
 

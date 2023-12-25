@@ -1,50 +1,48 @@
 package middlewares
 
 import (
+	"accommodations-service/utils"
 	"context"
+	"github.com/dgrijalva/jwt-go"
+	"log"
 	"net/http"
 	"os"
 	"strings"
-
-	"github.com/dgrijalva/jwt-go"
 )
 
-func ValidateRoleJWT(next http.HandlerFunc) http.HandlerFunc {
+func ValidateJWT(next http.HandlerFunc) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		tokenString := extractToken(r.Header.Get("Authorization"))
 		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 			return []byte(os.Getenv("JWT_SECRET")), nil
 		})
+		log.Println("token je", token)
+
+		if !token.Valid {
+			log.Println("TOKEN NIJE VALIDAN")
+		}
 
 		if err != nil || !token.Valid {
-			http.Error(w, "Unauthorized - Invalid token", http.StatusUnauthorized)
+			log.Println("GRESKA JE", err.Error())
+			utils.WriteErrorResp("Unathorized1", 401, r.URL.Path, w)
+
 			return
 		}
 
 		claims, ok := token.Claims.(jwt.MapClaims)
 		if !ok {
-			http.Error(w, "Unauthorized - Invalid token claims", http.StatusUnauthorized)
+			utils.WriteErrorResp("Unathorized2", 401, r.URL.Path, w)
 			return
 		}
 
 		userID, ok := claims["userID"].(string)
 		if !ok {
-			http.Error(w, "Unauthorized - User ID not found in token claims", http.StatusUnauthorized)
-			return
-		}
-
-		role, ok := claims["role"].(string)
-		if !ok {
-			http.Error(w, "Unauthorized - Role not found in token claims", http.StatusUnauthorized)
-			return
-		}
-
-		if role != "host" {
-			http.Error(w, "Forbidden - Insufficient privileges", http.StatusForbidden)
+			utils.WriteErrorResp("Unathorized3", 401, r.URL.Path, w)
 			return
 		}
 
 		ctx := context.WithValue(r.Context(), "userID", userID)
+		ctx = context.WithValue(r.Context(), "role", claims["role"])
 		r = r.WithContext(ctx)
 
 		next.ServeHTTP(w, r)

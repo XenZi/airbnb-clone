@@ -31,6 +31,7 @@ type CreateAccommodation struct {
 	AvailableAccommodationDates []AvailableAccommodationDates `json:"availableAccommodationDates"`
 	Location                    string                        `json:"location" `
 }
+
 type AvailableAccommodationDates struct {
 	AccommodationId string `json:"id"`
 	StartDate       string `json:"startDate"`
