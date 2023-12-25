@@ -10,6 +10,7 @@ import { FormCreateAccommodationComponent } from 'src/app/forms/form-create-acco
 import { Role } from 'src/app/domains/enums/roles.enum';
 import { AuthService } from 'src/app/services/auth-service/auth.service';
 import { Route, Router } from '@angular/router';
+import { UserReservationsTableComponent } from '../user-reservations-table/user-reservations-table.component';
 
 @Component({
   selector: 'app-simple-profile-menu',
@@ -75,6 +76,13 @@ export class SimpleProfileMenuComponent {
         this.callNavigateToProfile();
       },
     },
+    {
+      icon: 'fa-solid fa-house',
+      title: 'Reservations',
+      action: () => {
+        this.callReservationsList()
+      }
+    }
   ];
   constructor(
     private modalService: ModalService,
@@ -132,5 +140,11 @@ export class SimpleProfileMenuComponent {
   }
   callNavigateToProfile() {
     this.router.navigate(['/profile/' + this.userService.getLoggedUser()?.id])
+  }
+
+  callReservationsList() {
+    this.modalService.open(
+      UserReservationsTableComponent,'All reservations', {}
+    )
   }
 }

@@ -1,4 +1,6 @@
 import { Component } from '@angular/core';
+import { Accommodation } from 'src/app/domains/entity/accommodation-model';
+import { UserAuth } from 'src/app/domains/entity/user-auth.model';
 
 @Component({
   selector: 'app-reservation',
@@ -6,5 +8,7 @@ import { Component } from '@angular/core';
   styleUrls: ['./reservation.component.scss']
 })
 export class ReservationComponent {
+ accommodation!: Accommodation;
+userLogged!: UserAuth | null;
 
 }
