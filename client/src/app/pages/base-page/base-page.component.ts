@@ -21,6 +21,7 @@ export class BasePageComponent {
     this.accommodationService.loadAccommodations().subscribe({
       next: (response) => {
         this.accommodations = response.data;
+        console.log(this.accommodations)
         
       },
       error: (error) => {

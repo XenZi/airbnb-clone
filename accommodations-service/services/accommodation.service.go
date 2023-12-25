@@ -10,6 +10,7 @@ import (
 	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"log"
+	"mime/multipart"
 	"time"
 )
 
@@ -29,18 +30,8 @@ func NewAccommodationService(accommodationRepo *repository.AccommodationRepo, va
 	}
 }
 
-func (as *AccommodationService) CreateAccommodation(accommodation domain.CreateAccommodation, ctx context.Context) (*domain.AccommodationDTO, *errors.ErrorStruct) {
-	images := accommodation.Images
+func (as *AccommodationService) CreateAccommodation(accommodation domain.CreateAccommodation, image multipart.File, ctx context.Context) (*domain.AccommodationDTO, *errors.ErrorStruct) {
 	var imageIds []string
-	for _, val := range images {
-		id := uuid.New().String()
-		err := as.fileStorage.WriteFile(val, id)
-		if err != nil {
-			return nil, errors.NewError("internal image storage error", 500)
-		}
-		imageIds = append(imageIds, id)
-	}
-
 	accomm := domain.Accommodation{
 		Name:             accommodation.Name,
 		Address:          accommodation.Address,
@@ -51,7 +42,6 @@ func (as *AccommodationService) CreateAccommodation(accommodation domain.CreateA
 		Conveniences:     accommodation.Conveniences,
 		MinNumOfVisitors: accommodation.MinNumOfVisitors,
 		MaxNumOfVisitors: accommodation.MaxNumOfVisitors,
-		ImageIds:         imageIds,
 	}
 	as.validator.ValidateAccommodation(&accomm)
 	as.validator.ValidateAvailabilities(&accommodation)
@@ -66,6 +56,10 @@ func (as *AccommodationService) CreateAccommodation(accommodation domain.CreateA
 	}
 
 	log.Println(accomm)
+	uuidStr := uuid.New().String()
+	imageIds = append(imageIds, uuidStr)
+	as.fileStorage.WriteFile(image, uuidStr)
+	accomm.ImageIds = imageIds
 	newAccommodation, foundErr := as.accommodationRepository.SaveAccommodation(accomm)
 	if foundErr != nil {
 		return nil, foundErr
@@ -76,14 +70,6 @@ func (as *AccommodationService) CreateAccommodation(accommodation domain.CreateA
 	if err != nil {
 		as.DeleteAccommodation(id)
 		return nil, errors.NewError("Service is not responding correcrtly", 500)
-	}
-	var imageBytes [][]byte
-	for _, val := range imageIds {
-		img, err := as.fileStorage.ReadFile(val)
-		if err != nil {
-			return nil, errors.NewError("image read error", 500)
-		}
-		imageBytes = append(imageBytes, img)
 	}
 
 	return &domain.AccommodationDTO{
@@ -97,9 +83,16 @@ func (as *AccommodationService) CreateAccommodation(accommodation domain.CreateA
 		Conveniences:     accommodation.Conveniences,
 		MinNumOfVisitors: accommodation.MinNumOfVisitors,
 		MaxNumOfVisitors: accommodation.MaxNumOfVisitors,
-		Images:           imageBytes,
+		ImageIds:         imageIds,
 	}, nil
+}
 
+func (as *AccommodationService) GetImage(id string) ([]byte, *errors.ErrorStruct) {
+	file, err := as.fileStorage.ReadFile(id)
+	if err != nil {
+		return nil, errors.NewError("image read error", 500)
+	}
+	return file, nil
 }
 
 func (as *AccommodationService) GetAllAccommodations() ([]*domain.AccommodationDTO, *errors.ErrorStruct) {
@@ -112,14 +105,7 @@ func (as *AccommodationService) GetAllAccommodations() ([]*domain.AccommodationD
 	for _, accommodation := range accommodations {
 		id := accommodation.Id.Hex()
 		imageIds := accommodation.ImageIds
-		var images [][]byte
-		for _, val := range imageIds {
-			img, err := as.fileStorage.ReadFile(val)
-			if err != nil {
-				return nil, errors.NewError("image read error", 500)
-			}
-			images = append(images, img)
-		}
+
 		domainAccommodations = append(domainAccommodations, &domain.AccommodationDTO{
 			Id:               id,
 			Name:             accommodation.Name,
@@ -131,7 +117,7 @@ func (as *AccommodationService) GetAllAccommodations() ([]*domain.AccommodationD
 			Conveniences:     accommodation.Conveniences,
 			MinNumOfVisitors: accommodation.MinNumOfVisitors,
 			MaxNumOfVisitors: accommodation.MaxNumOfVisitors,
-			Images:           images,
+			ImageIds:         imageIds,
 		})
 	}
 
@@ -154,6 +140,7 @@ func (as *AccommodationService) GetAccommodationById(accommodationId string) (*d
 		Conveniences:     accomm.Conveniences,
 		MinNumOfVisitors: accomm.MinNumOfVisitors,
 		MaxNumOfVisitors: accomm.MaxNumOfVisitors,
+		ImageIds:         accomm.ImageIds,
 	}, nil
 
 }

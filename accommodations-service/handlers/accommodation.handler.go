@@ -5,10 +5,14 @@ import (
 	"accommodations-service/services"
 	"accommodations-service/utils"
 	"context"
+	"encoding/csv"
 	"encoding/json"
+	"fmt"
 	"log"
+	"mime/multipart"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -20,23 +24,85 @@ type AccommodationsHandler struct {
 }
 
 func (a *AccommodationsHandler) CreateAccommodationById(rw http.ResponseWriter, h *http.Request) {
-	decoder := json.NewDecoder(h.Body)
-	decoder.DisallowUnknownFields()
-	var accomm domain.CreateAccommodation
-	if err := decoder.Decode(&accomm); err != nil {
-		utils.WriteErrorResp(err.Error(), 500, "api/accommodations", rw)
+	//decoder.DisallowUnknownFields()
+	var image multipart.File
+
+	contentType := h.Header.Get("Content-Type")
+	isMultipart := strings.HasPrefix(contentType, "multipart/form-data")
+
+	if isMultipart {
+		err := h.ParseMultipartForm(10 << 20)
+		if err != nil {
+			utils.WriteErrorResp(err.Error(), http.StatusBadRequest, "e puklo", rw)
+			return
+		}
+		file, _, err := h.FormFile("images")
+		if err != nil {
+			utils.WriteErrorResp(err.Error(), http.StatusBadRequest, "nista bajo", rw)
+			return
+		}
+		image = file
+		defer file.Close()
+	}
+
+	var accDates []domain.AvailableAccommodationDates
+	datesJson := h.FormValue("availableAccommodationDates")
+	err2 := json.Unmarshal([]byte(datesJson), &accDates)
+	if err2 != nil {
+		utils.WriteErrorResp(err2.Error(), http.StatusBadRequest, "dates puca", rw)
 		return
 	}
+	minVis, err := strconv.Atoi(h.FormValue("minNumOfVisitors"))
+	maxVis, err := strconv.Atoi(h.FormValue("maxNumOfVisitors"))
+
+	var conv []string
+	reader := csv.NewReader(strings.NewReader(h.FormValue("conveniences")))
+	records, err := reader.ReadAll()
+	if err != nil {
+		fmt.Println("Error reading CSV:", err)
+		return
+	}
+	for _, row := range records {
+		for _, value := range row {
+			conv = append(conv, value)
+		}
+	}
+	accomm := domain.CreateAccommodation{
+		Name:                        h.FormValue("name"),
+		Address:                     h.FormValue("address"),
+		City:                        h.FormValue("city"),
+		Country:                     h.FormValue("country"),
+		UserName:                    h.FormValue("username"),
+		UserId:                      h.FormValue("userId"),
+		Conveniences:                conv,
+		MinNumOfVisitors:            minVis,
+		MaxNumOfVisitors:            maxVis,
+		AvailableAccommodationDates: accDates,
+		Location:                    h.FormValue("location"),
+	}
+
 	ctx, cancel := context.WithTimeout(h.Context(), time.Second*5)
 	defer cancel()
-	accommodation, err := a.AccommodationService.CreateAccommodation(accomm, ctx)
-	if err != nil {
-		utils.WriteErrorResp(err.GetErrorMessage(), 500, "api/accommodations", rw)
+	accommodation, err4 := a.AccommodationService.CreateAccommodation(accomm, image, ctx)
+	if err4 != nil {
+		utils.WriteErrorResp(err4.GetErrorMessage(), 500, "ovo je druis", rw)
 	}
 	rw.Header().Set("Content-Type", "application/json")
-
 	rw.WriteHeader(http.StatusOK)
 	utils.WriteResp(accommodation, 201, rw)
+}
+
+func (a *AccommodationsHandler) GetImage(rw http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	imageId := vars["id"]
+	file, err := a.AccommodationService.GetImage(imageId)
+	if err != nil {
+		utils.WriteErrorResp(err.GetErrorMessage(), 500, "nemere slike otvarati", rw)
+		return
+	}
+	rw.Header().Set("Content-Type", "image/jpeg")
+	rw.WriteHeader(http.StatusOK)
+	rw.Write(file)
 
 }
 
@@ -46,9 +112,7 @@ func (a *AccommodationsHandler) GetAllAccommodations(rw http.ResponseWriter, r *
 		utils.WriteErrorResp(err.GetErrorMessage(), http.StatusInternalServerError, "api/accommodations", rw)
 		return
 	}
-
-	// Serialize accommodations to JSON and write response
-
+	//Serialize accommodations to JSON and write response
 	rw.Header().Set("Content-Type", "application/json")
 	rw.WriteHeader(http.StatusOK)
 	utils.WriteResp(accommodations, 201, rw)

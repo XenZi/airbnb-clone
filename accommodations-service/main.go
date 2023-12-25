@@ -99,6 +99,8 @@ func main() {
 
 	router.HandleFunc("/{id}", accommodationsHandler.GetAccommodationById).Methods("GET")
 
+	router.HandleFunc("/images/{id}", accommodationsHandler.GetImage).Methods("GET")
+
 	headersOk := gorillaHandlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"})
 	methodsOk := gorillaHandlers.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "OPTIONS", "DELETE"})
 	originsOk := gorillaHandlers.AllowedOrigins([]string{"http://localhost:4200"})

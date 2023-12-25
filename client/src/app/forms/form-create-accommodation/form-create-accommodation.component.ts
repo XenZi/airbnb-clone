@@ -162,8 +162,9 @@ export class FormCreateAccommodationComponent {
       return;
       
     }
-    const files = this.createAccommodationForm.get('pictures');
-    console.log(files?.value)
+    const images = this.createAccommodationForm.get('pictures');
+
+    console.log(images?.value)
     console.log(this.dateAvailabilities.value)
     this.accommodationsService.create(
       this.user?.id as string,
@@ -173,11 +174,11 @@ export class FormCreateAccommodationComponent {
       this.createAccommodationForm.value.city,
       this.country,
       this.fromBooleanToConveniences(),
-      this.createAccommodationForm.value.minNumOfVisitors as number,
-      this.createAccommodationForm.value.maxNumOfVisitors as number,
+      this.createAccommodationForm.value.minNumOfVisitors,
+      this.createAccommodationForm.value.maxNumOfVisitors,
       this.dateAvailabilities.value,
       this.createLocationCsv(),
-      files?.value,
+      images?.value,
     );
   }
 }

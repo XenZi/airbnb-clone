@@ -5,6 +5,7 @@ import (
 	hdfs "github.com/colinmarc/hdfs/v2"
 	"io"
 	"log"
+	"mime/multipart"
 	"os"
 )
 
@@ -69,15 +70,21 @@ func (fs *FileStorage) WalkDirectories() []string {
 	return paths
 }
 
-func (fs *FileStorage) WriteFile(fileContent string, fileName string) error {
+func (fs *FileStorage) WriteFile(fileContent multipart.File, fileName string) error {
 	filePath := hdfsWriteDir + fileName
+	log.Println("HDFS PATH IS:", filePath)
 	file, err := fs.client.Create(filePath)
 	if err != nil {
 		fs.logger.Println("Error in creating file on HDFS:", err)
 		return err
 	}
-	fileContentByteArray := []byte(fileContent)
-	_, err = file.Write(fileContentByteArray)
+	fileBytes, err := io.ReadAll(fileContent)
+	if err != nil {
+		fs.logger.Println("Convert error:", err)
+		return err
+	}
+
+	_, err = file.Write(fileBytes)
 	if err != nil {
 		fs.logger.Println("Error in writing file on HDFS:", err)
 		return err
@@ -90,21 +97,16 @@ func (fs *FileStorage) ReadFile(fileName string) ([]byte, error) {
 	filePath := hdfsWriteDir + fileName
 	file, err := fs.client.Open(filePath)
 	if err != nil {
-		fs.logger.Println("Error in opening file for reding on HDFS:", err)
+		fs.logger.Println("Error in opening file for reading on HDFS:", err)
 		return nil, err
 	}
-	buffer := make([]byte, 1024)
-	var fileContent []byte
-	for {
-		n, err := file.Read(buffer)
-		if err != nil && err != io.EOF {
-			fs.logger.Println("Error in reading file on HDFS:", err)
-			return nil, err
-		}
-		if n == 0 {
-			break
-		}
-		fileContent = append(fileContent, buffer[:n]...)
+	defer file.Close()
+
+	fileContent, err := io.ReadAll(file)
+	if err != nil {
+		fs.logger.Println("Error reading file content:", err)
+		return nil, err
 	}
+
 	return fileContent, nil
 }
