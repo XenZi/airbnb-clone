@@ -3,7 +3,9 @@ package main
 import (
 	"accommodations-service/client"
 	"accommodations-service/handlers"
+	"accommodations-service/middlewares"
 	"accommodations-service/repository"
+	"accommodations-service/security"
 	"accommodations-service/services"
 	"accommodations-service/utils"
 	"context"
@@ -63,6 +65,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	accommodationRepo := repository.NewAccommodationRepository(
 		mongoService.GetCli(), logger)
 	accommodationService := services.NewAccommodationService(accommodationRepo, validator, reservationsClient)
@@ -70,11 +73,18 @@ func main() {
 		AccommodationService: accommodationService,
 	}
 
+	accessControl := security.NewAccessControl()
+	err = accessControl.LoadAccessConfig("./security/rbac.json")
+	if err != nil {
+		log.Fatalf("Error loading access configuration: %v", err)
+	}
+	// ro
+
 	router := mux.NewRouter()
 
 	router.HandleFunc("/", accommodationsHandler.GetAllAccommodations).Methods("GET")
 
-	router.HandleFunc("/", accommodationsHandler.CreateAccommodationById).Methods("POST")
+	router.HandleFunc("/", middlewares.ValidateJWT(middlewares.RoleValidator(accessControl, accommodationsHandler.CreateAccommodationById))).Methods("POST")
 
 	router.HandleFunc("/{id}", accommodationsHandler.UpdateAccommodationById).Methods("PUT")
 

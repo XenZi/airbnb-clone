@@ -33,7 +33,7 @@ WORKDIR /root/
 COPY --from=builder /app/main .
 
 
-
+COPY ./accommodations-service/security/rbac.json ./security/
 
 # Command to run the executable
 CMD ["./main"]
