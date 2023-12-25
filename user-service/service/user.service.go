@@ -159,6 +159,7 @@ func (u *UserService) DeleteUser(role string, id string) *errors.ErrorStruct {
 		}
 	}
 	if role == "Host" {
+		// TODO add reservation check
 		err := u.accClient.DeleteUserAccommodations(context.TODO(), id)
 		if err != nil {
 			return err
