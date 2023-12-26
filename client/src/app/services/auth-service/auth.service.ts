@@ -233,11 +233,11 @@ export class AuthService {
        
         this.router.navigate(['/']);
       
-    }, 1000);
+    }, 300);
     setTimeout(() => {
-   
-    window.location.reload();
-     }, 1000);
+
+      window.location.reload();
+     }, 300);
 
     
    

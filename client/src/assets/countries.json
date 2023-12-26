@@ -11,10 +11,7 @@
         "name": "Algeria",
         "code": "DZ"
     },
-    {
-        "name": "American Samoa",
-        "code": "AS"
-    },
+   
     {
         "name": "Andorra",
         "code": "AD"
@@ -23,10 +20,7 @@
         "name": "Angola",
         "code": "AO"
     },
-    {
-        "name": "Anguilla",
-        "code": "AI"
-    },
+    
     {
         "name": "Antarctica",
         "code": "AQ"
@@ -47,10 +41,7 @@
         "name": "Aruba",
         "code": "AW"
     },
-    {
-        "name": "Asia/Pacific Region",
-        "code": "AP"
-    },
+    
     {
         "name": "Australia",
         "code": "AU"
@@ -107,10 +98,7 @@
         "name": "Bolivia",
         "code": "BO"
     },
-    {
-        "name": "Bonaire, Sint Eustatius and Saba",
-        "code": "BQ"
-    },
+   
     {
         "name": "Bosnia and Herzegovina",
         "code": "BA"
@@ -127,10 +115,7 @@
         "name": "Brazil",
         "code": "BR"
     },
-    {
-        "name": "British Indian Ocean Territory",
-        "code": "IO"
-    },
+    
     {
         "name": "Brunei Darussalam",
         "code": "BN"
@@ -187,10 +172,7 @@
         "name": "Christmas Island",
         "code": "CX"
     },
-    {
-        "name": "Cocos (Keeling) Islands",
-        "code": "CC"
-    },
+   
     {
         "name": "Colombia",
         "code": "CO"
@@ -207,10 +189,7 @@
         "name": "Congo, The Democratic Republic of the",
         "code": "CD"
     },
-    {
-        "name": "Cook Islands",
-        "code": "CK"
-    },
+    
     {
         "name": "Costa Rica",
         "code": "CR"
@@ -447,10 +426,7 @@
         "name": "Japan",
         "code": "JP"
     },
-    {
-        "name": "Jersey",
-        "code": "JE"
-    },
+    
     {
         "name": "Jordan",
         "code": "JO"
@@ -499,10 +475,7 @@
         "name": "Liberia",
         "code": "LR"
     },
-    {
-        "name": "Libyan Arab Jamahiriya",
-        "code": "LY"
-    },
+    
     {
         "name": "Liechtenstein",
         "code": "LI"
@@ -619,10 +592,7 @@
         "name": "Netherlands",
         "code": "NL"
     },
-    {
-        "name": "Netherlands Antilles",
-        "code": "AN"
-    },
+    
     {
         "name": "New Caledonia",
         "code": "NC"
@@ -643,14 +613,8 @@
         "name": "Nigeria",
         "code": "NG"
     },
-    {
-        "name": "Niue",
-        "code": "NU"
-    },
-    {
-        "name": "Norfolk Island",
-        "code": "NF"
-    },
+    
+    
     {
         "name": "North Korea",
         "code": "KP"
@@ -659,10 +623,7 @@
         "name": "North Macedonia",
         "code": "MK"
     },
-    {
-        "name": "Northern Mariana Islands",
-        "code": "MP"
-    },
+    
     {
         "name": "Norway",
         "code": "NO"
@@ -763,10 +724,7 @@
         "name": "Saint Martin",
         "code": "MF"
     },
-    {
-        "name": "Saint Pierre and Miquelon",
-        "code": "PM"
-    },
+    
     {
         "name": "Saint Vincent and the Grenadines",
         "code": "VC"
@@ -807,10 +765,7 @@
         "name": "Singapore",
         "code": "SG"
     },
-    {
-        "name": "Sint Maarten",
-        "code": "SX"
-    },
+    
     {
         "name": "Slovakia",
         "code": "SK"
@@ -855,10 +810,7 @@
         "name": "Suriname",
         "code": "SR"
     },
-    {
-        "name": "Svalbard and Jan Mayen",
-        "code": "SJ"
-    },
+    
     {
         "name": "Swaziland",
         "code": "SZ"
@@ -951,10 +903,7 @@
         "name": "United States",
         "code": "US"
     },
-    {
-        "name": "United States Minor Outlying Islands",
-        "code": "UM"
-    },
+   
     {
         "name": "Uruguay",
         "code": "UY"
@@ -983,14 +932,7 @@
         "name": "Virgin Islands, U.S.",
         "code": "VI"
     },
-    {
-        "name": "Wallis and Futuna",
-        "code": "WF"
-    },
-    {
-        "name": "Western Sahara",
-        "code": "EH"
-    },
+    
     {
         "name": "Yemen",
         "code": "YE"
@@ -1002,9 +944,5 @@
     {
         "name": "Zimbabwe",
         "code": "ZW"
-    },
-    {
-        "name": "Åland Islands",
-        "code": "AX"
     }
 ]
