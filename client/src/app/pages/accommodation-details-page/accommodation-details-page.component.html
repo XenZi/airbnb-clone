@@ -12,7 +12,8 @@
         ></app-accommodation-details>
         
         
-        <app-reservation-form [accommodation]="accommodation" [accommodationID]="accommodationID"></app-reservation-form>
+        <app-reservation-form *ngIf="
+        this.isUserLogged && this.userLogged?.role == 'Guest'" [accommodation]="accommodation" [accommodationID]="accommodationID"></app-reservation-form>
       </div>
       <div
         class="accommodation-details__row flex-row"
