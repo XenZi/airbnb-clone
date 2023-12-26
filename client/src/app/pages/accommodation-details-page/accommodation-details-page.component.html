@@ -5,7 +5,7 @@
       <h1 class="accommodation-details__title">
         {{ accommodation.name }}
       </h1>
-      <app-accommodation-photos></app-accommodation-photos>
+      <app-accommodation-photos [imageIds]="accommodation.imageIds"></app-accommodation-photos>
       <div class="accommodation-details__row flex-row justify-between">
         <app-accommodation-details
           [accommodation]="accommodation"

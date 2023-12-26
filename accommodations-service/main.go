@@ -68,7 +68,10 @@ func main() {
 
 	accommodationRepo := repository.NewAccommodationRepository(
 		mongoService.GetCli(), logger)
-	accommodationService := services.NewAccommodationService(accommodationRepo, validator, reservationsClient)
+	fileStorage := repository.NewFileStorage(logger)
+	defer fileStorage.Close()
+	_ = fileStorage.CreateDirectories()
+	accommodationService := services.NewAccommodationService(accommodationRepo, validator, reservationsClient, fileStorage)
 	accommodationsHandler := handlers.AccommodationsHandler{
 		AccommodationService: accommodationService,
 	}
@@ -95,6 +98,8 @@ func main() {
 	router.HandleFunc("/search", accommodationsHandler.SearchAccommodations).Methods("GET")
 
 	router.HandleFunc("/{id}", accommodationsHandler.GetAccommodationById).Methods("GET")
+
+	router.HandleFunc("/images/{id}", accommodationsHandler.GetImage).Methods("GET")
 
 	headersOk := gorillaHandlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"})
 	methodsOk := gorillaHandlers.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "OPTIONS", "DELETE"})

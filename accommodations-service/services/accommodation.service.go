@@ -7,8 +7,10 @@ import (
 	"accommodations-service/repository"
 	"accommodations-service/utils"
 	"context"
+	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"log"
+	"mime/multipart"
 	"time"
 )
 
@@ -16,17 +18,20 @@ type AccommodationService struct {
 	accommodationRepository *repository.AccommodationRepo
 	validator               *utils.Validator
 	reservationsClient      *client.ReservationsClient
+	fileStorage             *repository.FileStorage
 }
 
-func NewAccommodationService(accommodationRepo *repository.AccommodationRepo, validator *utils.Validator, reservationsClient *client.ReservationsClient) *AccommodationService {
+func NewAccommodationService(accommodationRepo *repository.AccommodationRepo, validator *utils.Validator, reservationsClient *client.ReservationsClient, fileStorage *repository.FileStorage) *AccommodationService {
 	return &AccommodationService{
 		accommodationRepository: accommodationRepo,
 		validator:               validator,
 		reservationsClient:      reservationsClient,
+		fileStorage:             fileStorage,
 	}
 }
 
-func (as *AccommodationService) CreateAccommodation(accommodation domain.CreateAccommodation, ctx context.Context) (*domain.AccommodationDTO, *errors.ErrorStruct) {
+func (as *AccommodationService) CreateAccommodation(accommodation domain.CreateAccommodation, image multipart.File, ctx context.Context) (*domain.AccommodationDTO, *errors.ErrorStruct) {
+	var imageIds []string
 	accomm := domain.Accommodation{
 		Name:             accommodation.Name,
 		Address:          accommodation.Address,
@@ -51,6 +56,10 @@ func (as *AccommodationService) CreateAccommodation(accommodation domain.CreateA
 	}
 
 	log.Println(accomm)
+	uuidStr := uuid.New().String()
+	imageIds = append(imageIds, uuidStr)
+	as.fileStorage.WriteFile(image, uuidStr)
+	accomm.ImageIds = imageIds
 	newAccommodation, foundErr := as.accommodationRepository.SaveAccommodation(accomm)
 	if foundErr != nil {
 		return nil, foundErr
@@ -74,8 +83,16 @@ func (as *AccommodationService) CreateAccommodation(accommodation domain.CreateA
 		Conveniences:     accommodation.Conveniences,
 		MinNumOfVisitors: accommodation.MinNumOfVisitors,
 		MaxNumOfVisitors: accommodation.MaxNumOfVisitors,
+		ImageIds:         imageIds,
 	}, nil
+}
 
+func (as *AccommodationService) GetImage(id string) ([]byte, *errors.ErrorStruct) {
+	file, err := as.fileStorage.ReadFile(id)
+	if err != nil {
+		return nil, errors.NewError("image read error", 500)
+	}
+	return file, nil
 }
 
 func (as *AccommodationService) GetAllAccommodations() ([]*domain.AccommodationDTO, *errors.ErrorStruct) {
@@ -87,6 +104,8 @@ func (as *AccommodationService) GetAllAccommodations() ([]*domain.AccommodationD
 	var domainAccommodations []*domain.AccommodationDTO
 	for _, accommodation := range accommodations {
 		id := accommodation.Id.Hex()
+		imageIds := accommodation.ImageIds
+
 		domainAccommodations = append(domainAccommodations, &domain.AccommodationDTO{
 			Id:               id,
 			Name:             accommodation.Name,
@@ -98,6 +117,7 @@ func (as *AccommodationService) GetAllAccommodations() ([]*domain.AccommodationD
 			Conveniences:     accommodation.Conveniences,
 			MinNumOfVisitors: accommodation.MinNumOfVisitors,
 			MaxNumOfVisitors: accommodation.MaxNumOfVisitors,
+			ImageIds:         imageIds,
 		})
 	}
 
@@ -120,6 +140,7 @@ func (as *AccommodationService) GetAccommodationById(accommodationId string) (*d
 		Conveniences:     accomm.Conveniences,
 		MinNumOfVisitors: accomm.MinNumOfVisitors,
 		MaxNumOfVisitors: accomm.MaxNumOfVisitors,
+		ImageIds:         accomm.ImageIds,
 	}, nil
 
 }

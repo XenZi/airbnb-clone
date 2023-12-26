@@ -31,7 +31,50 @@ export class AccommodationsService {
   getCountries(): Observable<any[]> {
     return this.http.get<any[]>('assets/countries.json');
   }
+
+
+
+  private formatFormData(
+    userId: string,
+    username: string,
+    name: string,
+    address: string,
+    city: string,
+    country: string,
+    conveniences: string[],
+    minNumOfVisitors: string,
+    maxNumOfVisitors: string,
+    availableAccommodationDates: DateAvailability[],
+    location: string,
+    images:FormArray
+  ): FormData {
+    let formData: FormData = new FormData();
+    formData.append('userId', userId);
+    formData.append('username', username);
+    formData.append('name', name);
+    formData.append('address', address);
+    formData.append('city', city);
+    formData.append('country', country);
+    conveniences.forEach(conv => formData.append('conveniences', conv));
+    formData.append('minNumOfVisitors',minNumOfVisitors);
+    formData.append('maxNumOfVisitors', maxNumOfVisitors);
+    formData.append("availableAccommodationDates", JSON.stringify(availableAccommodationDates));
+    formData.append('location', location);
+
+    if (Array.from(images as unknown as Array<any>).length !== 0) {
+      Array.from(images as unknown as Array<any>).forEach((file) => {
+        formData.append('images', file);
+      });
+    }
+
+
+
+    return formData;
+  }
   
+
+
+
 
 
   create(
@@ -42,14 +85,14 @@ export class AccommodationsService {
     city: string,
     country: string,
     conveniences: string[],
-    minNumOfVisitors: number,
-    maxNumOfVisitors: number,
+    minNumOfVisitors: string,
+    maxNumOfVisitors: string,
     availableAccommodationDates: DateAvailability[],
     location: string,
-    files:FormArray
+    images:FormArray
   ): void {
     this.http
-      .post(`${apiURL}/accommodations/`, {
+      .post(`${apiURL}/accommodations/`, this.formatFormData(
         userId,
         username,
         name,
@@ -57,12 +100,12 @@ export class AccommodationsService {
         city,
         country,
         conveniences,
-        minNumOfVisitors: Number(minNumOfVisitors),
-        maxNumOfVisitors: Number(maxNumOfVisitors),
+        minNumOfVisitors,
+        maxNumOfVisitors,
         availableAccommodationDates,
         location,
-        files
-      })
+        images
+      ))
       .subscribe({
         next: (data) => {
           this.toastSerice.showToast(
