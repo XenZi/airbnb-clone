@@ -152,6 +152,7 @@ func (u *UserService) DeleteUser(role string, id string) *errors.ErrorStruct {
 	if role == "Guest" {
 		allow, err := u.reservationClient.GuestDeleteAllowed(context.TODO(), id)
 		if err != nil {
+			log.Println("ovo je error", err)
 			return err
 		}
 		if !allow {

@@ -8,7 +8,9 @@
     >Confirm</app-button
   >
   <ul>
-    <li *ngFor="let date of availabilityData">{{date.startDate}} - {{date.endDate}} - {{date.price}}</li>
+    <li *ngFor="let date of availabilityData">Available Dates: {{date.startDate}} - {{date.endDate}}</li>
+    <br/>
+      <li *ngFor="let date of availabilityData">Price: {{date.price}}$</li>
     </ul>
 </form>
 

@@ -86,6 +86,7 @@ func (a *AccommodationsHandler) CreateAccommodationById(rw http.ResponseWriter, 
 	accommodation, err4 := a.AccommodationService.CreateAccommodation(accomm, image, ctx)
 	if err4 != nil {
 		utils.WriteErrorResp(err4.GetErrorMessage(), 500, "ovo je druis", rw)
+		return
 	}
 	rw.Header().Set("Content-Type", "application/json")
 	rw.WriteHeader(http.StatusOK)

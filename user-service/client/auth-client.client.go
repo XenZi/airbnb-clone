@@ -24,6 +24,7 @@ func NewAuthClient(host, port string, client *http.Client, circuitBreaker *gobre
 }
 
 func (ac AuthClient) DeleteUserAuth(ctx context.Context, id string) *errors.ErrorStruct {
+	log.Println("Poslato u bezdan")
 	cbResp, err := ac.circuitBreaker.Execute(func() (interface{}, error) {
 		req, err := http.NewRequestWithContext(ctx, http.MethodDelete, ac.address+"/"+id, http.NoBody)
 		if err != nil {

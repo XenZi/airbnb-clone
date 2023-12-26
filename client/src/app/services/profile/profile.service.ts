@@ -81,8 +81,8 @@ export class ProfileService {
           'You have been Erased',
           ToastNotificationType.Success
         );
-        this.router.navigate(['/'])
-        this.authService.logout()
+        // this.router.navigate(['/'])
+        // this.authService.logout()
         
         
       },

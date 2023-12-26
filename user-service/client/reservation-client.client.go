@@ -15,6 +15,10 @@ type ReservationClient struct {
 	client         *http.Client
 	circuitBreaker *gobreaker.CircuitBreaker
 }
+
+type ResponseData struct {
+	Data []Reservation `json:"data"`
+}
 type Reservation struct {
 	Id                gocql.UUID `json:"id"`
 	UserID            string     `json:"userId"`
@@ -30,6 +34,7 @@ type Reservation struct {
 	DateRange         []string   `json:"dateRange"`
 	IsActive          bool       `json:"isActive"`
 	Country           string     `json:"country"`
+	HostID            string     `json:"hostId"`
 }
 
 func NewReservationClient(host, port string, client *http.Client, circuitBreaker *gobreaker.CircuitBreaker) *ReservationClient {
@@ -43,7 +48,7 @@ func NewReservationClient(host, port string, client *http.Client, circuitBreaker
 func (rc ReservationClient) GuestDeleteAllowed(ctx context.Context, id string) (bool, *errors.ErrorStruct) {
 
 	cbResp, err := rc.circuitBreaker.Execute(func() (interface{}, error) {
-		req, err := http.NewRequestWithContext(ctx, http.MethodGet, rc.address+"/user/"+id, http.NoBody)
+		req, err := http.NewRequestWithContext(ctx, http.MethodGet, rc.address+"/user/guest/"+id, http.NoBody)
 		if err != nil {
 			return nil, err
 		}
@@ -57,10 +62,12 @@ func (rc ReservationClient) GuestDeleteAllowed(ctx context.Context, id string) (
 		return false, errors.NewError("communication error", resp.StatusCode)
 	}
 	var list []Reservation
-	erro := json.NewDecoder(resp.Body).Decode(&list)
+	var responseData ResponseData
+	erro := json.NewDecoder(resp.Body).Decode(&responseData)
 	if erro != nil {
-		return false, errors.NewError("data error", resp.StatusCode)
+		return false, errors.NewError("data error", 500)
 	}
+	list = responseData.Data
 	if len(list) != 0 {
 		return false, errors.NewError("user has pend reservations", 401)
 	}

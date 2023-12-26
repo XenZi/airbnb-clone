@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/sony/gobreaker"
+	"log"
 	"net/http"
 	"user-service/errors"
 )
@@ -26,6 +27,7 @@ func (ac AccClient) DeleteUserAccommodations(ctx context.Context, id string) *er
 	cbResp, err := ac.circuitBreaker.Execute(func() (interface{}, error) {
 		req, err := http.NewRequestWithContext(ctx, http.MethodDelete, ac.address+"/user/"+id, http.NoBody)
 		if err != nil {
+			log.Println(err.Error())
 			return nil, err
 		}
 		return ac.client.Do(req)
