@@ -66,11 +66,10 @@ export class ReservationService {
 
   deleteById(
     id:string,
-    
-    
-  ): void {
+    country: string
+    ): void {
     this.http
-      .delete(`${apiURL}${this.getLoggedUserId}/reservations/${id}`, {
+      .put(`${apiURL}/reservations/${country}/${id}`, {
        
       })
       .subscribe({
@@ -81,11 +80,9 @@ export class ReservationService {
             ToastNotificationType.Success
             
           );
-          
-          
-          
         },
         error: (err) => {
+          console.log(err)
           this.toastService.showToast(
             'Error',
             err.error.error,
@@ -96,4 +93,7 @@ export class ReservationService {
         this.router.navigate(['/']);
   }
   
+  getAllReservationsById(id: string): Observable<any> {
+    return this.http.get(`${apiURL}/reservations/user/guest/${id}`)
+  }
 }

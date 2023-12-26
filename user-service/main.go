@@ -118,11 +118,11 @@ func main() {
 
 	router := mux.NewRouter()
 
+	router.HandleFunc("/{id}", middleware.ValidateJWT(profileHandler.DeleteHandler)).Methods("DELETE")
 	router.HandleFunc("/create", profileHandler.CreateHandler).Methods("POST")
 	router.HandleFunc("/{id}", middleware.ValidateJWT(profileHandler.UpdateHandler)).Methods("PUT")
 	router.HandleFunc("/all", profileHandler.GetAllHandler).Methods("GET")
 	router.HandleFunc("/{id}", profileHandler.GetUserById).Methods("GET")
-	router.HandleFunc("/{id}", middleware.ValidateJWT(profileHandler.DeleteHandler)).Methods("DELETE")
 	router.HandleFunc("/creds/{id}", profileHandler.CredsHandler).Methods("POST")
 
 	port := os.Getenv("PORT")

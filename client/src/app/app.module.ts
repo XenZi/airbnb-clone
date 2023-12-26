@@ -45,7 +45,7 @@ import { NotificationsComponent } from './components/notifications/notifications
 import { SearchComponent } from './components/search/search.component';
 import { FormSearchComponent } from './forms/form-search/form-search.component';
 import { SearchPageComponent } from './pages/search-page/search-page.component';
-import { CountryPickerModule } from 'ngx-country-picker';
+import { UserReservationsTableComponent } from './components/user-reservations-table/user-reservations-table.component';
 @NgModule({
   declarations: [
     AppComponent,
@@ -84,6 +84,7 @@ import { CountryPickerModule } from 'ngx-country-picker';
     SearchComponent,
     FormSearchComponent,
     SearchPageComponent,
+    UserReservationsTableComponent,
   ],
   imports: [
     BrowserModule,
@@ -96,7 +97,6 @@ import { CountryPickerModule } from 'ngx-country-picker';
     FormsModule,
     CalendarModule,
     BrowserAnimationsModule,
-    CountryPickerModule,
   ],
   providers: [
     {
