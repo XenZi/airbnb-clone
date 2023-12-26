@@ -218,7 +218,8 @@ export class AuthService {
 
   logout(): void {
     this.localStorageService.clear();
-    window.location.reload();
+    
+    
     setTimeout(() => {
       this.toastSerice.showToast(
         "You're logged out",
@@ -226,6 +227,20 @@ export class AuthService {
         ToastNotificationType.Info
       );
     }, 1000);
+
+    setTimeout(() => {
+      
+       
+        this.router.navigate(['/']);
+      
+    }, 1000);
+    setTimeout(() => {
+   
+    window.location.reload();
+     }, 1000);
+
+    
+   
   }
 
   updateCredentials(email: string, username: string, password: string): void {
