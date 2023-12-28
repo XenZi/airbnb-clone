@@ -3,7 +3,6 @@ package main
 import (
 	"accommodations-service/client"
 	"accommodations-service/handlers"
-	"accommodations-service/middlewares"
 	"accommodations-service/repository"
 	"accommodations-service/security"
 	"accommodations-service/services"
@@ -87,7 +86,7 @@ func main() {
 
 	router.HandleFunc("/", accommodationsHandler.GetAllAccommodations).Methods("GET")
 
-	router.HandleFunc("/", middlewares.ValidateJWT(middlewares.RoleValidator(accessControl, accommodationsHandler.CreateAccommodationById))).Methods("POST")
+	router.HandleFunc("/", accommodationsHandler.CreateAccommodationById).Methods("POST")
 
 	router.HandleFunc("/{id}", accommodationsHandler.UpdateAccommodationById).Methods("PUT")
 
@@ -100,6 +99,8 @@ func main() {
 	router.HandleFunc("/{id}", accommodationsHandler.GetAccommodationById).Methods("GET")
 
 	router.HandleFunc("/images/{id}", accommodationsHandler.GetImage).Methods("GET")
+
+	router.HandleFunc("/rating/{id}", accommodationsHandler.PutAccommodationRating).Methods("PUT")
 
 	headersOk := gorillaHandlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"})
 	methodsOk := gorillaHandlers.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "OPTIONS", "DELETE"})

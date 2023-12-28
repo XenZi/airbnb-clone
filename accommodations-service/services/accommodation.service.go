@@ -118,6 +118,7 @@ func (as *AccommodationService) GetAllAccommodations() ([]*domain.AccommodationD
 			MinNumOfVisitors: accommodation.MinNumOfVisitors,
 			MaxNumOfVisitors: accommodation.MaxNumOfVisitors,
 			ImageIds:         imageIds,
+			Rating:           accommodation.Rating,
 		})
 	}
 
@@ -200,6 +201,14 @@ func (as *AccommodationService) DeleteAccommodationsByUserId(userID string) *err
 		return deleteErr
 	}
 
+	return nil
+}
+func (as *AccommodationService) PutAccommodationRating(accommodationID string, accommodation domain.Accommodation) *errors.ErrorStruct {
+
+	err := as.accommodationRepository.PutAccommodationRating(accommodationID, accommodation.Rating)
+	if err != nil {
+		return errors.NewError("Error calling repository service", 500)
+	}
 	return nil
 }
 

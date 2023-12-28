@@ -241,3 +241,25 @@ func (a *AccommodationsHandler) SearchAccommodations(w http.ResponseWriter, r *h
 	utils.WriteResp(accommodations, 201, w)
 
 }
+
+func (a *AccommodationsHandler) PutAccommodationRating(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	accommodationID := vars["id"]
+
+	decoder := json.NewDecoder(r.Body)
+	decoder.DisallowUnknownFields()
+	var accommodation domain.Accommodation
+
+	if err := decoder.Decode(&accommodation); err != nil {
+		log.Println(err)
+		utils.WriteErrorResp("Internal server error", 500, "api/recommendation/rating/accommodation", w)
+		return
+	}
+
+	// Now, you can use the 'rating' variable in your logic
+	a.AccommodationService.PutAccommodationRating(accommodationID, accommodation)
+
+	// Respond with a success message or any appropriate response
+	w.Header().Set("Content-Type", "application/json")
+	utils.WriteResp(accommodation, 201, w)
+}

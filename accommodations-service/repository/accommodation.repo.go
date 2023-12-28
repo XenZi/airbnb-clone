@@ -24,6 +24,8 @@ func NewAccommodationRepository(cli *mongo.Client, logger *log.Logger) *Accommod
 }
 func (ar *AccommodationRepo) SaveAccommodation(accommodation do.Accommodation) (*do.Accommodation, *errors.ErrorStruct) {
 	accommodationCollection := ar.cli.Database("accommodations-service").Collection("accommodations")
+	accommodation.Rating = 0.0
+
 	insertedAccommodation, err := accommodationCollection.InsertOne(context.TODO(), accommodation)
 	if err != nil {
 		ar.logger.Println(err.Error())
@@ -109,6 +111,25 @@ func (ar *AccommodationRepo) UpdateAccommodationById(accommodation do.Accommodat
 	}
 
 	return &accommodation, nil
+}
+func (ar *AccommodationRepo) PutAccommodationRating(accommodationID string, rating float32) *errors.ErrorStruct {
+	accommodationCollection := ar.cli.Database("accommodations-service").Collection("accommodations")
+	id, _ := primitive.ObjectIDFromHex(accommodationID)
+	filter := bson.D{{Key: "_id", Value: id}}
+	update := bson.D{
+		{Key: "$set", Value: bson.D{
+			{Key: "rating", Value: rating},
+		}},
+	}
+
+	// Perform the update operation
+	_, err := accommodationCollection.UpdateOne(context.TODO(), filter, update)
+	if err != nil {
+		ar.logger.Println(err)
+		return errors.NewError("Unable to update rating, database error", 500)
+	}
+
+	return nil
 }
 
 func (ar *AccommodationRepo) DeleteAccommodationById(id string) *errors.ErrorStruct {
