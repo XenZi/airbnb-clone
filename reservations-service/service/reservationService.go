@@ -90,8 +90,8 @@ func (s *ReservationService) ReservationsInDateRange(accommodationIDs []string, 
 	}
 	return reservations, nil
 }
-func (s *ReservationService) GetAvailableDates(accommodationID, startDate, endDate string) ([]domain.FreeReservation, *errors.ReservationError) {
-	reservations, err := s.repo.AvailableDates(accommodationID, startDate, endDate)
+func (s *ReservationService) GetAvailableDates(accommodationID, startDate, endDate, location string) ([]domain.FreeReservation, *errors.ReservationError) {
+	reservations, err := s.repo.AvailableDates(accommodationID, startDate, endDate, location)
 	if err != nil {
 		return nil, errors.NewReservationError(500, err.Error())
 	}
@@ -112,8 +112,8 @@ func (s *ReservationService) GetAvailabilityForAccommodation(accommodationID str
 	return avl, nil
 }
 
-func (s *ReservationService) DeleteReservationById(country string, id string) (*domain.Reservation, *errors.ReservationError) {
-	deletedReservation, err := s.repo.DeleteById(country, id)
+func (s *ReservationService) DeleteReservationById(country string, id, userID, hostID string) (*domain.Reservation, *errors.ReservationError) {
+	deletedReservation, err := s.repo.DeleteById(country, id, userID, hostID)
 	if err != nil {
 		return nil, errors.NewReservationError(500, err.Error())
 	}

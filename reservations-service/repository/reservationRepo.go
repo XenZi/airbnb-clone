@@ -6,6 +6,7 @@ import (
 	"os"
 	"reservation-service/domain"
 	"reservation-service/errors"
+	"reservation-service/utils"
 	"strings"
 
 	"github.com/gocql/gocql"
@@ -80,25 +81,52 @@ func (rr *ReservationRepo) CreateTables() {
 	if err != nil {
 		rr.logger.Println(err)
 	}
-	err = rr.session.Query(
-		fmt.Sprintf(`CREATE TABLE IF NOT EXISTS %s
-			(id UUID, user_id text, accommodation_id text, start_date text, end_date text, username text, 
-			accommodation_name text, location text, price int, num_of_days int, continent text, date_range text, 
-			is_active boolean, country text, host_id text,
-			PRIMARY KEY((user_id),is_active))
-			WITH CLUSTERING ORDER BY(is_active ASC)`, "reservation_by_user")).Exec()
+	err = rr.session.Query(fmt.Sprintf(`CREATE TABLE IF NOT EXISTS %s (
+		id UUID,
+		user_id text,
+		accommodation_id text,
+		start_date text,
+		end_date text,
+		username text,
+		accommodation_name text,
+		location text,
+		price int,
+		num_of_days int,
+		continent text,
+		date_range text,
+		is_active boolean,
+		country text,
+		host_id text,
+		PRIMARY KEY (user_id, id)
+	) WITH CLUSTERING ORDER BY (id ASC)`, "reservation_by_user")).Exec()
+
 	if err != nil {
 		rr.logger.Println(err)
 	}
-	err = rr.session.Query(
-		fmt.Sprintf(`CREATE TABLE IF NOT EXISTS %s
-		(id UUID,user_id text, accommodation_id text, start_date text, end_date text, username text, accommodation_name text,location text,price int,
-			num_of_days int,continent text,date_range text,is_active boolean,country text,host_id text,
-			PRIMARY KEY((host_id),is_active))
-			WITH CLUSTERING ORDER BY(is_active ASC)`, "reservation_by_host")).Exec()
+
+	err = rr.session.Query(fmt.Sprintf(`CREATE TABLE IF NOT EXISTS %s (
+		id UUID,
+		user_id text,
+		accommodation_id text,
+		start_date text,
+		end_date text,
+		username text,
+		accommodation_name text,
+		location text,
+		price int,
+		num_of_days int,
+		continent text,
+		date_range text,
+		is_active boolean,
+		country text,
+		host_id text,
+		PRIMARY KEY (host_id, id)
+	) WITH CLUSTERING ORDER BY (id ASC)`, "reservation_by_host")).Exec()
+
 	if err != nil {
 		rr.logger.Println(err)
 	}
+
 }
 
 func (rr *ReservationRepo) DropTables() {
@@ -177,7 +205,7 @@ func (rr *ReservationRepo) GetReservationsByUser(id string) ([]domain.Reservatio
 func (rr *ReservationRepo) GetReservationsByHost(id string) ([]domain.Reservation, error) {
 	scanner := rr.session.Query(`SELECT id,accommodation_id, user_id, start_date, end_date,username,accommodation_name,location,price,
 	num_of_days,date_range,is_active,country,host_id FROM reservation_by_host
-	 WHERE is_active = true AND user_id = ?`,
+	 WHERE is_active = true AND host_id = ?`,
 		id).Iter().Scanner()
 
 	var reservations []domain.Reservation
@@ -205,30 +233,26 @@ func (rr *ReservationRepo) GetReservationsByHost(id string) ([]domain.Reservatio
 
 	return reservations, nil
 }
-
 func (rr *ReservationRepo) InsertAvailability(reservation *domain.FreeReservation) (*domain.FreeReservation, error) {
 	Id, _ := gocql.RandomUUID()
-	countryData := gountries.New()
-	locationParts := strings.Split(reservation.Location, ",")
-	if len(locationParts) < 3 {
-		return nil, errors.NewReservationError(400, "Invalid location format: %s")
-	}
-
-	country := locationParts[2]
-	result, err := countryData.FindCountryByName(country)
+	country, err := utils.GetCountry(reservation.Location)
 	if err != nil {
 		return nil, errors.NewReservationError(500, err.Error())
 	}
 
-	continent := result.Continent
-
-	err = rr.session.Query(`
-		INSERT INTO free_accommodation (id, accommodation_id, start_date, end_date, location, price, continent,country)
-		VALUES(?, ?, ?, ?, ?, ?, ?, ?)
-	`, Id, reservation.AccommodationID, reservation.StartDate, reservation.EndDate, reservation.Location, reservation.Price, continent, country).Exec()
+	continent, err := utils.GetContinent(reservation.Location)
 	if err != nil {
+		return nil, errors.NewReservationError(500, err.Error())
+	}
+
+	query := rr.session.Query(`
+		INSERT INTO free_accommodation (id, accommodation_id, start_date, end_date, location, price, continent, country)
+		VALUES(?, ?, ?, ?, ?, ?, ?, ?)
+	`, Id, reservation.AccommodationID, reservation.StartDate, reservation.EndDate, reservation.Location, reservation.Price, continent, country)
+
+	if err := query.Exec(); err != nil {
 		rr.logger.Println(err)
-		return nil, err
+		return nil, errors.NewReservationError(500, err.Error())
 	}
 
 	reservation.Id = Id
@@ -237,17 +261,21 @@ func (rr *ReservationRepo) InsertAvailability(reservation *domain.FreeReservatio
 	return reservation, nil
 }
 
-func (rr *ReservationRepo) AvailableDates(accommodationID, startDate, endDate string) ([]domain.FreeReservation, *errors.ReservationError) {
+func (rr *ReservationRepo) AvailableDates(accommodationID, startDate, endDate, location string) ([]domain.FreeReservation, *errors.ReservationError) {
 	var result []domain.FreeReservation
+	continent, err := utils.GetContinent(location)
+	if err != nil {
+		return nil, errors.NewReservationError(500, err.Error())
+	}
 
 	query := `
         SELECT id, accommodation_id, start_date, end_date, location, price,country
         FROM free_accommodation 
-        WHERE accommodation_id = ? 
+        WHERE continent = ? AND accommodation_id = ? 
         AND start_date <= ? AND end_date >= ?
-        ALLOW FILTERING`
+        `
 
-	iter := rr.session.Query(query, accommodationID, startDate, endDate).Iter()
+	iter := rr.session.Query(query, continent, accommodationID, startDate, endDate).Iter()
 
 	var reservation domain.FreeReservation
 	for iter.Scan(&reservation.Id, &reservation.AccommodationID, &reservation.StartDate, &reservation.EndDate, &reservation.Location, &reservation.Price, reservation.Country) {
@@ -266,19 +294,15 @@ func (rr *ReservationRepo) InsertReservation(reservation *domain.Reservation) (*
 	Id, _ := gocql.RandomUUID()
 	dateRangeString := strings.Join(reservation.DateRange, ",")
 
-	countryData := gountries.New()
-	locationParts := strings.Split(reservation.Location, ",")
-	if len(locationParts) < 3 {
-		return nil, errors.NewReservationError(400, "Invalid location format: %s")
-	}
-
-	country := locationParts[2]
-	result, err := countryData.FindCountryByName(country)
+	country, err := utils.GetCountry(reservation.Location)
 	if err != nil {
 		return nil, errors.NewReservationError(500, err.Error())
 	}
 
-	continent := result.Continent
+	continent, err := utils.GetContinent(reservation.Location)
+	if err != nil {
+		return nil, errors.NewReservationError(500, err.Error())
+	}
 
 	batch := rr.session.NewBatch(gocql.LoggedBatch)
 
@@ -313,7 +337,7 @@ func (rr *ReservationRepo) InsertReservation(reservation *domain.Reservation) (*
 	return reservation, nil
 }
 
-func (rr *ReservationRepo) DeleteById(country string, id string) (*domain.Reservation, *errors.ReservationError) {
+func (rr *ReservationRepo) DeleteById(country string, id, userID, hostID string) (*domain.Reservation, *errors.ReservationError) {
 	countryData := gountries.New()
 
 	result, err := countryData.FindCountryByName(country)
@@ -321,10 +345,14 @@ func (rr *ReservationRepo) DeleteById(country string, id string) (*domain.Reserv
 		return nil, errors.NewReservationError(500, err.Error())
 	}
 	continent := result.Continent
-	err = rr.session.Query(`UPDATE reservations SET is_active = false WHERE continent = ? AND country = ? AND id = ?`, continent, country, id).Exec()
-	if err != nil {
+	batch := rr.session.NewBatch(gocql.LoggedBatch)
+
+	batch.Query(`UPDATE reservations SET is_active = false WHERE continent = ? AND country = ? AND id = ?`, continent, country, id)
+	batch.Query(`UPDATE reservation_by_user SET is_active = false WHERE user_id = ? and id = ? `, userID, id)
+	batch.Query(`UPDATE reservation_by_host SET is_active = false WHERE host_id = ? and id = ?`, hostID, id)
+	if err := rr.session.ExecuteBatch(batch); err != nil {
 		rr.logger.Println(err)
-		return nil, errors.NewReservationError(500, "Unable to delete, database error")
+		return nil, errors.NewReservationError(500, "Unable to cancel the reservation")
 	}
 
 	return nil, nil
