@@ -110,16 +110,17 @@ func (r RatingRepository) RateAccommodation(rating domains.RateAccommodation) (*
 			MERGE (a:Accommodation {id: $accommodationID})
 			ON CREATE SET a.id = $accommodationID
 			MERGE (g)-[r:RATED]->(a)
-			ON CREATE SET r.rate = $rate
+			ON CREATE SET r.rate = $rate, r.createdAt = $createdAt
 			RETURN a.id as accommodationId, 
 			g.id AS guestID, g.email AS guestEmail, g.username AS guestUsername, 
-			r.rate AS rate`,
+			r.rate AS rate, r.createdAt AS createdAt`,
 				map[string]any{
 					"guestID":         rating.Guest.ID,
 					"guestEmail":      rating.Guest.Email,
 					"guestUsername":   rating.Guest.Username,
 					"accommodationID": rating.AccommodationID,
 					"rate":            rating.Rate,
+					"createdAt":       rating.CreatedAt,
 				})
 			if err != nil {
 				return nil, err
@@ -133,7 +134,7 @@ func (r RatingRepository) RateAccommodation(rating domains.RateAccommodation) (*
 				guestUsername, _ := record.Get("guestUsername")
 
 				rate, _ := record.Get("rate")
-
+				createdAt, _ := record.Get("createdAt")
 				rateAccommodation := domains.RateAccommodation{
 					Guest: domains.Guest{
 						ID:       guestID.(string),
@@ -142,6 +143,7 @@ func (r RatingRepository) RateAccommodation(rating domains.RateAccommodation) (*
 					},
 					AccommodationID: accommodationID.(string),
 					Rate:            rate.(int64),
+					CreatedAt:       createdAt.(string),
 				}
 				return rateAccommodation, nil
 			}
@@ -169,11 +171,12 @@ func (r RatingRepository) UpdateRatingByAccommodationGuest(rating domains.RateAc
 				`MATCH (a:Accommodation {id: $accommodationId})<-[r:RATED]-(g:Guest {id: $guestId}) SET r.rate = $newRate
 					RETURN a.id AS accommodationID, 
 				   g.id AS guestID, g.email AS guestEmail, g.username AS guestUsername, 
-				   r.rate AS rate`,
+				   r.rate AS rate, r.createdAt AS createdAt`,
 				map[string]any{
 					"guestId":         rating.Guest.ID,
 					"accommodationId": rating.AccommodationID,
 					"newRate":         rating.Rate,
+					"createdAt":       rating.CreatedAt,
 				})
 			if err != nil {
 				return nil, err
@@ -184,7 +187,7 @@ func (r RatingRepository) UpdateRatingByAccommodationGuest(rating domains.RateAc
 				guestID, _ := record.Get("guestID")
 				guestEmail, _ := record.Get("guestEmail")
 				guestUsername, _ := record.Get("guestUsername")
-
+				createdAt, _ := record.Get("createdAt")
 				rate, _ := record.Get("rate")
 
 				rateAccommodation := domains.RateAccommodation{
@@ -195,6 +198,7 @@ func (r RatingRepository) UpdateRatingByAccommodationGuest(rating domains.RateAc
 					},
 					AccommodationID: accommodationID.(string),
 					Rate:            rate.(int64),
+					CreatedAt:       createdAt.(string),
 				}
 				return rateAccommodation, nil
 			}
@@ -250,7 +254,7 @@ func (r RatingRepository) GetAllRatingsByHostID(hostID string) (*[]domains.RateH
 				`MATCH (h:Host {id: $hostID})<-[r:RATED]-(g:Guest)
 			RETURN h.id AS hostID, h.email AS hostEmail, h.username AS hostUsername, 
 				   g.id AS guestID, g.email AS guestEmail, g.username AS guestUsername, 
-				   r.rate AS rate
+				   r.rate AS rate, r.createdAt AS createdAt
 			`,
 				map[string]any{
 					"hostID": hostID,
@@ -267,7 +271,7 @@ func (r RatingRepository) GetAllRatingsByHostID(hostID string) (*[]domains.RateH
 				guestID, _ := record.Get("guestID")
 				guestEmail, _ := record.Get("guestEmail")
 				guestUsername, _ := record.Get("guestUsername")
-
+				createdAt, _ := record.Get("createdAt")
 				rate, _ := record.Get("rate")
 
 				rateHost := domains.RateHost{
@@ -281,7 +285,8 @@ func (r RatingRepository) GetAllRatingsByHostID(hostID string) (*[]domains.RateH
 						Email:    guestEmail.(string),
 						Username: guestUsername.(string),
 					},
-					Rate: rate.(int64),
+					Rate:      rate.(int64),
+					CreatedAt: createdAt.(string),
 				}
 				hostRatings = append(hostRatings, rateHost)
 			}
@@ -312,10 +317,10 @@ func (r RatingRepository) RateHost(rating domains.RateHost) (*domains.RateHost, 
 			MERGE (h:Host {id: $hostID})
 			ON CREATE SET h.email = $hostEmail, h.username = $hostUsername
 			MERGE (g)-[r:RATED]->(h)
-			ON CREATE SET r.rate = $rate
+			ON CREATE SET r.rate = $rate, r.createdAt = $createdAt
 			RETURN h.id AS hostID, h.email AS hostEmail, h.username AS hostUsername, 
 			g.id AS guestID, g.email AS guestEmail, g.username AS guestUsername, 
-			r.rate AS rate`,
+			r.rate AS rate, r.createdAt AS createdAt`,
 				map[string]any{
 					"guestID":       rating.Guest.ID,
 					"guestEmail":    rating.Guest.Email,
@@ -324,6 +329,7 @@ func (r RatingRepository) RateHost(rating domains.RateHost) (*domains.RateHost, 
 					"hostEmail":     rating.Host.Email,
 					"hostUsername":  rating.Host.Username,
 					"rate":          rating.Rate,
+					"createdAt":     rating.CreatedAt,
 				})
 			if err != nil {
 				return nil, err
@@ -336,7 +342,7 @@ func (r RatingRepository) RateHost(rating domains.RateHost) (*domains.RateHost, 
 				guestID, _ := record.Get("guestID")
 				guestEmail, _ := record.Get("guestEmail")
 				guestUsername, _ := record.Get("guestUsername")
-
+				createdAt, _ := record.Get("createdAt")
 				rate, _ := record.Get("rate")
 
 				rateHost := domains.RateHost{
@@ -350,7 +356,8 @@ func (r RatingRepository) RateHost(rating domains.RateHost) (*domains.RateHost, 
 						Email:    guestEmail.(string),
 						Username: guestUsername.(string),
 					},
-					Rate: rate.(int64),
+					Rate:      rate.(int64),
+					CreatedAt: createdAt.(string),
 				}
 
 				return rateHost, nil
@@ -378,7 +385,7 @@ func (r RatingRepository) GetAllRatingsByAccommodation(accommodationID string) (
 				`MATCH (a:Accommodation {id: $accommodationID})<-[r:RATED]-(g:Guest)
 				RETURN a.id as accommodationID, 
 					g.id AS guestID, g.email AS guestEmail, g.username AS guestUsername, 
-					r.rate AS rate
+					r.rate AS rate, r.createdAt as createdAt
 				`,
 				map[string]any{
 					"accommodationID": accommodationID,
@@ -396,6 +403,7 @@ func (r RatingRepository) GetAllRatingsByAccommodation(accommodationID string) (
 				guestUsername, _ := record.Get("guestUsername")
 
 				rate, _ := record.Get("rate")
+				createdAt, _ := record.Get("createdAt")
 
 				accommodationHost := domains.RateAccommodation{
 					AccommodationID: accommodationID.(string),
@@ -404,7 +412,8 @@ func (r RatingRepository) GetAllRatingsByAccommodation(accommodationID string) (
 						Email:    guestEmail.(string),
 						Username: guestUsername.(string),
 					},
-					Rate: rate.(int64),
+					Rate:      rate.(int64),
+					CreatedAt: createdAt.(string),
 				}
 				accommodationRatings = append(accommodationRatings, accommodationHost)
 			}
@@ -430,14 +439,15 @@ func (r RatingRepository) UpdateRatingByHostAndGuest(rating domains.RateHost) (*
 	rateHost, err := session.ExecuteWrite(ctx,
 		func(transaction neo4j.ManagedTransaction) (any, error) {
 			result, err := transaction.Run(ctx,
-				`MATCH (h:Host {id: $hostId})<-[r:RATED]-(g:Guest {id: $guestId}) SET r.rate = $newRate
+				`MATCH (h:Host {id: $hostId})<-[r:RATED]-(g:Guest {id: $guestId}) SET r.rate = $newRate, r.createdAt = $createdAt
 			RETURN h.id AS hostID, h.email AS hostEmail, h.username AS hostUsername, 
 				   g.id AS guestID, g.email AS guestEmail, g.username AS guestUsername, 
 				   r.rate AS rate`,
 				map[string]any{
-					"guestId": rating.Guest.ID,
-					"hostId":  rating.Host.ID,
-					"newRate": rating.Rate,
+					"guestId":   rating.Guest.ID,
+					"hostId":    rating.Host.ID,
+					"newRate":   rating.Rate,
+					"createdAt": rating.CreatedAt,
 				})
 			if err != nil {
 				return nil, err
@@ -452,6 +462,7 @@ func (r RatingRepository) UpdateRatingByHostAndGuest(rating domains.RateHost) (*
 				guestUsername, _ := record.Get("guestUsername")
 
 				rate, _ := record.Get("rate")
+				createdAt, _ := record.Get("createdAt")
 
 				rateHost := domains.RateHost{
 					Host: domains.Host{
@@ -464,7 +475,8 @@ func (r RatingRepository) UpdateRatingByHostAndGuest(rating domains.RateHost) (*
 						Email:    guestEmail.(string),
 						Username: guestUsername.(string),
 					},
-					Rate: rate.(int64),
+					Rate:      rate.(int64),
+					CreatedAt: createdAt.(string),
 				}
 				return rateHost, nil
 			}

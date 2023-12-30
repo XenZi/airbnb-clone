@@ -4,6 +4,7 @@ import (
 	"recommendation-service/domains"
 	"recommendation-service/errors"
 	"recommendation-service/repository"
+	"time"
 )
 
 type RatingService struct {
@@ -17,6 +18,7 @@ func NewRatingService(repo *repository.RatingRepository) *RatingService {
 }
 
 func (rs RatingService) CreateRatingForAccommodation(rating domains.RateAccommodation) (*domains.RateAccommodation, *errors.ErrorStruct) {
+	rating.CreatedAt = time.Now().Local().String()
 	resp, err := rs.repo.RateAccommodation(rating)
 	if err != nil {
 		return nil, err
@@ -25,6 +27,7 @@ func (rs RatingService) CreateRatingForAccommodation(rating domains.RateAccommod
 }
 
 func (rs RatingService) UpdateRatingForAccommodation(rating domains.RateAccommodation) (*domains.RateAccommodation, *errors.ErrorStruct) {
+	rating.CreatedAt = time.Now().Local().String()
 	resp, err := rs.repo.UpdateRatingByAccommodationGuest(rating)
 	if err != nil {
 		return nil, err
@@ -51,6 +54,7 @@ func (rs RatingService) DeleteRatingForAccommodation(rating domains.RateAccommod
 }
 
 func (rs RatingService) CreateRatingForHost(rating domains.RateHost) (*domains.RateHost, *errors.ErrorStruct) {
+	rating.CreatedAt = time.Now().Local().String()
 	resp, err := rs.repo.RateHost(rating)
 	if err != nil {
 		return nil, err
@@ -67,6 +71,7 @@ func (rs RatingService) GetAllRatingsForHostByID(id string) (*[]domains.RateHost
 }
 
 func (rs RatingService) UpdateRatingForHostAndGuest(rateHost domains.RateHost) (*domains.RateHost, *errors.ErrorStruct) {
+	rateHost.CreatedAt = time.Now().Local().String()
 	resp, err := rs.repo.UpdateRatingByHostAndGuest(rateHost)
 	if err != nil {
 		return nil, err
