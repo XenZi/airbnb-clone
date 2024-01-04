@@ -43,7 +43,6 @@ type CheckAvailabilityRequest struct {
 	AccommodationID string `json:"accommodationId"`
 	StartDate       string `json:"startDate"`
 	EndDate         string `json:"endDate"`
-	Location        string `json:"location"`
 }
 type GetAvailabilityForAccommodation struct {
 	StartDate string `json:"startDate"`

@@ -119,7 +119,7 @@ func (rh ReservationHandler) GetAvailableDates(rw http.ResponseWriter, r *http.R
 		utils.WriteErrorResp(err.Error(), 500, "api/reservations/accommodation/dates", rw)
 		return
 	}
-	avl, erro := rh.ReservationService.GetAvailableDates(request.AccommodationID, request.StartDate, request.EndDate, request.Location)
+	avl, erro := rh.ReservationService.GetAvailableDates(request.AccommodationID, request.StartDate, request.EndDate)
 	if erro != nil {
 		utils.WriteErrorResp(erro.Error(), 500, "api/reservations/accommodation/dates", rw)
 		return
@@ -151,10 +151,11 @@ func (rh *ReservationHandler) DeleteReservationById(rw http.ResponseWriter, r *h
 	country := vars["country"]
 	userID := vars["userID"]
 	hostID := vars["hostID"]
+	accommodationID := vars["accommodationID"]
 
-	deletedReservation, err := rh.ReservationService.DeleteReservationById(country, id, userID, hostID)
+	deletedReservation, err := rh.ReservationService.DeleteReservationById(country, id, userID, hostID, accommodationID)
 	if err != nil {
-		utils.WriteErrorResp(err.Message, err.Status, "api/reservations/{country}/{id}/{userID}/{hostID}", rw)
+		utils.WriteErrorResp(err.Message, err.Status, "api/reservations/{country}/{id}/{userID}/{hostID}/{accommodationID}", rw)
 		return
 	}
 
