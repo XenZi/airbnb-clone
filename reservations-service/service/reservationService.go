@@ -29,15 +29,7 @@ func (r ReservationService) CreateReservation(reservation domain.Reservation, ct
 	if len(validationErrors) > 0 {
 		return nil, errors.NewReservationError(400, "Validation failed")
 	}
-	log.Println(reservation.StartDate, reservation.EndDate)
-	/*	available, err := r.IsAvailable(reservation.AccommodationID, reservation.StartDate, reservation.EndDate)
-		if err != nil {
-			return nil, err
-		}
 
-		if !available {
-			return nil, errors.NewReservationError(400, "Accommodation not available for the specified date range")
-		}*/
 	reserved, erro := r.IsReserved(reservation.AccommodationID, reservation.DateRange)
 	if erro != nil {
 		return nil, erro
