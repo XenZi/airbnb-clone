@@ -98,19 +98,22 @@ func (rh *ReservationHandler) GetAvailabilityForAccommodation(rw http.ResponseWr
 	json.NewEncoder(rw).Encode(avl)
 
 }
-func (rh ReservationHandler) GetReservationsByAccommodation(rw http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	accommodationID := vars["accommodationID"]
 
-	reservations, err := rh.ReservationService.GetReservationsByAccommodation(accommodationID)
-	if err != nil {
-		utils.WriteErrorResp(err.Message, err.Status, "api/sreservations/accommodation/{accommodationID}", rw)
-		return
+/*
+	func (rh ReservationHandler) GetReservationsByAccommodation(rw http.ResponseWriter, r *http.Request) {
+		vars := mux.Vars(r)
+		accommodationID := vars["accommodationID"]
+
+		reservations, err := rh.ReservationService.GetReservationsByAccommodation(accommodationID)
+		if err != nil {
+			utils.WriteErrorResp(err.Message, err.Status, "api/sreservations/accommodation/{accommodationID}", rw)
+			return
+		}
+
+		rw.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(rw).Encode(reservations)
 	}
-
-	rw.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(rw).Encode(reservations)
-}
+*/
 func (rh ReservationHandler) GetAvailableDates(rw http.ResponseWriter, r *http.Request) {
 	var request domain.CheckAvailabilityRequest
 
@@ -119,7 +122,7 @@ func (rh ReservationHandler) GetAvailableDates(rw http.ResponseWriter, r *http.R
 		utils.WriteErrorResp(err.Error(), 500, "api/reservations/accommodation/dates", rw)
 		return
 	}
-	avl, erro := rh.ReservationService.GetAvailableDates(request.AccommodationID, request.StartDate, request.EndDate)
+	avl, erro := rh.ReservationService.GetAvailableDates(request.AccommodationID, request.DateRange)
 	if erro != nil {
 		utils.WriteErrorResp(erro.Error(), 500, "api/reservations/accommodation/dates", rw)
 		return

@@ -30,6 +30,14 @@ func (r ReservationService) CreateReservation(reservation domain.Reservation, ct
 		return nil, errors.NewReservationError(400, "Validation failed")
 	}
 
+	available, err := r.IsAvailable(reservation.AccommodationID, reservation.DateRange)
+	if err != nil {
+		return nil, err
+	}
+	if !available {
+		return nil, errors.NewReservationError(400, "Accommodation not available for the specified date range")
+	}
+
 	reserved, erro := r.IsReserved(reservation.AccommodationID, reservation.DateRange)
 	if erro != nil {
 		return nil, erro
@@ -82,20 +90,23 @@ func (s *ReservationService) ReservationsInDateRange(accommodationIDs []string, 
 	}
 	return reservations, nil
 }
-func (s *ReservationService) GetAvailableDates(accommodationID, startDate, endDate string) ([]domain.FreeReservation, *errors.ReservationError) {
-	reservations, err := s.repo.AvailableDates(accommodationID, startDate, endDate)
+func (s *ReservationService) GetAvailableDates(accommodationID string, dateRange []string) ([]domain.FreeReservation, *errors.ReservationError) {
+	reservations, err := s.repo.AvailableDates(accommodationID, dateRange)
 	if err != nil {
 		return nil, errors.NewReservationError(500, err.Error())
 	}
 	return reservations, nil
 }
-func (s *ReservationService) GetReservationsByAccommodation(accommodationID string) ([]domain.Reservation, *errors.ReservationError) {
-	reservations, err := s.repo.GetReservationsByAccommodation(accommodationID)
-	if err != nil {
-		return nil, errors.NewReservationError(500, err.Error())
+
+/*
+	func (s *ReservationService) GetReservationsByAccommodation(accommodationID string) ([]domain.Reservation, *errors.ReservationError) {
+		reservations, err := s.repo.GetReservationsByAccommodation(accommodationID)
+		if err != nil {
+			return nil, errors.NewReservationError(500, err.Error())
+		}
+		return reservations, nil
 	}
-	return reservations, nil
-}
+*/
 func (s *ReservationService) GetAvailabilityForAccommodation(accommodationID string) ([]domain.GetAvailabilityForAccommodation, *errors.ReservationError) {
 	avl, err := s.repo.CheckAvailabilityForAccommodation(accommodationID)
 	if err != nil {
@@ -112,9 +123,9 @@ func (s *ReservationService) DeleteReservationById(country string, id, userID, h
 	return deletedReservation, nil
 }
 
-func (s *ReservationService) IsAvailable(accommodationID string, startDate, endDate string) (bool, *errors.ReservationError) {
+func (s *ReservationService) IsAvailable(accommodationID string, dateRange []string) (bool, *errors.ReservationError) {
 
-	available, err := s.repo.IsAvailable(accommodationID, startDate, endDate)
+	available, err := s.repo.IsAvailable(accommodationID, dateRange)
 	if err != nil {
 		return false, errors.NewReservationError(400, "Accommodation not available")
 	}
