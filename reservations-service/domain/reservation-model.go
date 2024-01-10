@@ -34,7 +34,7 @@ type FreeReservation struct {
 	Price           int        `json:"price"`
 	Continent       string     `json:"continent"`
 	Country         string     `json:"country"`
-	DateRange       []string   `json:"dateRange"`
+	DateRange       [][]string `json:"dateRange"`
 }
 type ReservationsInDateRangeRequest struct {
 	AccommodationIDs []string `json:"accommodationIDs"`
