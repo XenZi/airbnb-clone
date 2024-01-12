@@ -249,13 +249,13 @@ func (a *AccommodationsHandler) PutAccommodationRating(w http.ResponseWriter, r 
 	decoder := json.NewDecoder(r.Body)
 	decoder.DisallowUnknownFields()
 	var accommodation domain.Accommodation
-
+	log.Println("SADSADDSADAS")
 	if err := decoder.Decode(&accommodation); err != nil {
 		log.Println(err)
 		utils.WriteErrorResp("Internal server error", 500, "api/recommendation/rating/accommodation", w)
 		return
 	}
-
+	log.Println(accommodation)
 	// Now, you can use the 'rating' variable in your logic
 	a.AccommodationService.PutAccommodationRating(accommodationID, accommodation)
 

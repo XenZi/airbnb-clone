@@ -1,17 +1,19 @@
 package domains
 
 type RateAccommodation struct {
-	AccommodationID string `json:"accommodationID"`
-	Rate            int64  `json:"rate"`
-	Guest           Guest  `json:"guest"`
-	CreatedAt       string `json:"createdAt"`
+	AccommodationID string  `json:"accommodationID"`
+	Rate            int64   `json:"rate"`
+	Guest           Guest   `json:"guest"`
+	CreatedAt       string  `json:"createdAt"`
+	AvgRating       float64 `json:"avgRating"`
 }
 
 type RateHost struct {
-	Host      Host   `json:"host"`
-	Rate      int64  `json:"rate"`
-	Guest     Guest  `json:"guest"`
-	CreatedAt string `json:"createdAt"`
+	Host      Host    `json:"host"`
+	Rate      int64   `json:"rate"`
+	Guest     Guest   `json:"guest"`
+	CreatedAt string  `json:"createdAt"`
+	AvgRating float64 `json:"avgRating"`
 }
 
 type Guest struct {

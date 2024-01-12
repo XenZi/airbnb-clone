@@ -28,7 +28,8 @@ func (rh RatingHandler) CreateRatingForAccommodation(r http.ResponseWriter, h *h
 		utils.WriteErrorResp("Internal server error", 500, "api/recommendation/rating/accommodation", r)
 		return
 	}
-	resp, err := rh.service.CreateRatingForAccommodation(rating)
+	ctx := h.Context()
+	resp, err := rh.service.CreateRatingForAccommodation(ctx, rating)
 	if err != nil {
 		utils.WriteErrorResp(err.GetErrorMessage(), err.GetErrorStatus(), "api/recommendation/rating/accommodation", r)
 		return
@@ -43,7 +44,8 @@ func (rh RatingHandler) UpdateRatingForAccommodation(r http.ResponseWriter, h *h
 	if err := decoder.Decode(&rating); err != nil {
 		utils.WriteErrorResp("Internal server error", 500, "api/login", r)
 	}
-	resp, err := rh.service.UpdateRatingForAccommodation(rating)
+	ctx := h.Context()
+	resp, err := rh.service.UpdateRatingForAccommodation(ctx, rating)
 	if err != nil {
 		utils.WriteErrorResp(err.GetErrorMessage(), err.GetErrorStatus(), "api/recommendation/rating/accommodation", r)
 		return
@@ -58,7 +60,8 @@ func (rh RatingHandler) DeleteRatingForAccommodation(r http.ResponseWriter, h *h
 	if err := decoder.Decode(&rating); err != nil {
 		utils.WriteErrorResp("Internal server error", 500, "api/login", r)
 	}
-	resp, err := rh.service.DeleteRatingForAccommodation(rating)
+	ctx := h.Context()
+	resp, err := rh.service.DeleteRatingForAccommodation(ctx, rating)
 	if err != nil {
 		utils.WriteErrorResp(err.GetErrorMessage(), err.GetErrorStatus(), "api/recommendation/rating/accommodation", r)
 		return

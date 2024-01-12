@@ -153,8 +153,6 @@ services:
     networks:
       - network
 
-
-
   accommodation-db:
     image: mongo
     restart: always
@@ -188,8 +186,8 @@ services:
       - PORT=8080
       # NoSQL: environment variable holding connection URI for Cassandra database
       - CASS_DB=reservations-db:9042
-    # NoSQL: Extremely important! Cassandra takes a lot of time to start!
-    # If we don't wait for it to fully initialize we will get exceptions and will not be able to connect!
+      # NoSQL: Extremely important! Cassandra takes a lot of time to start!
+      # If we don't wait for it to fully initialize we will get exceptions and will not be able to connect!
       - NOTIFICATION_SERVICE_HOST=${NOTIFICATION_SERVICE_HOST}
       - NOTIFICATION_SERVICE_PORT=${NOTIFICATION_SERVICE_PORT}
     depends_on:
@@ -277,8 +275,6 @@ services:
       - notifications-db_store:/data/db
     networks:
       - network
-
-
 
   api-gateway:
     build:

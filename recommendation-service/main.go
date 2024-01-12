@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"recommendation-service/client"
 	"recommendation-service/handler"
 	"recommendation-service/repository"
 	"recommendation-service/services"
@@ -13,6 +14,7 @@ import (
 
 	gorillaHandlers "github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
+	"github.com/sony/gobreaker"
 )
 
 func main() {
@@ -25,13 +27,52 @@ func main() {
 	// services
 	neo4jService, _ := services.NewNeo4j()
 	ratingRepository := repository.NewRatingRepository(neo4jService.GetDriver())
-	ratingService := services.NewRatingService(ratingRepository)
-	ratingHandler := handler.NewRatingHandler(ratingService)
 	accommodationServiceHost := os.Getenv("ACCOMMODATION_SERVICE_HOST")
-	accommodationServicePort := os.Getenv("USER_SERVICE_PORT")
-	userServiceHost := os.Getenv("NOTIFICATION_SERVICE_HOST")
-	userServicePort := os.Getenv("NOTIFICATION_SERVICE_PORT")
+	accommodationServicePort := os.Getenv("ACCOMMODATION_SERVICE_PORT")
+	userServiceHost := os.Getenv("USER_SERVICE_HOST")
+	userServicePort := os.Getenv("USER_SERVICE_PORT")
 
+	customAccommodationClient := &http.Client{
+		Transport: &http.Transport{
+			MaxIdleConns:        10,
+			MaxIdleConnsPerHost: 10,
+			MaxConnsPerHost:     10,
+		},
+	}
+	accommodationServiceCircuitBreaker := gobreaker.NewCircuitBreaker(
+		gobreaker.Settings{
+			Name:        "user-service",
+			MaxRequests: 1,
+			Timeout:     10 * time.Second,
+			Interval:    0,
+			OnStateChange: func(name string, from gobreaker.State, to gobreaker.State) {
+				log.Printf("Circuit Breaker %v: %v -> %v", name, from, to)
+			},
+		},
+	)
+
+	customUserClient := &http.Client{
+		Transport: &http.Transport{
+			MaxIdleConns:        10,
+			MaxIdleConnsPerHost: 10,
+			MaxConnsPerHost:     10,
+		},
+	}
+	userServiceCircuitBreaker := gobreaker.NewCircuitBreaker(
+		gobreaker.Settings{
+			Name:        "user-service",
+			MaxRequests: 1,
+			Timeout:     10 * time.Second,
+			Interval:    0,
+			OnStateChange: func(name string, from gobreaker.State, to gobreaker.State) {
+				log.Printf("Circuit Breaker %v: %v -> %v", name, from, to)
+			},
+		},
+	)
+	userClient := client.NewUserClient(userServiceHost, userServicePort, customUserClient, userServiceCircuitBreaker)
+	accommodationClient := client.NewAccommodationClient(accommodationServiceHost, accommodationServicePort, customAccommodationClient, accommodationServiceCircuitBreaker)
+	ratingService := services.NewRatingService(ratingRepository, accommodationClient, userClient)
+	ratingHandler := handler.NewRatingHandler(ratingService)
 	// routes
 
 	router := mux.NewRouter()

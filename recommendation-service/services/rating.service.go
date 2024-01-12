@@ -1,6 +1,8 @@
 package services
 
 import (
+	"context"
+	"recommendation-service/client"
 	"recommendation-service/domains"
 	"recommendation-service/errors"
 	"recommendation-service/repository"
@@ -8,27 +10,39 @@ import (
 )
 
 type RatingService struct {
-	repo *repository.RatingRepository
+	repo                *repository.RatingRepository
+	accommodationClient *client.AccommodationClient
+	userClient          *client.UserClient
 }
 
-func NewRatingService(repo *repository.RatingRepository) *RatingService {
+func NewRatingService(repo *repository.RatingRepository, accommodationClient *client.AccommodationClient, userClient *client.UserClient) *RatingService {
 	return &RatingService{
-		repo: repo,
+		repo:                repo,
+		accommodationClient: accommodationClient,
+		userClient:          userClient,
 	}
 }
 
-func (rs RatingService) CreateRatingForAccommodation(rating domains.RateAccommodation) (*domains.RateAccommodation, *errors.ErrorStruct) {
+func (rs RatingService) CreateRatingForAccommodation(ctx context.Context, rating domains.RateAccommodation) (*domains.RateAccommodation, *errors.ErrorStruct) {
 	rating.CreatedAt = time.Now().Local().String()
 	resp, err := rs.repo.RateAccommodation(rating)
+	if err != nil {
+		return nil, err
+	}
+	err = rs.accommodationClient.SendNewRatingForAccommodation(ctx, resp.AvgRating, resp.AccommodationID)
 	if err != nil {
 		return nil, err
 	}
 	return resp, nil
 }
 
-func (rs RatingService) UpdateRatingForAccommodation(rating domains.RateAccommodation) (*domains.RateAccommodation, *errors.ErrorStruct) {
+func (rs RatingService) UpdateRatingForAccommodation(ctx context.Context, rating domains.RateAccommodation) (*domains.RateAccommodation, *errors.ErrorStruct) {
 	rating.CreatedAt = time.Now().Local().String()
 	resp, err := rs.repo.UpdateRatingByAccommodationGuest(rating)
+	if err != nil {
+		return nil, err
+	}
+	err = rs.accommodationClient.SendNewRatingForAccommodation(ctx, resp.AvgRating, resp.AccommodationID)
 	if err != nil {
 		return nil, err
 	}
@@ -43,11 +57,13 @@ func (rs RatingService) GetAllAccommodationRatings(id string) (*[]domains.RateAc
 	return resp, nil
 }
 
-func (rs RatingService) DeleteRatingForAccommodation(rating domains.RateAccommodation) (*domains.BaseMessageResponse, *errors.ErrorStruct) {
-	err := rs.repo.DeleteRatingByGuestAndAccommodation(rating)
+func (rs RatingService) DeleteRatingForAccommodation(ctx context.Context, rating domains.RateAccommodation) (*domains.BaseMessageResponse, *errors.ErrorStruct) {
+	data, err := rs.repo.DeleteRatingByGuestAndAccommodation(rating)
 	if err != nil {
 		return nil, err
 	}
+	err = rs.accommodationClient.SendNewRatingForAccommodation(ctx, data.AvgRating, data.AccommodationID)
+
 	return &domains.BaseMessageResponse{
 		Message: "You have successfully deleted your rating for accommodation",
 	}, nil
