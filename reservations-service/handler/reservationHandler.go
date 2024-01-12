@@ -1,12 +1,14 @@
 package handler
 
 import (
+	"context"
 	"encoding/json"
 	"log"
 	"net/http"
 	"reservation-service/domain"
 	"reservation-service/service"
 	"reservation-service/utils"
+	"time"
 
 	"github.com/gorilla/mux"
 )
@@ -31,7 +33,9 @@ func (r *ReservationHandler) CreateReservation(rw http.ResponseWriter, h *http.R
 		utils.WriteErrorResp(err.Error(), 500, "api/reservations", rw)
 		return
 	}
-	newRes, err := r.ReservationService.CreateReservation(res)
+	ctx, cancel := context.WithTimeout(h.Context(), time.Second*5)
+	defer cancel()
+	newRes, err := r.ReservationService.CreateReservation(res, ctx)
 	if err != nil {
 		utils.WriteErrorResp(err.Message, err.Status, "api/reservations", rw)
 		return
@@ -62,6 +66,19 @@ func (rh *ReservationHandler) GetReservationsByUser(rw http.ResponseWriter, r *h
 	reservations, err := rh.ReservationService.GetReservationsByUser(userID)
 	if err != nil {
 		utils.WriteErrorResp(err.Message, err.Status, "api/reservations/user/{userId}", rw)
+		return
+	}
+
+	rw.Header().Set("Content-Type", "application/json")
+	utils.WriteResp(reservations, 200, rw)
+}
+func (rh *ReservationHandler) GetReservationsByHost(rw http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	hostID := vars["hostId"]
+
+	reservations, err := rh.ReservationService.GetReservationsByUser(hostID)
+	if err != nil {
+		utils.WriteErrorResp(err.Message, err.Status, "api/reservations/user/{hostId}", rw)
 		return
 	}
 

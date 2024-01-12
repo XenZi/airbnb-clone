@@ -1,11 +1,12 @@
-package middlewares
+package middleware
 
 import (
 	"context"
-	"github.com/golang-jwt/jwt/v5"
+	"github.com/dgrijalva/jwt-go"
 	"net/http"
 	"os"
 	"strings"
+	"user-service/utils"
 )
 
 func ValidateJWT(next http.HandlerFunc) http.HandlerFunc {
@@ -16,23 +17,24 @@ func ValidateJWT(next http.HandlerFunc) http.HandlerFunc {
 		})
 
 		if err != nil || !token.Valid {
-			http.Error(w, "Unauthorized - Invalid token", http.StatusUnauthorized)
+			utils.WriteErrorResponse("Unathorized", 401, r.URL.Path, w)
 			return
 		}
 
 		claims, ok := token.Claims.(jwt.MapClaims)
 		if !ok {
-			http.Error(w, "Unauthorized - Invalid token claims", http.StatusUnauthorized)
+			utils.WriteErrorResponse("Unathorized", 401, r.URL.Path, w)
 			return
 		}
 
 		userID, ok := claims["userID"].(string)
 		if !ok {
-			http.Error(w, "Unauthorized - User ID not found in token claims", http.StatusUnauthorized)
+			utils.WriteErrorResponse("Unathorized", 401, r.URL.Path, w)
 			return
 		}
 
 		ctx := context.WithValue(r.Context(), "userID", userID)
+		ctx = context.WithValue(r.Context(), "role", claims["role"])
 		r = r.WithContext(ctx)
 
 		next.ServeHTTP(w, r)

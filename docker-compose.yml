@@ -96,14 +96,64 @@ services:
     #Will be accessible through os.Getenv("PORT")
     environment:
       - PORT=8080
+      - JWT_SECRET=${JWT_SECRET}
+      - SECRET_KEY=${SECRET_ENCRIPTION_KEY}
       - MONGO_DB_URI=mongodb://root:pass@accommodation-db:27017
       - RESERVATIONS_SERVICE_HOST=${RESERVATIONS_SERVICE_HOST}
       - RESERVATIONS_SERVICE_PORT=${RESERVATIONS_SERVICE_PORT}
+      - HDFS_URI=namenode:9000
     networks:
       - network
     depends_on:
       accommodation-db:
         condition: service_healthy
+      namenode:
+        condition: service_healthy
+      datanode1:
+        condition: service_healthy
+      datanode2:
+        condition: service_healthy
+
+  namenode:
+    image: bde2020/hadoop-namenode:2.0.0-hadoop3.2.1-java8
+    container_name: namenode
+    ports:
+      - 9870:9870
+      - 9000:9000
+    volumes:
+      - hadoop_namenode:/hadoop/dfs/name
+    environment:
+      - CLUSTER_NAME=test
+    env_file:
+      - ./.env
+    networks:
+      - network
+
+  datanode1:
+    image: bde2020/hadoop-datanode:2.0.0-hadoop3.2.1-java8
+    container_name: datanode1
+    volumes:
+      - hadoop_datanode1:/hadoop/dfs/data
+    environment:
+      SERVICE_PRECONDITION: "namenode:9870"
+    env_file:
+      - ./.env
+    networks:
+      - network
+
+  datanode2:
+    image: bde2020/hadoop-datanode:2.0.0-hadoop3.2.1-java8
+    container_name: datanode2
+    volumes:
+      - hadoop_datanode2:/hadoop/dfs/data
+    environment:
+      SERVICE_PRECONDITION: "namenode:9870"
+    env_file:
+      - ./.env
+    networks:
+      - network
+
+
 
   accommodation-db:
     image: mongo
@@ -140,6 +190,8 @@ services:
       - CASS_DB=reservations-db:9042
     # NoSQL: Extremely important! Cassandra takes a lot of time to start!
     # If we don't wait for it to fully initialize we will get exceptions and will not be able to connect!
+      - NOTIFICATION_SERVICE_HOST=${NOTIFICATION_SERVICE_HOST}
+      - NOTIFICATION_SERVICE_PORT=${NOTIFICATION_SERVICE_PORT}
     depends_on:
       reservations-db:
         condition: service_healthy
@@ -172,11 +224,14 @@ services:
     hostname: "user-service"
     environment:
       - PORT=8080
+      - JWT_SECRET=${JWT_SECRET}
       - MONGO_DB_URI=mongodb://root:pass@user-db:27017
       - RESERVATIONS_SERVICE_HOST=${RESERVATIONS_SERVICE_HOST}
       - RESERVATIONS_SERVICE_PORT=${RESERVATIONS_SERVICE_PORT}
       - AUTH_SERVICE_HOST=${AUTH_SERVICE_HOST}
       - AUTH_SERVICE_PORT=${AUTH_SERVICE_PORT}
+      - ACCOMMODATION_SERVICE_HOST=${ACCOMMODATION_SERVICE_HOST}
+      - ACCOMMODATION_SERVICE_PORT=${ACCOMMODATION_SERVICE_PORT}
     networks:
       - network
     depends_on:
@@ -222,6 +277,8 @@ services:
       - notifications-db_store:/data/db
     networks:
       - network
+
+
 
   api-gateway:
     build:
@@ -305,4 +362,7 @@ volumes:
   cass_store:
   user-db_store:
   notifications-db_store:
+  hadoop_namenode:
+  hadoop_datanode1:
+  hadoop_datanode2:
   neo4j_data:

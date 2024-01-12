@@ -55,7 +55,6 @@ func (u UserHandler) CredsHandler(rw http.ResponseWriter, h *http.Request) {
 		utils.WriteErrorResponse(err.Error(), 500, "api/update", rw)
 		return
 	}
-	log.Println("DOES IT GET IN HERE BUD", updateData)
 	user, err := u.UserService.UpdateUserCreds(updateData)
 	if err != nil {
 		utils.WriteErrorResponse(err.GetErrorMessage(), err.GetErrorStatus(), "api/update", rw)
@@ -87,7 +86,10 @@ func (u UserHandler) GetUserById(rw http.ResponseWriter, h *http.Request) {
 func (u UserHandler) DeleteHandler(rw http.ResponseWriter, h *http.Request) {
 	vars := mux.Vars(h)
 	id := vars["id"]
-	err := u.UserService.DeleteUser("Guest", id)
+	ctx := h.Context()
+	role := ctx.Value("role")
+	log.Println("DELETED USER ROLE: ", role.(string))
+	err := u.UserService.DeleteUser(role.(string), id)
 	if err != nil {
 		utils.WriteErrorResponse(err.GetErrorMessage(), err.GetErrorStatus(), "api/delete", rw)
 		return

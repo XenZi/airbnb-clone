@@ -4,6 +4,7 @@ import (
 	"accommodations-service/client"
 	"accommodations-service/handlers"
 	"accommodations-service/repository"
+	"accommodations-service/security"
 	"accommodations-service/services"
 	"accommodations-service/utils"
 	"context"
@@ -63,12 +64,23 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	accommodationRepo := repository.NewAccommodationRepository(
 		mongoService.GetCli(), logger)
-	accommodationService := services.NewAccommodationService(accommodationRepo, validator, reservationsClient)
+	fileStorage := repository.NewFileStorage(logger)
+	defer fileStorage.Close()
+	_ = fileStorage.CreateDirectories()
+	accommodationService := services.NewAccommodationService(accommodationRepo, validator, reservationsClient, fileStorage)
 	accommodationsHandler := handlers.AccommodationsHandler{
 		AccommodationService: accommodationService,
 	}
+
+	accessControl := security.NewAccessControl()
+	err = accessControl.LoadAccessConfig("./security/rbac.json")
+	if err != nil {
+		log.Fatalf("Error loading access configuration: %v", err)
+	}
+	// ro
 
 	router := mux.NewRouter()
 
@@ -80,9 +92,15 @@ func main() {
 
 	router.HandleFunc("/{id}", accommodationsHandler.DeleteAccommodationById).Methods("DELETE")
 
+	router.HandleFunc("/user/{id}", accommodationsHandler.DeleteAccommodationsByUserId).Methods("DELETE")
+
 	router.HandleFunc("/search", accommodationsHandler.SearchAccommodations).Methods("GET")
 
 	router.HandleFunc("/{id}", accommodationsHandler.GetAccommodationById).Methods("GET")
+
+	router.HandleFunc("/images/{id}", accommodationsHandler.GetImage).Methods("GET")
+
+	router.HandleFunc("/rating/{id}", accommodationsHandler.PutAccommodationRating).Methods("PUT")
 
 	headersOk := gorillaHandlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"})
 	methodsOk := gorillaHandlers.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "OPTIONS", "DELETE"})

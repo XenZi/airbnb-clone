@@ -73,6 +73,7 @@ export class ReservationFormComponent implements OnInit {
     let price: number = 50;
     let numOfDays: number = this.reservationForm.value.range.length;
     let dateRange: string[] = this.reservationForm.value.range;
+    let hostID: string = this.accommodation.userId
     console.log(this.accommodation)
     let reservationData = {"userID": userID,
     "accommodationID": accommodationID,
@@ -83,7 +84,8 @@ export class ReservationFormComponent implements OnInit {
     "location": location,
     "price": price,
     "numOfDays": numOfDays,
-    "dateRange": dateRange
+    "dateRange": dateRange,
+    "hostID" : hostID
   }
   console.log(reservationData)
   this.reservationService.createReservation(reservationData)

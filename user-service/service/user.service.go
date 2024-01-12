@@ -18,15 +18,22 @@ type UserService struct {
 	validator         *utils.Validator
 	reservationClient *client.ReservationClient
 	authClient        *client.AuthClient
+	accClient         *client.AccClient
 }
 
-func NewUserService(userRepo *repository.UserRepository, jwtService *JwtService, validator *utils.Validator, reservationClient *client.ReservationClient, authClient *client.AuthClient) *UserService {
+func NewUserService(userRepo *repository.UserRepository,
+	jwtService *JwtService,
+	validator *utils.Validator,
+	reservationClient *client.ReservationClient,
+	authClient *client.AuthClient,
+	accClient *client.AccClient) *UserService {
 	return &UserService{
 		userRepository:    userRepo,
 		jwtService:        jwtService,
 		validator:         validator,
 		reservationClient: reservationClient,
 		authClient:        authClient,
+		accClient:         accClient,
 	}
 }
 
@@ -142,9 +149,10 @@ func (u *UserService) GetUserById(id string) (*domain.User, *errors.ErrorStruct)
 }
 
 func (u *UserService) DeleteUser(role string, id string) *errors.ErrorStruct {
-	if role != "Host" {
+	if role == "Guest" {
 		allow, err := u.reservationClient.GuestDeleteAllowed(context.TODO(), id)
 		if err != nil {
+			log.Println("ovo je error", err)
 			return err
 		}
 		if !allow {
@@ -152,9 +160,15 @@ func (u *UserService) DeleteUser(role string, id string) *errors.ErrorStruct {
 		}
 	}
 	if role == "Host" {
-		//TODO
+		// TODO add reservation check
+		err := u.accClient.DeleteUserAccommodations(context.TODO(), id)
+		if err != nil {
+			return err
+		}
 	}
-
+	if role != "Guest" && role != "Host" {
+		return errors.NewError("not allowed by role", 401)
+	}
 	newErr := u.authClient.DeleteUserAuth(context.TODO(), id)
 	if newErr != nil {
 		return errors.NewError("auth deletion error", 500)

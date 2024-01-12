@@ -10,8 +10,9 @@
 
 .accommodation-photos__main-image img {
   width: 100%;
-  height: auto;
+  height: 500px;
   display: block;
+  object-fit: cover;
 }
 
 .accommodation-photos__thumbnail-list {

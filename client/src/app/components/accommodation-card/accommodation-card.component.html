@@ -1,7 +1,7 @@
 <div class="accommodation-card" (click)="clickOnCard()">
   <div class="accommodation-card__image">
     <img
-      src="\assets\pictures\air.png"
+      [src]="accommodation.imageIds.length>0 ? 'https://localhost:443/api/accommodations/images/' + accommodation.imageIds[0] : '\assets\pictures\air.png'"
       alt="Image"
       class="accommodation-card__image-item"
     />
@@ -11,8 +11,6 @@
     <p class="accommodation-card__location">
       {{ accommodation.city }}
     </p>
-    <div class="accommodation-card__price">
-      <p class="accommodation-card__price-value">$143 per night</p>
-    </div>
+    
   </div>
 </div>
