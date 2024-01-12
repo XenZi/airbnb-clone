@@ -74,7 +74,7 @@ func (rr *ReservationRepo) CreateTables() {
 	}
 	err = rr.session.Query(
 		fmt.Sprintf(`CREATE TABLE IF NOT EXISTS %s
-			(id UUID, accommodation_id text, start_date text, end_date text, location text, price int, continent text,country text,date_range set<text>,
+			(id UUID, accommodation_id text, start_date text, end_date text, location text, price int, continent text, country text, date_range set<text>,
 			 PRIMARY KEY((accommodation_id),country,id))
 			WITH CLUSTERING ORDER BY(country ASC,id ASC)`, "free_accommodation")).Exec()
 
@@ -183,7 +183,7 @@ func (rr *ReservationRepo) DropTables() {
 	}
 
 	dropTable("reservations")
-	//dropTable("free_accommodation")
+	dropTable("free_accommodation")
 	dropTable("reservation_by_user")
 	dropTable("reservation_by_host")
 	dropTable("reservation_by_accommodation")
@@ -272,7 +272,6 @@ func (rr *ReservationRepo) GetReservationsByHost(id string) ([]domain.Reservatio
 	return reservations, nil
 }
 func (rr *ReservationRepo) InsertAvailability(reservation *domain.FreeReservation) (*domain.FreeReservation, error) {
-	Id, _ := gocql.RandomUUID()
 	country, err := utils.GetCountry(reservation.Location)
 	if err != nil {
 		return nil, errors.NewReservationError(500, err.Error())
@@ -284,6 +283,8 @@ func (rr *ReservationRepo) InsertAvailability(reservation *domain.FreeReservatio
 	}
 
 	for _, dateRange := range reservation.DateRange {
+		Id, _ := gocql.RandomUUID()
+		log.Println(dateRange)
 		query := rr.session.Query(`
 			INSERT INTO free_accommodation (id, accommodation_id, start_date, end_date, location, price, continent, country, date_range)
 			VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -294,8 +295,6 @@ func (rr *ReservationRepo) InsertAvailability(reservation *domain.FreeReservatio
 			return nil, errors.NewReservationError(500, err.Error())
 		}
 	}
-
-	reservation.Id = Id
 	reservation.Continent = continent
 	reservation.Country = country
 	return reservation, nil
@@ -486,8 +485,8 @@ func (rr *ReservationRepo) IsReserved(accommodationID string, dateRange []string
 		query := `
 		SELECT id
 		FROM reservation_by_accommodation
-		WHERE accommodation_id = ? AND is_active = true
-		AND date_range CONTAINS ?	
+		WHERE accommodation_id = ? 
+		AND date_range CONTAINS ?
 		`
 		iter := rr.session.Query(query, accommodationID, date).Iter()
 
