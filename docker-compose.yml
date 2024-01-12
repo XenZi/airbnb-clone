@@ -298,6 +298,55 @@ services:
     networks:
       - network
 
+  recommendation-service:
+    build:
+      context: .
+      dockerfile: ./recommendation-service/Dockerfile
+    image: recommendation-service
+    container_name: recommendation-service
+    restart: always
+    hostname: "recommendation-server"
+    environment:
+      - PORT=8080
+      - JWT_SECRET=${JWT_SECRET}
+      - SECRET_KEY=${SECRET_ENCRIPTION_KEY}
+      - NEO4J_DB=bolt://neo4j:7687
+      - NEO4J_USERNAME=neo4j
+      - NEO4J_PASS=nekasifrabrateu
+    depends_on:
+      neo4j:
+        condition: service_healthy
+    networks:
+      - network
+
+  neo4j:
+    image: neo4j
+    restart: always
+    ports:
+      # bolt
+      - "7687:7687"
+      # http
+      - "7474:7474"
+      # https
+      - "7473:7473"
+    # Docker healtcheck - checks if database is "alive"
+    healthcheck:
+      # test: [ "CMD-SHELL", "echo RETURN 1 | cypher-shell -a <NEO4J_dbms_connector_bolt_listen__address> -u <user defined username> -p <user defined password> || exit 1" ]
+      test:
+        [
+          "CMD-SHELL",
+          "echo RETURN 1 | cypher-shell -a bolt://neo4j:7687 -u neo4j -p nekasifrabrateu || exit 1",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    environment:
+      - NEO4J_AUTH=neo4j/nekasifrabrateu
+    volumes:
+      - neo4j_data:/data
+    networks:
+      - network
+
 networks:
   network:
     driver: bridge
@@ -312,3 +361,4 @@ volumes:
   hadoop_namenode:
   hadoop_datanode1:
   hadoop_datanode2:
+  neo4j_data:
