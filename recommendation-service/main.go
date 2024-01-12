@@ -27,6 +27,10 @@ func main() {
 	ratingRepository := repository.NewRatingRepository(neo4jService.GetDriver())
 	ratingService := services.NewRatingService(ratingRepository)
 	ratingHandler := handler.NewRatingHandler(ratingService)
+	accommodationServiceHost := os.Getenv("ACCOMMODATION_SERVICE_HOST")
+	accommodationServicePort := os.Getenv("USER_SERVICE_PORT")
+	userServiceHost := os.Getenv("NOTIFICATION_SERVICE_HOST")
+	userServicePort := os.Getenv("NOTIFICATION_SERVICE_PORT")
 
 	// routes
 
