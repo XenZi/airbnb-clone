@@ -34,15 +34,15 @@ type FreeReservation struct {
 	Price           int        `json:"price"`
 	Continent       string     `json:"continent"`
 	Country         string     `json:"country"`
+	DateRange       [][]string `json:"dateRange"`
 }
 type ReservationsInDateRangeRequest struct {
 	AccommodationIDs []string `json:"accommodationIDs"`
 	DateRange        []string `json:"dateRange"`
 }
 type CheckAvailabilityRequest struct {
-	AccommodationID string `json:"accommodationId"`
-	StartDate       string `json:"startDate"`
-	EndDate         string `json:"endDate"`
+	AccommodationID string   `json:"accommodationId"`
+	DateRange       []string `json:"dateRange"`
 }
 type GetAvailabilityForAccommodation struct {
 	StartDate string `json:"startDate"`

@@ -1,31 +1,34 @@
 package utils
 
 import (
-	"fmt"
-	"time"
+	"reservation-service/errors"
+	"strings"
+
+	"github.com/pariz/gountries"
 )
 
-func GetQuarter(startDate string) (string, error) {
-	date, err := time.Parse("2023-11-06", startDate)
+func GetCountry(location string) (string, *errors.ReservationError) {
+	locationParts := strings.Split(location, ",")
+	if len(locationParts) < 3 {
+		return "", errors.NewReservationError(500, "Unable to retrive data")
+	}
+
+	country := locationParts[2]
+	return country, nil
+}
+
+func GetContinent(location string) (string, *errors.ReservationError) {
+	country, erro := GetCountry(location)
+	if erro != nil {
+		return "", errors.NewReservationError(500, "Unable to retrive data")
+	}
+
+	countryData := gountries.New()
+	result, err := countryData.FindCountryByName(country)
 	if err != nil {
-		return "", fmt.Errorf("error parsing date: %v", err)
+		return "", errors.NewReservationError(500, "Unable to retrive data")
 	}
 
-	month := date.Month()
-
-	var quarter string
-	switch {
-	case month >= 1 && month <= 3:
-		quarter = "Q1"
-	case month >= 4 && month <= 6:
-		quarter = "Q2"
-	case month >= 7 && month <= 9:
-		quarter = "Q3"
-	case month >= 10 && month <= 12:
-		quarter = "Q4"
-	default:
-		return "", fmt.Errorf("invalid month")
-	}
-
-	return quarter, nil
+	continent := result.Continent
+	return continent, nil
 }
