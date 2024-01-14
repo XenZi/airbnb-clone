@@ -9,4 +9,6 @@ export interface User {
     role: Role,
     username: string,
     age: number,
+    distinguished: boolean,
+    rating: number
 }

@@ -132,3 +132,23 @@ func (ur UserRepository) DeleteUser(id string) *errors.ErrorStruct {
 	}
 	return nil
 }
+
+func (ur UserRepository) UpdateRating(id string, rating float64) *errors.ErrorStruct {
+	userCollection := ur.cli.Database("user-service").Collection("users")
+	foundId, erro := primitive.ObjectIDFromHex(id)
+	if erro != nil {
+		return errors.NewError(erro.Error(), 500)
+	}
+	filter := bson.D{{"_id", foundId}}
+	update := bson.D{{"$set", bson.D{
+		{"rating", rating},
+	}}}
+	gu, err := userCollection.UpdateOne(context.TODO(), filter, update)
+	if err != nil {
+		ur.logger.Println(err.Error())
+		err, status := errors.HandleNoDocumentsError(err, id)
+		return errors.NewError(err.Error(), status)
+	}
+	log.Println(gu)
+	return nil
+}

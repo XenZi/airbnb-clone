@@ -84,6 +84,8 @@ export class FormUpdateUserProfileComponent {
         role: Role.Guest,
         username: 'username ssl mock',
         age: 25,
+        distinguished: false,
+        rating: 4.8
       };
       this.loggedUser = {
         id: 'id ssl mock',
