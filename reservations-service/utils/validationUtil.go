@@ -128,14 +128,3 @@ func (v *Validator) ValidateReservation(reservation *domain.Reservation) {
 		}
 	}
 }
-
-func (v *Validator) ValidateAvailability(reservation *domain.FreeReservation) {
-	v.ValidateField("startDate", reservation.StartDate, DateNotAfter(reservation.StartDate, reservation.EndDate))
-	v.ValidateField("endDate", reservation.EndDate, DateNotBefore(reservation.EndDate, reservation.StartDate))
-	foundErrors := v.GetErrors()
-	if len(foundErrors) > 0 {
-		for field, message := range foundErrors {
-			fmt.Printf("%s: %s\n", field, message)
-		}
-	}
-}
