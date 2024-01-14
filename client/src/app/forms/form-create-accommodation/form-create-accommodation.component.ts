@@ -129,7 +129,7 @@ export class FormCreateAccommodationComponent {
     fileArray.clear();
 
     // Add each file to the form array
-    for (let i = 0; i < 1; i++) {
+    for (let i = 0; i < 5; i++) {
       const fileControl = this.fb.control(files[i]);
       fileArray.push(fileControl);
       console.log(files[i])
