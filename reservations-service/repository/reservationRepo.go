@@ -281,19 +281,22 @@ func (rr *ReservationRepo) InsertAvailability(reservation *domain.FreeReservatio
 		return nil, errors.NewReservationError(500, err.Error())
 	}
 
-	for _, dateRange := range reservation.DateRange {
-		Id, _ := gocql.RandomUUID()
-		log.Println(dateRange)
-		query := rr.session.Query(`
-			INSERT INTO free_accommodation (id, accommodation_id,  location, price, continent, country, date_range)
-			VALUES(?, ?, ?, ?, ?, ?, ?)
-		`, Id, reservation.AccommodationID, reservation.Location, reservation.Price, continent, country, dateRange)
+	for _, drwp := range reservation.DateRange {
+		for _, dateRange := range drwp.DateRange {
+			ID, _ := gocql.RandomUUID()
+			log.Println(dateRange)
+			query := rr.session.Query(`
+				INSERT INTO free_accommodation (id, accommodation_id, location, price, continent, country, date_range)
+				VALUES(?, ?, ?, ?, ?, ?, ?)
+			`, ID, reservation.AccommodationID, reservation.Location, drwp.Price, continent, country, dateRange)
 
-		if err := query.Exec(); err != nil {
-			rr.logger.Println(err)
-			return nil, errors.NewReservationError(500, err.Error())
+			if err := query.Exec(); err != nil {
+				rr.logger.Println(err)
+				return nil, errors.NewReservationError(500, err.Error())
+			}
 		}
 	}
+
 	reservation.Continent = continent
 	reservation.Country = country
 	return reservation, nil
