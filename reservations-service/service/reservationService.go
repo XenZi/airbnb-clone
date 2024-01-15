@@ -122,7 +122,7 @@ func (s *ReservationService) IsAvailable(accommodationID string, dateRange []str
 
 	available, err := s.repo.IsAvailable(accommodationID, dateRange)
 	if err != nil {
-		return false, errors.NewReservationError(400, "Accommodation not available")
+		return false, errors.NewReservationError(500, "Accommodation not available")
 	}
 
 	return available, nil
@@ -132,8 +132,36 @@ func (s *ReservationService) IsReserved(accommodationID string, dateRange []stri
 	available, err := s.repo.IsReserved(accommodationID, dateRange)
 	log.Println("available", available)
 	if err != nil {
-		return false, errors.NewReservationError(400, "Accommodation not available")
+		return false, errors.NewReservationError(500, "Accommodation not available")
 	}
 
 	return available, nil
+}
+func (s *ReservationService) getNumberOfCanceledReservations(hostID string) (int, *errors.ReservationError) {
+	numberOfCanceledReservations, err := s.repo.GetNumberOfCanceledReservations(hostID)
+	if err != nil {
+		return 0, errors.NewReservationError(500, "Cannot retrive the number of canceled reservations")
+	}
+
+	return numberOfCanceledReservations, nil
+}
+func (s *ReservationService) getTotalReservationsByHost(hostID string) (int, *errors.ReservationError) {
+	totalReservations, err := s.repo.GetTotalReservationsByHost(hostID)
+	if err != nil {
+		return 0, errors.NewReservationError(500, "Cannot retrive the total number of reservations")
+	}
+	return totalReservations, nil
+}
+
+func (s *ReservationService) CalculatePercentageCanceled(hostID string) (float32, *errors.ReservationError) {
+	numberOfCanceled, err := s.getNumberOfCanceledReservations(hostID)
+	if err != nil {
+		return 0, errors.NewReservationError(500, "Cannot retrive the number of canceled reservations")
+	}
+	totalReservations, erro := s.getTotalReservationsByHost(hostID)
+	if erro != nil {
+		return 0, errors.NewReservationError(500, "Cannot retrive the total number of reservations")
+	}
+	percentageCanceled := float32(numberOfCanceled)/float32(totalReservations) + float32(numberOfCanceled)*100
+	return percentageCanceled, nil
 }
