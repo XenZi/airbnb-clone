@@ -127,5 +127,25 @@ func (u UserHandler) DeleteHandler(rw http.ResponseWriter, h *http.Request) {
 	}
 	rw.Header().Set("Content-Type", "application/json")
 	rw.WriteHeader(http.StatusNoContent)
+}
 
+func (p *ProductsHandler) MiddlewareCacheHit(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(rw http.ResponseWriter, h *http.Request) {
+		vars := mux.Vars(h)
+		id := vars["id"]
+		// NoSQL: first look in the cache
+		product, err := p.cache.Get(id)
+		if err != nil {
+			// If Product not present in cache, continue execution to handler method
+			next.ServeHTTP(rw, h)
+		} else {
+			// If Product present in cache, return Product from cache
+			err = product.ToJSON(rw)
+			if err != nil {
+				http.Error(rw, "Unable to convert to json", http.StatusInternalServerError)
+				p.logger.Fatal("Unable to convert to json :", err)
+				return
+			}
+		}
+	})
 }
