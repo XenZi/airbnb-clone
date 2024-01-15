@@ -54,12 +54,7 @@ func (r ReservationService) CreateReservation(reservation domain.Reservation, ct
 }
 
 func (r ReservationService) CreateAvailability(reservation domain.FreeReservation) (*domain.FreeReservation, *errors.ReservationError) {
-	r.validator.ValidateAvailability(&reservation)
-	validationErrors := r.validator.GetErrors()
 
-	if len(validationErrors) > 0 {
-		return nil, errors.NewReservationError(400, "Validation failed")
-	}
 	createdAvailability, insertErr := r.repo.InsertAvailability(&reservation)
 	if insertErr != nil {
 		return nil, errors.NewReservationError(500, "Unable to create availability: "+insertErr.Error())

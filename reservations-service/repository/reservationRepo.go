@@ -74,7 +74,7 @@ func (rr *ReservationRepo) CreateTables() {
 	}
 	err = rr.session.Query(
 		fmt.Sprintf(`CREATE TABLE IF NOT EXISTS %s
-			(id UUID, accommodation_id text, start_date text, end_date text, location text, price int, continent text, country text, date_range set<text>,
+			(id UUID, accommodation_id text,  location text, price int, continent text, country text, date_range set<text>,
 			 PRIMARY KEY((accommodation_id),country,id))
 			WITH CLUSTERING ORDER BY(country ASC,id ASC)`, "free_accommodation")).Exec()
 
@@ -285,9 +285,9 @@ func (rr *ReservationRepo) InsertAvailability(reservation *domain.FreeReservatio
 		Id, _ := gocql.RandomUUID()
 		log.Println(dateRange)
 		query := rr.session.Query(`
-			INSERT INTO free_accommodation (id, accommodation_id, start_date, end_date, location, price, continent, country, date_range)
-			VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)
-		`, Id, reservation.AccommodationID, reservation.StartDate, reservation.EndDate, reservation.Location, reservation.Price, continent, country, dateRange)
+			INSERT INTO free_accommodation (id, accommodation_id,  location, price, continent, country, date_range)
+			VALUES(?, ?, ?, ?, ?, ?, ?)
+		`, Id, reservation.AccommodationID, reservation.Location, reservation.Price, continent, country, dateRange)
 
 		if err := query.Exec(); err != nil {
 			rr.logger.Println(err)
@@ -303,7 +303,7 @@ func (rr *ReservationRepo) AvailableDates(accommodationID string, dateRange []st
 	var result []domain.FreeReservation
 	for _, date := range dateRange {
 		query := `
-        SELECT id, accommodation_id, start_date, end_date, location, price,country
+        SELECT id, accommodation_id,location, price,country
         FROM free_accommodation 
         WHERE accommodation_id = ? 
         AND date_range CONTAINS ?
@@ -312,7 +312,7 @@ func (rr *ReservationRepo) AvailableDates(accommodationID string, dateRange []st
 		iter := rr.session.Query(query, accommodationID, date).Iter()
 
 		var reservation domain.FreeReservation
-		for iter.Scan(&reservation.Id, &reservation.AccommodationID, &reservation.StartDate, &reservation.EndDate, &reservation.Location, &reservation.Price, reservation.Country) {
+		for iter.Scan(&reservation.Id, &reservation.AccommodationID, &reservation.Location, &reservation.Price, reservation.Country) {
 			result = append(result, reservation)
 		}
 
@@ -457,19 +457,17 @@ func (rr *ReservationRepo) CheckAvailabilityForAccommodation(accommodationID str
 	var result []domain.GetAvailabilityForAccommodation
 
 	query := `
-    SELECT start_date, end_date,price
+    SELECT date_range,price
     FROM free_accommodation 
     WHERE accommodation_id = ? 
     `
 
 	iter := rr.session.Query(query, accommodationID).Iter()
-	var startDate string
-	var endDate string
+	var dateRange [][]string
 	var price int
 	var avl domain.GetAvailabilityForAccommodation
-	for iter.Scan(&startDate, &endDate, &price) {
-		avl.StartDate = startDate
-		avl.EndDate = endDate
+	for iter.Scan(&dateRange, &price) {
+		avl.DateRange = dateRange
 		avl.Price = price
 		result = append(result, avl)
 	}

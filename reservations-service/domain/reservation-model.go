@@ -45,9 +45,8 @@ type CheckAvailabilityRequest struct {
 	DateRange       []string `json:"dateRange"`
 }
 type GetAvailabilityForAccommodation struct {
-	StartDate string `json:"startDate"`
-	EndDate   string `json:"endDate"`
-	Price     int    `json:"price"`
+	DateRange [][]string `json:"dateRange"`
+	Price     int        `json:"price"`
 }
 
 type ReservationById []*Reservation

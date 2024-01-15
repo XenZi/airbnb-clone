@@ -13,7 +13,6 @@ import { User } from 'src/app/domains/entity/user-profile.model';
 import { AccommodationsService } from 'src/app/services/accommodations-service/accommodations.service';
 import { UserService } from 'src/app/services/user/user.service';
 import { formatErrors } from 'src/app/utils/formatter.utils';
-import { ICountry } from 'ngx-country-picker';
 import { Observable } from 'rxjs';
 
 
