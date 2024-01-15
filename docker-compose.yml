@@ -164,6 +164,11 @@ services:
       - "6379:6379"
     # We instruct redis to store data to disk every 20 seconds if there was at least 1 write operation
     command: "redis-server --save 20 1 --loglevel warning"
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok'
+      interval: 10s
+      timeout: 10s
+      retries: 10
     volumes:
       # <docker_volume_name>:<database_specific_data_location>
       - redis_data:/data

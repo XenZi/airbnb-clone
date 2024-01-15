@@ -99,6 +99,11 @@ func (as *AccommodationService) GetImage(id string) ([]byte, *errors.ErrorStruct
 	return file, nil
 }
 
+func (as *AccommodationService) GetCache(key string) ([]byte, error) {
+	data, err := as.cache.Get(key)
+	return data, err
+}
+
 func (as *AccommodationService) GetAllAccommodations() ([]*domain.AccommodationDTO, *errors.ErrorStruct) {
 	accommodations, err := as.accommodationRepository.GetAllAccommodations()
 	if err != nil {

@@ -28,7 +28,7 @@ func main() {
 	timeoutContext, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 	logger := log.New(os.Stdout, "[accommodation-api] ", log.LstdFlags)
-	loggerCach := log.New(os.Stdout "[cache]", log.LstdFlags)
+	loggerCach := log.New(os.Stdout, "[cache]", log.LstdFlags)
 
 	//env
 	reservationsServiceHost := os.Getenv("RESERVATIONS_SERVICE_HOST")
@@ -100,7 +100,7 @@ func main() {
 
 	router.HandleFunc("/{id}", accommodationsHandler.GetAccommodationById).Methods("GET")
 
-	router.HandleFunc("/images/{id}", handlers.MiddlewareCacheHit(accommodationsHandler.GetImage)).Methods("GET")
+	router.HandleFunc("/images/{id}", accommodationsHandler.MiddlewareCacheHit(accommodationsHandler.GetImage)).Methods("GET")
 
 	router.HandleFunc("/rating/{id}", accommodationsHandler.PutAccommodationRating).Methods("PUT")
 

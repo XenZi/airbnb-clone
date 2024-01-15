@@ -264,11 +264,11 @@ func (a *AccommodationsHandler) PutAccommodationRating(w http.ResponseWriter, r 
 	utils.WriteResp(accommodation, 201, w)
 }
 
-func (a *AccommodationsHandler) MiddlewareCacheHit(next http.Handler) http.Handler {
-	return http.Handler(func(rw http.ResponseWriter, r *http.Request) {
+func (a *AccommodationsHandler) MiddlewareCacheHit(next http.HandlerFunc) http.HandlerFunc {
+	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		id := vars["id"]
-		image, err := a.AccommodationService.cache.Get(id)
+		image, err := a.AccommodationService.GetCache(id)
 		if err != nil {
 			next.ServeHTTP(rw, r)
 		} else {
