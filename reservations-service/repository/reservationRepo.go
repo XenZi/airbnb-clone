@@ -151,8 +151,8 @@ func (rr *ReservationRepo) CreateTables() {
 
 	err = rr.session.Query(
 		fmt.Sprintf(`CREATE TABLE IF NOT EXISTS %s
-			(id UUID, accommodation_id text, ,
-			 PRIMARY KEY((accommodation_id),id))
+			(id UUID, host_id text, ,
+			 PRIMARY KEY((host_id),id))
 			WITH CLUSTERING ORDER BY(id ASC)`, "deleted_reservations")).Exec()
 
 	if err != nil {
@@ -281,19 +281,22 @@ func (rr *ReservationRepo) InsertAvailability(reservation *domain.FreeReservatio
 		return nil, errors.NewReservationError(500, err.Error())
 	}
 
-	for _, dateRange := range reservation.DateRange {
-		Id, _ := gocql.RandomUUID()
-		log.Println(dateRange)
-		query := rr.session.Query(`
-			INSERT INTO free_accommodation (id, accommodation_id,  location, price, continent, country, date_range)
-			VALUES(?, ?, ?, ?, ?, ?, ?)
-		`, Id, reservation.AccommodationID, reservation.Location, reservation.Price, continent, country, dateRange)
+	for _, drwp := range reservation.DateRange {
+		for _, dateRange := range drwp.DateRange {
+			ID, _ := gocql.RandomUUID()
+			log.Println(dateRange)
+			query := rr.session.Query(`
+				INSERT INTO free_accommodation (id, accommodation_id, location, price, continent, country, date_range)
+				VALUES(?, ?, ?, ?, ?, ?, ?)
+			`, ID, reservation.AccommodationID, reservation.Location, drwp.Price, continent, country, dateRange)
 
-		if err := query.Exec(); err != nil {
-			rr.logger.Println(err)
-			return nil, errors.NewReservationError(500, err.Error())
+			if err := query.Exec(); err != nil {
+				rr.logger.Println(err)
+				return nil, errors.NewReservationError(500, err.Error())
+			}
 		}
 	}
+
 	reservation.Continent = continent
 	reservation.Country = country
 	return reservation, nil
@@ -392,7 +395,7 @@ func (rr *ReservationRepo) DeleteById(country string, id, userID, hostID, accomm
 	batch.Query(`DELETE FROM reservation_by_user WHERE user_id = ? AND id = ?`, userID, id)
 	batch.Query(`DELETE FROM reservation_by_host WHERE host_id = ? AND id = ?`, hostID, id)
 	batch.Query(`DELETE FROM reservation_by_accommodation WHERE accommodation_id = ? AND id = ?`, accommodationID, id)
-	batch.Query(`INSERT INTO deleted_reservations(id,accommodation_id) VALUES(?,?)`, id, accommodationID)
+	batch.Query(`INSERT INTO deleted_reservations(id,host_id) VALUES(?,?)`, id, hostID)
 
 	if err := rr.session.ExecuteBatch(batch); err != nil {
 		rr.logger.Println(err)
@@ -503,4 +506,25 @@ func (rr *ReservationRepo) IsReserved(accommodationID string, dateRange []string
 
 	}
 	return false, nil
+}
+func (rr *ReservationRepo) GetNumberOfCanceledReservations(hostID string) (int, *errors.ReservationError) {
+	query := `SELECT COUNT(*) FROM deleted_reservations WHERE host_id = ?`
+	iter := rr.session.Query(query, hostID).Iter()
+
+	var numberOfCanceled int
+	if iter.Scan(&numberOfCanceled) {
+		return numberOfCanceled, nil
+	}
+	return 0, errors.NewReservationError(500, "Failed to get the number of canceled reservations")
+}
+
+func (rr *ReservationRepo) GetTotalReservationsByHost(hostID string) (int, *errors.ReservationError) {
+	query := `SELECT COUNT(*) FROM reservation_by_host WHERE host_id = ?`
+	iter := rr.session.Query(query, hostID).Iter()
+	var totalReservations int
+	if iter.Scan(&totalReservations) {
+		return totalReservations, nil
+	}
+	return 0, errors.NewReservationError(500, "Failed to get the number of total reservations")
+
 }

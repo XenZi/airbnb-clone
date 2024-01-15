@@ -26,15 +26,19 @@ type Reservation struct {
 }
 
 type FreeReservation struct {
-	Id              gocql.UUID `json:"id"`
-	AccommodationID string     `json:"accommodationId"`
-	StartDate       string     `json:"startDate"`
-	EndDate         string     `json:"endDate"`
-	Location        string     `json:"location"`
-	Price           int        `json:"price"`
-	Continent       string     `json:"continent"`
-	Country         string     `json:"country"`
-	DateRange       [][]string `json:"dateRange"`
+	Id              gocql.UUID           `json:"id"`
+	AccommodationID string               `json:"accommodationId"`
+	StartDate       string               `json:"startDate"`
+	EndDate         string               `json:"endDate"`
+	Location        string               `json:"location"`
+	Price           int                  `json:"price"`
+	Continent       string               `json:"continent"`
+	Country         string               `json:"country"`
+	DateRange       []DateRangeWithPrice `json:"dateRange"`
+}
+type DateRangeWithPrice struct {
+	DateRange [][]string `json:"dateRange"`
+	Price     int        `json:"price"`
 }
 type ReservationsInDateRangeRequest struct {
 	AccommodationIDs []string `json:"accommodationIDs"`

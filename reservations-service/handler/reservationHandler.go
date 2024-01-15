@@ -167,3 +167,15 @@ func (rh *ReservationHandler) DeleteReservationById(rw http.ResponseWriter, r *h
 	rw.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(rw).Encode(deletedReservation)
 }
+
+func (rh *ReservationHandler) GetCancelationPercentage(rw http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	hostID := vars["hostID"]
+	percentage, err := rh.ReservationService.CalculatePercentageCanceled(hostID)
+	if err != nil {
+		utils.WriteErrorResp(err.Message, err.Status, "/api/reservations/percentage-cancelation/{hostID}", rw)
+		return
+	}
+	rw.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(rw).Encode(percentage)
+}
