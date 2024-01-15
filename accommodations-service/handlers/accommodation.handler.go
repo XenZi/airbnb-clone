@@ -263,3 +263,18 @@ func (a *AccommodationsHandler) PutAccommodationRating(w http.ResponseWriter, r 
 	w.Header().Set("Content-Type", "application/json")
 	utils.WriteResp(accommodation, 201, w)
 }
+
+func (a *AccommodationsHandler) MiddlewareCacheHit(next http.HandlerFunc) http.HandlerFunc {
+	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
+		vars := mux.Vars(r)
+		id := vars["id"]
+		image, err := a.AccommodationService.GetCache(id)
+		if err != nil {
+			next.ServeHTTP(rw, r)
+		} else {
+			rw.Header().Set("Content-Type", "image/jpeg")
+			rw.WriteHeader(http.StatusOK)
+			rw.Write(image)
+		}
+	})
+}

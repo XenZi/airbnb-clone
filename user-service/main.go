@@ -124,6 +124,7 @@ func main() {
 	router.HandleFunc("/all", profileHandler.GetAllHandler).Methods("GET")
 	router.HandleFunc("/{id}", profileHandler.GetUserById).Methods("GET")
 	router.HandleFunc("/creds/{id}", profileHandler.CredsHandler).Methods("POST")
+	router.HandleFunc("/rating/{id}", profileHandler.UpdateRating).Methods("POST")
 
 	port := os.Getenv("PORT")
 	if len(port) == 0 {

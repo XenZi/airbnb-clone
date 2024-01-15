@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"strconv"
 	"user-service/domain"
 	"user-service/service"
 	"user-service/utils"
@@ -75,12 +76,42 @@ func (u UserHandler) GetAllHandler(rw http.ResponseWriter, h *http.Request) {
 func (u UserHandler) GetUserById(rw http.ResponseWriter, h *http.Request) {
 	vars := mux.Vars(h)
 	id := vars["id"]
-	user, err := u.UserService.GetUserById(id)
+	user, hostUser, err := u.UserService.GetUserById(id)
 	if err != nil {
 		utils.WriteErrorResponse(err.GetErrorMessage(), err.GetErrorStatus(), "api/get-user", rw)
 		return
 	}
+	if hostUser != nil {
+		utils.WriteResp(hostUser, 200, rw)
+		return
+	}
 	utils.WriteResp(user, 200, rw)
+}
+
+func (u UserHandler) UpdateRating(rw http.ResponseWriter, h *http.Request) {
+	vars := mux.Vars(h)
+	id := vars["id"]
+	decoder := json.NewDecoder(h.Body)
+	decoder.DisallowUnknownFields()
+	var rating *domain.RatingStruct
+	if err := decoder.Decode(&rating); err != nil {
+		utils.WriteErrorResponse(err.Error(), 500, "api/users/rating", rw)
+		return
+	}
+	ratingStr := rating.Rating
+	log.Println(ratingStr)
+	ratingF, err := strconv.ParseFloat(ratingStr, 64)
+	if err != nil {
+		utils.WriteErrorResponse("cannot convert to float64", 400, "api/users/rating", rw)
+		return
+	}
+	erro := u.UserService.UpdateRating(id, ratingF)
+	if erro != nil {
+		utils.WriteErrorResponse(erro.GetErrorMessage(), erro.GetErrorStatus(), "api/users/rating", rw)
+		return
+	}
+	rw.Header().Set("Content-Type", "application/json")
+	rw.WriteHeader(http.StatusNoContent)
 }
 
 func (u UserHandler) DeleteHandler(rw http.ResponseWriter, h *http.Request) {
@@ -96,5 +127,4 @@ func (u UserHandler) DeleteHandler(rw http.ResponseWriter, h *http.Request) {
 	}
 	rw.Header().Set("Content-Type", "application/json")
 	rw.WriteHeader(http.StatusNoContent)
-
 }

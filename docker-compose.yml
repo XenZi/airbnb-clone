@@ -102,6 +102,8 @@ services:
       - RESERVATIONS_SERVICE_HOST=${RESERVATIONS_SERVICE_HOST}
       - RESERVATIONS_SERVICE_PORT=${RESERVATIONS_SERVICE_PORT}
       - HDFS_URI=namenode:9000
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
     networks:
       - network
     depends_on:
@@ -112,6 +114,8 @@ services:
       datanode1:
         condition: service_healthy
       datanode2:
+        condition: service_healthy
+      acc-redis:
         condition: service_healthy
 
   namenode:
@@ -148,6 +152,26 @@ services:
       - hadoop_datanode2:/hadoop/dfs/data
     environment:
       SERVICE_PRECONDITION: "namenode:9870"
+    env_file:
+      - ./.env
+    networks:
+      - network
+
+  acc-redis:
+    image: redis
+    restart: always
+    ports:
+      - "6379:6379"
+    # We instruct redis to store data to disk every 20 seconds if there was at least 1 write operation
+    command: "redis-server --save 20 1 --loglevel warning"
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok'
+      interval: 10s
+      timeout: 10s
+      retries: 10
+    volumes:
+      # <docker_volume_name>:<database_specific_data_location>
+      - redis_data:/data
     env_file:
       - ./.env
     networks:
@@ -362,3 +386,4 @@ volumes:
   hadoop_datanode1:
   hadoop_datanode2:
   neo4j_data:
+  redis_data:

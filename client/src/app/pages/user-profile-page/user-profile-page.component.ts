@@ -37,9 +37,11 @@ export class UserProfilePageComponent {
         lastName: 'prezime ssl mock',
         email: 'mail ssl mock',
         residence: 'rezidencija ssl mock',
-        role: Role.Guest,
+        role: Role.Host,
         username: 'username ssl mock',
         age: 25,
+        distinguished: true,
+        rating: 4.8
       };
     }
   }

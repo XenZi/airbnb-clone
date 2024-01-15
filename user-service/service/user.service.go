@@ -140,27 +140,56 @@ func (u *UserService) GetAllUsers() ([]*domain.User, *errors.ErrorStruct) {
 	return userCollection, nil
 }
 
-func (u *UserService) GetUserById(id string) (*domain.User, *errors.ErrorStruct) {
+func (u *UserService) GetUserById(id string) (*domain.User, *domain.HostUser, *errors.ErrorStruct) {
 	foundUser, err := u.userRepository.GetUserById(id)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-	return foundUser, nil
+	if foundUser.Role == "Host" {
+		dist := false
+		dist, err = u.isDistinguished(foundUser.ID.Hex(), foundUser.Rating)
+		if err != nil {
+			return nil, nil, err
+		}
+		hostUser := domain.HostUser{
+			ID:            foundUser.ID,
+			Username:      foundUser.Username,
+			Email:         foundUser.Email,
+			Role:          foundUser.Role,
+			FirstName:     foundUser.FirstName,
+			LastName:      foundUser.LastName,
+			Residence:     foundUser.Residence,
+			Age:           foundUser.Age,
+			Rating:        foundUser.Rating,
+			Distinguished: dist,
+		}
+		return nil, &hostUser, nil
+	}
+	return foundUser, nil, nil
+}
+
+func (u *UserService) isDistinguished(id string, rating float64) (bool, *errors.ErrorStruct) {
+	reqs, err := u.reservationClient.CheckDistinguished(context.TODO(), id)
+	if err != nil {
+		return false, err
+	}
+	// Req 4
+	if reqs && rating > 4.0 {
+		return true, nil
+	}
+	return false, nil
 }
 
 func (u *UserService) DeleteUser(role string, id string) *errors.ErrorStruct {
-	if role == "Guest" {
-		allow, err := u.reservationClient.GuestDeleteAllowed(context.TODO(), id)
-		if err != nil {
-			log.Println("ovo je error", err)
-			return err
-		}
-		if !allow {
-			return errors.NewError("user has reservations", 401)
-		}
+	allow, err := u.reservationClient.UserDeleteAllowed(context.TODO(), id, role)
+	if err != nil {
+		log.Println("ovo je error", err)
+		return err
+	}
+	if !allow {
+		return errors.NewError("user has reservations", 401)
 	}
 	if role == "Host" {
-		// TODO add reservation check
 		err := u.accClient.DeleteUserAccommodations(context.TODO(), id)
 		if err != nil {
 			return err
@@ -176,6 +205,14 @@ func (u *UserService) DeleteUser(role string, id string) *errors.ErrorStruct {
 	erro := u.userRepository.DeleteUser(id)
 	if erro != nil {
 		return errors.NewError("internal error", 500)
+	}
+	return nil
+}
+
+func (u *UserService) UpdateRating(id string, rating float64) *errors.ErrorStruct {
+	err := u.userRepository.UpdateRating(id, rating)
+	if err != nil {
+		return err
 	}
 	return nil
 }

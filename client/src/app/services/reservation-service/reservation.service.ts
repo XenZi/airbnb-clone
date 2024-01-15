@@ -64,33 +64,9 @@ export class ReservationService {
     }
   }
 
-  deleteById(
-    id:string,
-    country: string
-    ): void {
-    this.http
-      .put(`${apiURL}/reservations/${country}/${id}`, {
-       
-      })
-      .subscribe({
-        next: (data) => {
-          this.toastService.showToast(
-            'Success',
-            'Reservation deleted!',
-            ToastNotificationType.Success
-            
-          );
-        },
-        error: (err) => {
-          console.log(err)
-          this.toastService.showToast(
-            'Error',
-            err.error.error,
-            ToastNotificationType.Error
-            );
-          },
-        });
-        this.router.navigate(['/']);
+  deleteById(country: string, id: string, userID: string, hostID: string, accommodationID: string): Observable<any> {
+    const url = `${this.apiURL}/${country}/${id}/${userID}/${hostID}/${accommodationID}`;
+    return this.http.delete(url);
   }
   
   getAllReservationsById(id: string): Observable<any> {

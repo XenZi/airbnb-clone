@@ -6,13 +6,27 @@ type User struct {
 	ID       primitive.ObjectID `bson:"_id,omitempty" json:"id"`
 	Username string             `json:"username" bson:"username"`
 	//Password  string             `json:"password" bson:"password"`
-	Email     string `json:"email" bson:"email"`
-	Role      string `json:"role" bson:"role"`
-	FirstName string `json:"firstName" bson:"firstName"`
-	LastName  string `json:"lastName" bson:"lastName"`
-	Residence string `json:"residence" bson:"residence"`
-	Age       int    `json:"age" bson:"age"`
-	Rating    int    `json:"rating"`
+	Email     string  `json:"email" bson:"email"`
+	Role      string  `json:"role" bson:"role"`
+	FirstName string  `json:"firstName" bson:"firstName"`
+	LastName  string  `json:"lastName" bson:"lastName"`
+	Residence string  `json:"residence" bson:"residence"`
+	Age       int     `json:"age" bson:"age"`
+	Rating    float64 `json:"rating"`
+}
+
+type HostUser struct {
+	ID       primitive.ObjectID `bson:"_id,omitempty" json:"id"`
+	Username string             `json:"username" bson:"username"`
+	//Password  string             `json:"password" bson:"password"`
+	Email         string  `json:"email" bson:"email"`
+	Role          string  `json:"role" bson:"role"`
+	FirstName     string  `json:"firstName" bson:"firstName"`
+	LastName      string  `json:"lastName" bson:"lastName"`
+	Residence     string  `json:"residence" bson:"residence"`
+	Age           int     `json:"age" bson:"age"`
+	Rating        float64 `json:"rating"`
+	Distinguished bool    `json:"distinguished"`
 }
 
 //Optional for later use
