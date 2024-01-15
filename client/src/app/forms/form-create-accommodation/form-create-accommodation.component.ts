@@ -163,9 +163,54 @@ export class FormCreateAccommodationComponent {
       
     }
     const images = this.createAccommodationForm.get('pictures');
+    const dateAvailabilitiesValue = this.dateAvailabilities.value;
+    
+    
 
+    function processDateAvailabilities(dateAvailabilitiesValue: any[]): { dateRange: string[], price: number }[] {
+      const processedData: { dateRange: string[], price: number }[] = [];
+    
+      for (const entry of dateAvailabilitiesValue) {
+        const startDate = new Date(entry.startDate);
+        const endDate = new Date(entry.endDate);
+        const price = entry.price;
+    
+        // Generate date range
+        const currentDates = getDatesBetween(startDate, endDate).map(date => date.toISOString().split('T')[0]);
+        console.log(currentDates)
+    
+        // Do something with startDate, endDate, and price
+        console.log(`Start Date: ${startDate.toISOString().split('T')[0]}, End Date: ${endDate.toISOString().split('T')[0]}, Price: ${price}`);
+        
+        // Add currentDates and price to the processedData array
+        processedData.push({ dateRange: currentDates, price: price });
+      }
+    
+      // The processedData array now contains objects with dateRange (dates only) and price for every entry
+      return processedData;
+    }
+    
+    // Helper function to get dates between start and end dates
+    function getDatesBetween(startDate: Date, endDate: Date): Date[] {
+      const dates = [];
+      let currentDate = new Date(startDate);
+    
+      while (currentDate <= endDate) {
+        dates.push(new Date(currentDate));
+        currentDate.setDate(currentDate.getDate() + 1);
+      }
+    
+      return dates;
+    }
+
+
+
+    
     console.log(images?.value)
     console.log(this.dateAvailabilities.value)
+    const availabilites=processDateAvailabilities(dateAvailabilitiesValue)
+    console.log(availabilites)
+   
     this.accommodationsService.create(
       this.user?.id as string,
       this.user?.username as string,
@@ -176,7 +221,7 @@ export class FormCreateAccommodationComponent {
       this.fromBooleanToConveniences(),
       this.createAccommodationForm.value.minNumOfVisitors,
       this.createAccommodationForm.value.maxNumOfVisitors,
-      this.dateAvailabilities.value,
+      availabilites,
       this.createLocationCsv(),
       images?.value,
     );

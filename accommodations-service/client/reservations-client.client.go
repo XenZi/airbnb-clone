@@ -32,26 +32,27 @@ func (rc ReservationsClient) SendCreatedReservationsAvailabilities(ctx context.C
 
 	for i := 0; i < len(accommodation.AvailableAccommodationDates); i++ {
 
-		log.Println("OVO JE ID", accommodation.AvailableAccommodationDates[i].StartDate)
-		availabilitiesForReservationService := struct {
-			AccommodationID string `json:"accommodationId"`
-			StartDate       string `json:"startDate"`
-			EndDate         string `json:"endDate"`
-			Location        string `json:"location"`
-			Price           int    `json:"price"`
-		}{
-			AccommodationID: id,
-			StartDate:       accommodation.AvailableAccommodationDates[i].StartDate,
-			EndDate:         accommodation.AvailableAccommodationDates[i].EndDate,
-			Location:        accommodation.Location,
-			Price:           accommodation.AvailableAccommodationDates[i].Price,
-		}
-
-		jsonData, err := json.Marshal(availabilitiesForReservationService)
+		//availabilitiesForReservationService := struct {
+		//	AccommodationID string   `json:"accommodationId"`
+		//	DateRange       []string `json:"dateRange"`
+		//	Location        string   `json:"location"`
+		//	Price           int      `json:"price"`
+		//}{
+		//	AccommodationID: id,
+		//	DateRange:       datesRange,
+		//
+		//	Location: accommodation.Location,
+		//	Price:    accommodation.AvailableAccommodationDates[i].Price,
+		//}
+		accommodation.AvailableAccommodationDates[i].AccommodationId = id
+		jsonData, err := json.Marshal(accommodation.AvailableAccommodationDates[i])
+		log.Println(accommodation.AvailableAccommodationDates[i])
 		if err != nil {
 			return errors.NewError("Nothing to parse", 500)
 		}
+
 		requestBody := bytes.NewReader(jsonData)
+
 		cbResp, err := rc.circuitBreaker.Execute(func() (interface{}, error) {
 			req, err := http.NewRequestWithContext(ctx, http.MethodPost, rc.address+"/availability", requestBody)
 			if err != nil {
@@ -83,7 +84,6 @@ func (rc ReservationsClient) SendCreatedReservationsAvailabilities(ctx context.C
 		log.Println(baseResp)
 		log.Println(baseResp.Error)
 		return errors.NewError(baseResp.Error, baseResp.Status)
-	
 
 	}
 

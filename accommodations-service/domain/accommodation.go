@@ -35,11 +35,10 @@ type CreateAccommodation struct {
 }
 
 type AvailableAccommodationDates struct {
-	AccommodationId string `json:"id"`
-	StartDate       string `json:"startDate"`
-	EndDate         string `json:"endDate"`
-	Location        string `json:"location"`
-	Price           int    `json:"price"`
+	AccommodationId string   `json:"accommodationId"`
+	DateRange       []string `json:"dateRange"`
+	Location        string   `json:"location"`
+	Price           int      `json:"price"`
 }
 
 type AccommodationDTO struct {

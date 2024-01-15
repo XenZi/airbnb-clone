@@ -44,7 +44,7 @@ func (as *AccommodationService) CreateAccommodation(accommodation domain.CreateA
 		MaxNumOfVisitors: accommodation.MaxNumOfVisitors,
 	}
 	as.validator.ValidateAccommodation(&accomm)
-	as.validator.ValidateAvailabilities(&accommodation)
+	//as.validator.ValidateAvailabilities(&accommodation)
 	validatorErrors := as.validator.GetErrors()
 	if len(validatorErrors) > 0 {
 		var constructedError string

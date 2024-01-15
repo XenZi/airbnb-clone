@@ -1,6 +1,5 @@
 export interface DateAvailability {
-  startDate: Date;
-  endDate: Date;
+  dateRange:string[]
   price: number;
   
 }

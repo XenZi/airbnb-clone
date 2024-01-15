@@ -47,12 +47,14 @@ func (r *ReservationHandler) CreateAvailability(rw http.ResponseWriter, h *http.
 	decoder.DisallowUnknownFields()
 	var avl domain.FreeReservation
 	if err := decoder.Decode(&avl); err != nil {
+		log.Println("PRvi ErrOR")
 		utils.WriteErrorResp(err.Error(), 500, "api/availability", rw)
 		return
 	}
 	log.Println("USLO U CREATE")
 	newAvl, err := r.ReservationService.CreateAvailability(avl)
 	if err != nil {
+		log.Println("DRugI erROr")
 		utils.WriteErrorResp(err.Message, err.Status, "api/availability", rw)
 		return
 	}
