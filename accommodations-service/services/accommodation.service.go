@@ -19,14 +19,16 @@ type AccommodationService struct {
 	validator               *utils.Validator
 	reservationsClient      *client.ReservationsClient
 	fileStorage             *repository.FileStorage
+	cache                   *repository.ImageCache
 }
 
-func NewAccommodationService(accommodationRepo *repository.AccommodationRepo, validator *utils.Validator, reservationsClient *client.ReservationsClient, fileStorage *repository.FileStorage) *AccommodationService {
+func NewAccommodationService(accommodationRepo *repository.AccommodationRepo, validator *utils.Validator, reservationsClient *client.ReservationsClient, fileStorage *repository.FileStorage, cache *repository.ImageCache) *AccommodationService {
 	return &AccommodationService{
 		accommodationRepository: accommodationRepo,
 		validator:               validator,
 		reservationsClient:      reservationsClient,
 		fileStorage:             fileStorage,
+		cache:                   cache,
 	}
 }
 
@@ -44,7 +46,7 @@ func (as *AccommodationService) CreateAccommodation(accommodation domain.CreateA
 		MaxNumOfVisitors: accommodation.MaxNumOfVisitors,
 	}
 	as.validator.ValidateAccommodation(&accomm)
-	as.validator.ValidateAvailabilities(&accommodation)
+	//as.validator.ValidateAvailabilities(&accommodation)
 	validatorErrors := as.validator.GetErrors()
 	if len(validatorErrors) > 0 {
 		var constructedError string
@@ -59,6 +61,7 @@ func (as *AccommodationService) CreateAccommodation(accommodation domain.CreateA
 	uuidStr := uuid.New().String()
 	imageIds = append(imageIds, uuidStr)
 	as.fileStorage.WriteFile(image, uuidStr)
+	as.cache.Post(image, uuidStr)
 	accomm.ImageIds = imageIds
 	newAccommodation, foundErr := as.accommodationRepository.SaveAccommodation(accomm)
 	if foundErr != nil {
@@ -92,7 +95,13 @@ func (as *AccommodationService) GetImage(id string) ([]byte, *errors.ErrorStruct
 	if err != nil {
 		return nil, errors.NewError("image read error", 500)
 	}
+	as.cache.Create(file, id)
 	return file, nil
+}
+
+func (as *AccommodationService) GetCache(key string) ([]byte, error) {
+	data, err := as.cache.Get(key)
+	return data, err
 }
 
 func (as *AccommodationService) GetAllAccommodations() ([]*domain.AccommodationDTO, *errors.ErrorStruct) {

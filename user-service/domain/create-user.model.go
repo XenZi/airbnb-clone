@@ -1,13 +1,17 @@
 package domain
 
 type CreateUser struct {
-	ID        string `json:"id"`
-	FirstName string `json:"firstName"`
-	LastName  string `json:"lastName"`
-	Email     string `json:"email"`
-	Residence string `json:"residence"`
-	Role      string `json:"role"`
-	Username  string `json:"username"`
-	Age       int    `json:"age"`
-	Rating    int    `json:"rating"`
+	ID        string  `json:"id"`
+	FirstName string  `json:"firstName"`
+	LastName  string  `json:"lastName"`
+	Email     string  `json:"email"`
+	Residence string  `json:"residence"`
+	Role      string  `json:"role"`
+	Username  string  `json:"username"`
+	Age       int     `json:"age"`
+	Rating    float64 `json:"rating"`
+}
+
+type RatingStruct struct {
+	Rating string `json:"rating"`
 }

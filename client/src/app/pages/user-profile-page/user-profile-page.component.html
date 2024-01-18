@@ -3,6 +3,9 @@
     <div class="container">
     <div class="profile">
         <div class="profile__header">
+            <div class="profile__distinguished" *ngIf="user.role=='Host'">
+            <h2 class="profile__status" *ngIf="user.distinguished">Distinguished</h2>
+            </div>
             <h1 class="profile__name">{{user.firstName}} {{user.lastName}}</h1>
         </div>
         <div class="profile__info">
@@ -37,6 +40,10 @@
             <div class="profile__info-item">
                 <span class="profile__label">Age:</span>
                 <span class="profile__value">{{user.age}}</span>
+            </div>
+            <div class="profile__info-item" *ngIf="user.role=='Host'">
+                <span class="profile__label">Rating:</span>
+                <span class="profile__value">{{user.rating}}</span>
             </div>
         </div>
     </div>

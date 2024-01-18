@@ -121,14 +121,14 @@ func (v *Validator) ValidateAvailabilities(availabilities *domain.CreateAccommod
 
 	for _, availability := range availabilities.AvailableAccommodationDates {
 		// Validate StartDate
-		startDateParsed, err := time.Parse(layout, availability.StartDate)
+		startDateParsed, err := time.Parse(layout, availability.DateRange[0])
 		log.Println("Parsovan start date", startDateParsed)
 		if err != nil {
 			v.Errors["StartDate"] = "StartDate is not formatted correctly"
 		}
 
 		// Validate EndDate
-		endDateParsed, err := time.Parse(layout, availability.EndDate)
+		endDateParsed, err := time.Parse(layout, availability.DateRange[1])
 		if err != nil {
 			v.Errors["EndDate"] = "EndDate is not formatted correctly"
 		}

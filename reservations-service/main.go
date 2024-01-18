@@ -13,6 +13,10 @@ import (
 	"reservation-service/utils"
 	"time"
 
+	//tracing "command-line-arguments/home/janko33/Documents/airbnb-clone/reservations-service/tracing/tracer.go"
+
+	//opentracing "github.com/opentracing/opentracing-go"
+
 	gorillaHandlers "github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/sony/gobreaker"
@@ -71,16 +75,24 @@ func main() {
 	reservationsHandler := handler.ReservationHandler{
 		ReservationService: reservationService,
 	}
+	/*
+		tracer, closer := tracing.Init("reservations-service")
+		defer closer.Close()
+		opentracing.SetGlobalTracer(tracer)
+
+
+	*/
 	router := mux.NewRouter()
 	router.HandleFunc("/user/guest/{userId}", reservationsHandler.GetReservationsByUser).Methods("GET")
 	router.HandleFunc("/", reservationsHandler.CreateReservation).Methods("POST")
 	router.HandleFunc("/accommodations", reservationsHandler.ReservationsInDateRangeHandler).Methods("GET")
 	router.HandleFunc("/availability", reservationsHandler.CreateAvailability).Methods("POST")
 	router.HandleFunc("/user/host/{hostId}", reservationsHandler.GetReservationsByHost).Methods("GET")
-	router.HandleFunc("/accommodations/{accommodationID}", reservationsHandler.GetReservationsByAccommodation).Methods("GET")
+	//router.HandleFunc("/accommodations/{accommodationID}", reservationsHandler.GetReservationsByAccommodation).Methods("GET")
 	router.HandleFunc("/accommodation/dates", reservationsHandler.GetAvailableDates).Methods("GET")
-	router.HandleFunc("/{country}/{id}", reservationsHandler.DeleteReservationById).Methods("PUT")
+	router.HandleFunc("/{country}/{id}/{userID}/{hostID}/{accommodationID}", reservationsHandler.DeleteReservationById).Methods("PUT")
 	router.HandleFunc("/{accommodationID}/availability", reservationsHandler.GetAvailabilityForAccommodation).Methods("GET")
+	router.HandleFunc("/percentage-cancelation/{hostID}", reservationsHandler.GetCancelationPercentage).Methods("GET")
 
 	headersOk := gorillaHandlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"})
 	methodsOk := gorillaHandlers.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "OPTIONS", "DELETE"})

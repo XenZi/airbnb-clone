@@ -91,6 +91,7 @@ export class AccommodationsService {
     location: string,
     images:FormArray
   ): void {
+    console.log(availableAccommodationDates)
     this.http
       .post(`${apiURL}/accommodations/`, this.formatFormData(
         userId,
