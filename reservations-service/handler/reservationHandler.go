@@ -44,7 +44,6 @@ func (r *ReservationHandler) CreateReservation(rw http.ResponseWriter, h *http.R
 }
 func (r *ReservationHandler) CreateAvailability(rw http.ResponseWriter, h *http.Request) {
 	decoder := json.NewDecoder(h.Body)
-	decoder.DisallowUnknownFields()
 	var avl domain.FreeReservation
 	if err := decoder.Decode(&avl); err != nil {
 		log.Println("PRvi ErrOR")

@@ -19,6 +19,12 @@ type ReservationsClient struct {
 	circuitBreaker *gobreaker.CircuitBreaker
 }
 
+type SendCreateAccommodationAvailiabilty struct {
+	AccommodationID string                               `json:"accommodationId"`
+	Location        string                               `json:"location"`
+	DateRange       []domain.AvailableAccommodationDates `json:"dateRange"`
+}
+
 func NewReservationsClient(host, port string, client *http.Client, circuitBreaker *gobreaker.CircuitBreaker) *ReservationsClient {
 	return &ReservationsClient{
 		address:        fmt.Sprintf("http://%s:%s", host, port),
@@ -28,64 +34,49 @@ func NewReservationsClient(host, port string, client *http.Client, circuitBreake
 }
 
 func (rc ReservationsClient) SendCreatedReservationsAvailabilities(ctx context.Context, id string, accommodation domain.CreateAccommodation) *errors.ErrorStruct {
-	log.Println(len(accommodation.AvailableAccommodationDates))
+	log.Println(accommodation)
+	reqData := SendCreateAccommodationAvailiabilty{
+		AccommodationID: id,
+		Location:        accommodation.Location,
+		DateRange:       accommodation.AvailableAccommodationDates}
+	jsonData, err := json.Marshal(reqData)
+	if err != nil {
+		return errors.NewError("Nothing to parse", 500)
+	}
 
-	for i := 0; i < len(accommodation.AvailableAccommodationDates); i++ {
+	requestBody := bytes.NewReader(jsonData)
 
-		//availabilitiesForReservationService := struct {
-		//	AccommodationID string   `json:"accommodationId"`
-		//	DateRange       []string `json:"dateRange"`
-		//	Location        string   `json:"location"`
-		//	Price           int      `json:"price"`
-		//}{
-		//	AccommodationID: id,
-		//	DateRange:       datesRange,
-		//
-		//	Location: accommodation.Location,
-		//	Price:    accommodation.AvailableAccommodationDates[i].Price,
-		//}
-		accommodation.AvailableAccommodationDates[i].AccommodationId = id
-		jsonData, err := json.Marshal(accommodation.AvailableAccommodationDates[i])
-		log.Println(accommodation.AvailableAccommodationDates[i])
+	cbResp, err := rc.circuitBreaker.Execute(func() (interface{}, error) {
+		req, err := http.NewRequestWithContext(ctx, http.MethodPost, rc.address+"/availability", requestBody)
 		if err != nil {
-			return errors.NewError("Nothing to parse", 500)
+			log.Println(err)
+			return nil, err
 		}
+		return rc.client.Do(req)
+	})
 
-		requestBody := bytes.NewReader(jsonData)
-
-		cbResp, err := rc.circuitBreaker.Execute(func() (interface{}, error) {
-			req, err := http.NewRequestWithContext(ctx, http.MethodPost, rc.address+"/availability", requestBody)
-			if err != nil {
-				log.Println(err)
-				return nil, err
-			}
-			return rc.client.Do(req)
-		})
-
-		if err != nil {
-			log.Println("ERR FROM GGG ", err)
-			return errors.NewError("Nothing to parse", 500)
-		}
-		resp := cbResp.(*http.Response)
-		if resp.StatusCode >= 200 && resp.StatusCode < 400 {
-			baseResp := domain.BaseHttpResponse{}
-			err := json.NewDecoder(resp.Body).Decode(&baseResp)
-			if err != nil {
-				return errors.NewError(err.Error(), 500)
-			}
-			log.Println("Base resp valid", baseResp)
-			return nil
-		}
-		baseResp := domain.BaseErrorHttpResponse{}
-		err = json.NewDecoder(resp.Body).Decode(&baseResp)
+	if err != nil {
+		log.Println("ERR FROM GGG ", err)
+		return errors.NewError("Nothing to parse", 500)
+	}
+	resp := cbResp.(*http.Response)
+	if resp.StatusCode >= 200 && resp.StatusCode < 400 {
+		baseResp := domain.BaseHttpResponse{}
+		err := json.NewDecoder(resp.Body).Decode(&baseResp)
 		if err != nil {
 			return errors.NewError(err.Error(), 500)
 		}
-		log.Println(baseResp)
-		log.Println(baseResp.Error)
-		return errors.NewError(baseResp.Error, baseResp.Status)
-
+		log.Println("Base resp valid", baseResp)
+		return nil
 	}
+	baseResp := domain.BaseErrorHttpResponse{}
+	err = json.NewDecoder(resp.Body).Decode(&baseResp)
+	if err != nil {
+		return errors.NewError(err.Error(), 500)
+	}
+	log.Println(baseResp)
+	log.Println(baseResp.Error)
+	return errors.NewError(baseResp.Error, baseResp.Status)
 
 	return errors.NewError("Nothing to parse", 500)
 }

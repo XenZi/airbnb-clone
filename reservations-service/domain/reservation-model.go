@@ -37,8 +37,8 @@ type FreeReservation struct {
 	DateRange       []DateRangeWithPrice `json:"dateRange"`
 }
 type DateRangeWithPrice struct {
-	DateRange [][]string `json:"dateRange"`
-	Price     int        `json:"price"`
+	DateRange []string `json:"dateRange"`
+	Price     int      `json:"price"`
 }
 type ReservationsInDateRangeRequest struct {
 	AccommodationIDs []string `json:"accommodationIDs"`
