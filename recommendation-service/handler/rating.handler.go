@@ -77,7 +77,8 @@ func (rh RatingHandler) CreateRatingForHost(r http.ResponseWriter, h *http.Reque
 		utils.WriteErrorResp("Internal server error", 500, "api/login", r)
 		return
 	}
-	resp, err := rh.service.CreateRatingForHost(rating)
+	ctx := h.Context()
+	resp, err := rh.service.CreateRatingForHost(ctx, rating)
 	if err != nil {
 		utils.WriteErrorResp(err.GetErrorMessage(), err.GetErrorStatus(), "api/recommendations/ratings/host", r)
 		return
@@ -93,7 +94,8 @@ func (rh RatingHandler) UpdateRatingForHost(r http.ResponseWriter, h *http.Reque
 		utils.WriteErrorResp("Internal server error", 500, "api/login", r)
 		return
 	}
-	resp, err := rh.service.UpdateRatingForHostAndGuest(rating)
+	ctx := h.Context()
+	resp, err := rh.service.UpdateRatingForHostAndGuest(ctx, rating)
 	if err != nil {
 		utils.WriteErrorResp(err.GetErrorMessage(), err.GetErrorStatus(), "api/recommendations/ratings/host", r)
 		return
@@ -109,7 +111,8 @@ func (rh RatingHandler) DeleteRatingForHost(r http.ResponseWriter, h *http.Reque
 		utils.WriteErrorResp("Internal server error", 500, "api/login", r)
 		return
 	}
-	resp, err := rh.service.DeleteRatingBetweenGuestAndHost(rating)
+	ctx := h.Context()
+	resp, err := rh.service.DeleteRatingBetweenGuestAndHost(ctx, rating)
 	if err != nil {
 		utils.WriteErrorResp(err.GetErrorMessage(), err.GetErrorStatus(), "api/recommendations/ratings/host", r)
 		return

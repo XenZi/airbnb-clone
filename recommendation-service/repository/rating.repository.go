@@ -341,14 +341,18 @@ func (r RatingRepository) RateHost(rating domains.RateHost) (*domains.RateHost, 
 		func(transaction neo4j.ManagedTransaction) (any, error) {
 			result, err := transaction.Run(ctx,
 				`MERGE (g:Guest {id: $guestID})
-			ON CREATE SET g.email = $guestEmail, g.username = $guestUsername
-			MERGE (h:Host {id: $hostID})
-			ON CREATE SET h.email = $hostEmail, h.username = $hostUsername
-			MERGE (g)-[r:RATED]->(h)
-			ON CREATE SET r.rate = $rate, r.createdAt = $createdAt
-			RETURN h.id AS hostID, h.email AS hostEmail, h.username AS hostUsername, 
-			g.id AS guestID, g.email AS guestEmail, g.username AS guestUsername, 
-			r.rate AS rate, r.createdAt AS createdAt`,
+				ON CREATE SET g.email = $guestEmail, g.username = $guestUsername
+			  MERGE (h:Host {id: $hostID})
+				ON CREATE SET h.email = $hostEmail, h.username = $hostUsername
+			  MERGE (g)-[r:RATED]->(h)
+				ON CREATE SET r.rate = $rate, r.createdAt = $createdAt
+			  WITH h, g, r.rate AS rate, r.createdAt AS createdAt
+			  MATCH (otherGuest:Guest)-[otherRating:RATED]->(h)
+			  WITH h, g, rate, createdAt, AVG(otherRating.rate) AS avgRating
+			  SET h.avgRating = avgRating
+			  RETURN h.id AS hostID, h.email AS hostEmail, h.username AS hostUsername,
+					 g.id AS guestID, g.email AS guestEmail, g.username AS guestUsername,
+					 createdAt, rate, avgRating`,
 				map[string]any{
 					"guestID":       rating.Guest.ID,
 					"guestEmail":    rating.Guest.Email,
@@ -372,7 +376,7 @@ func (r RatingRepository) RateHost(rating domains.RateHost) (*domains.RateHost, 
 				guestUsername, _ := record.Get("guestUsername")
 				createdAt, _ := record.Get("createdAt")
 				rate, _ := record.Get("rate")
-
+				avgRating, _ := record.Get("avgRating")
 				rateHost := domains.RateHost{
 					Host: domains.Host{
 						ID:       hostID.(string),
@@ -386,6 +390,7 @@ func (r RatingRepository) RateHost(rating domains.RateHost) (*domains.RateHost, 
 					},
 					Rate:      rate.(int64),
 					CreatedAt: createdAt.(string),
+					AvgRating: avgRating.(float64),
 				}
 
 				return rateHost, nil
@@ -467,10 +472,16 @@ func (r RatingRepository) UpdateRatingByHostAndGuest(rating domains.RateHost) (*
 	rateHost, err := session.ExecuteWrite(ctx,
 		func(transaction neo4j.ManagedTransaction) (any, error) {
 			result, err := transaction.Run(ctx,
-				`MATCH (h:Host {id: $hostId})<-[r:RATED]-(g:Guest {id: $guestId}) SET r.rate = $newRate, r.createdAt = $createdAt
-			RETURN h.id AS hostID, h.email AS hostEmail, h.username AS hostUsername, 
-				   g.id AS guestID, g.email AS guestEmail, g.username AS guestUsername, 
-				   r.rate AS rate`,
+				`MATCH (h:Host {id: $hostId})<-[r:RATED]-(g:Guest {id: $guestId})
+				SET r.rate = $newRate, r.createdAt = $createdAt
+				WITH h
+				MATCH (otherGuest:Guest)-[otherRating:RATED]->(h)
+				WITH h, AVG(otherRating.rate) AS avgRating
+				SET h.avgRating = avgRating
+				RETURN h.id AS hostID, h.email AS hostEmail, h.username AS hostUsername, 
+					   g.id AS guestID, g.email AS guestEmail, g.username AS guestUsername, 
+					   r.rate AS rate, h.avgRating AS avgRating
+				`,
 				map[string]any{
 					"guestId":   rating.Guest.ID,
 					"hostId":    rating.Host.ID,
@@ -488,7 +499,7 @@ func (r RatingRepository) UpdateRatingByHostAndGuest(rating domains.RateHost) (*
 				guestID, _ := record.Get("guestID")
 				guestEmail, _ := record.Get("guestEmail")
 				guestUsername, _ := record.Get("guestUsername")
-
+				avgRating, _ := record.Get("avgRating")
 				rate, _ := record.Get("rate")
 				createdAt, _ := record.Get("createdAt")
 
@@ -505,6 +516,7 @@ func (r RatingRepository) UpdateRatingByHostAndGuest(rating domains.RateHost) (*
 					},
 					Rate:      rate.(int64),
 					CreatedAt: createdAt.(string),
+					AvgRating: avgRating.(float64),
 				}
 				return rateHost, nil
 			}
@@ -517,17 +529,23 @@ func (r RatingRepository) UpdateRatingByHostAndGuest(rating domains.RateHost) (*
 	return &rateHostResult, nil
 }
 
-func (r RatingRepository) DeleteRatingByHostAndUser(rating domains.RateHost) *errors.ErrorStruct {
+func (r RatingRepository) DeleteRatingByHostAndUser(rating domains.RateHost) (float64, *errors.ErrorStruct) {
 	ctx := context.Background()
 	session := r.driver.NewSession(ctx, neo4j.SessionConfig{
 		DatabaseName: "neo4j",
 	})
 	defer session.Close(ctx)
 
-	_, err := session.ExecuteWrite(ctx,
+	returnedVal, err := session.ExecuteWrite(ctx,
 		func(transaction neo4j.ManagedTransaction) (any, error) {
 			result, err := transaction.Run(ctx,
-				`MATCH (h:Host {id: $hostId})<-[r:RATED]-(g:Guest {id: $guestId}) DETACH DELETE r`,
+				`MATCH (h:Host {id: $hostId})<-[r:RATED]-(g:Guest {id: $guestId})
+				DETACH DELETE r
+				WITH h
+				MATCH (otherGuest:Guest)-[otherRating:RATED]->(h)
+				WITH h, COALESCE(AVG(otherRating.rate), 0) AS avgRating
+				SET h.avgRating = avgRating
+				RETURN h.id AS hostID, h.email AS hostEmail, h.username AS hostUsername, h.avgRating AS avgRating`,
 				map[string]any{
 					"guestId": rating.Guest.ID,
 					"hostId":  rating.Host.ID,
@@ -536,13 +554,15 @@ func (r RatingRepository) DeleteRatingByHostAndUser(rating domains.RateHost) *er
 				return nil, err
 			}
 			if result.Next(ctx) {
-				return nil, nil
+				record := result.Record()
+				avgRating, _ := record.Get("avgRating")
+				return avgRating.(float64), nil
 			}
 			return nil, result.Err()
 		})
 
 	if err != nil {
-		return errors.NewError(err.Error(), 500)
+		return -1, errors.NewError(err.Error(), 500)
 	}
-	return nil
+	return returnedVal.(float64), nil
 }

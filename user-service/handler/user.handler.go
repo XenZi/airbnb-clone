@@ -98,6 +98,7 @@ func (u UserHandler) UpdateRating(rw http.ResponseWriter, h *http.Request) {
 		utils.WriteErrorResponse(err.Error(), 500, "api/users/rating", rw)
 		return
 	}
+	log.Println(rating)
 	ratingStr := rating.Rating
 	log.Println(ratingStr)
 	ratingF, err := strconv.ParseFloat(ratingStr, 64)
