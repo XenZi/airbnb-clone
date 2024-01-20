@@ -18,8 +18,8 @@
 
 export interface Reservation {
     id: string
-    userID: string
-    accommodationID: string
+    userId: string
+    accommodationId: string
     startDate: string
     endDate: string
     username: string
@@ -31,5 +31,5 @@ export interface Reservation {
     dateRange: string[]
     isActive: boolean
     country: string
-    hostID: string
+    hostId: string
 }

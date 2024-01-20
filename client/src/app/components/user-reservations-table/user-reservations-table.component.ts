@@ -22,6 +22,7 @@ export class UserReservationsTableComponent {
     if (this.user) {
       this.reservationsService.getAllReservationsById(this.user.id).subscribe({
         next: (data) => {
+          console.log(data)
           this.userReservations = data.data;
         }, 
         error: (err: Error) => {
@@ -38,9 +39,9 @@ export class UserReservationsTableComponent {
       this.reservationsService.deleteById(
         reservation.country,
         reservation.id,
-        reservation.userID,
-        reservation.hostID,
-        reservation.accommodationID
+        reservation.userId,
+        reservation.hostId,
+        reservation.accommodationId
       )
       .subscribe(
         (deletedReservation) => {

@@ -1,17 +1,16 @@
 <div class="table">
-    <div class="table__row table__header">
-      <div class="table__cell">Reservation Date</div>
-      <div class="table__cell">Price</div>
-      <div class="table__cell">Cancel</div>
-    </div>
-    <div class="table__row" *ngFor="let reservation of userReservations; index as i;">
-      <div class="table__cell">{{reservation.dateRange.join(',')}}</div>
-      <div class="table__cell">{{reservation.price}}</div>
-      <div class="table__cell">
-        <!-- <app-button enabled="false" size="xs" color="blue" class="" (onClick)="this.cancelReservation(i)">
-            <i class="fa-solid fa-xmark"></i>
-        </app-button> -->
-      </div>
+  <div class="table__row table__header">
+    <div class="table__cell">Reservation Date</div>
+    <div class="table__cell">Price</div>
+    <div class="table__cell">Cancel</div>
+  </div>
+  <div class="table__row" *ngFor="let reservation of userReservations; index as i;">
+    <div class="table__cell">{{ reservation.dateRange.join(',') }}</div>
+    <div class="table__cell">{{ reservation.price }}</div>
+    <div class="table__cell">
+      <button (click)="cancelReservation(i)" class="cancel-button">
+        <i class="fa-solid fa-xmark"></i> Cancel
+      </button>
     </div>
   </div>
-  
+</div>

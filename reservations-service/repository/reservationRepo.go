@@ -181,7 +181,7 @@ func (rr *ReservationRepo) DropTables() {
 	}
 
 	dropTable("reservations")
-	dropTable("free_accommodation")
+	//	dropTable("free_accommodation")
 	dropTable("reservation_by_user")
 	dropTable("reservation_by_host")
 	dropTable("reservation_by_accommodation")
@@ -464,7 +464,7 @@ func (rr *ReservationRepo) CheckAvailabilityForAccommodation(accommodationID str
     `
 
 	iter := rr.session.Query(query, accommodationID).Iter()
-	var dateRange [][]string
+	var dateRange []string
 	var price int
 	var avl domain.GetAvailabilityForAccommodation
 	for iter.Scan(&dateRange, &price) {

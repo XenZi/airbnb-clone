@@ -2,6 +2,7 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Accommodation } from 'src/app/domains/entity/accommodation-model';
+import { DateAvailability } from 'src/app/domains/entity/date-availability.model';
 import { UserAuth } from 'src/app/domains/entity/user-auth.model';
 import { ReservationService } from 'src/app/services/reservation-service/reservation.service';
 import { UserService } from 'src/app/services/user/user.service';
@@ -16,7 +17,7 @@ export class ReservationFormComponent implements OnInit {
   @Input() accommodation!: Accommodation;
   @Input() accommodationID!: string
   user: UserAuth | null = null;
-  availabilityData: any[] = [];
+  availabilityData: DateAvailability [] = [];
   constructor(
     private fb: FormBuilder,
     private reservationService: ReservationService,
