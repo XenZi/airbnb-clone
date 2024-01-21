@@ -91,7 +91,7 @@ func main() {
 	//router.HandleFunc("/accommodations/{accommodationID}", reservationsHandler.GetReservationsByAccommodation).Methods("GET")
 	router.HandleFunc("/accommodation/dates", reservationsHandler.GetAvailableDates).Methods("GET")
 	router.HandleFunc("/{country}/{id}/{userId}/{hostId}/{accommodationId}", reservationsHandler.DeleteReservationById).Methods("DELETE")
-	router.HandleFunc("/{accommodationID}/availability", reservationsHandler.GetAvailabilityForAccommodation).Methods("GET")
+	router.HandleFunc("/{accommodationId}/availability", reservationsHandler.GetAvailabilityForAccommodation).Methods("GET")
 	router.HandleFunc("/percentage-cancelation/{hostId}", reservationsHandler.GetCancelationPercentage).Methods("GET")
 	router.HandleFunc("/{accommodationId}/{userId}", reservationsHandler.GetReservationsByAccommodationWithEndDate).Methods("GET")
 

@@ -170,10 +170,11 @@ func (rh *ReservationHandler) DeleteReservationById(rw http.ResponseWriter, r *h
 	userID := vars["userID"]
 	hostID := vars["hostID"]
 	accommodationID := vars["accommodationID"]
+	endDate := vars["endDate"]
 
-	deletedReservation, err := rh.ReservationService.DeleteReservationById(country, id, userID, hostID, accommodationID)
+	deletedReservation, err := rh.ReservationService.DeleteReservationById(country, id, userID, hostID, accommodationID, endDate)
 	if err != nil {
-		utils.WriteErrorResp(err.Message, err.Status, "api/reservations/{country}/{id}/{userID}/{hostID}/{accommodationID}", rw)
+		utils.WriteErrorResp(err.Message, err.Status, "api/reservations/{country}/{id}/{userID}/{hostID}/{accommodationID}/{endDate}", rw)
 		return
 	}
 

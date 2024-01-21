@@ -117,8 +117,8 @@ func (s *ReservationService) GetAvailabilityForAccommodation(accommodationID str
 	return avl, nil
 }
 
-func (s *ReservationService) DeleteReservationById(country string, id, userID, hostID, accommodationID string) (*domain.Reservation, *errors.ReservationError) {
-	deletedReservation, err := s.repo.DeleteById(country, id, userID, hostID, accommodationID)
+func (s *ReservationService) DeleteReservationById(country string, id, userID, hostID, accommodationID, endDate string) (*domain.Reservation, *errors.ReservationError) {
+	deletedReservation, err := s.repo.DeleteById(country, id, userID, hostID, accommodationID, endDate)
 	if err != nil {
 		return nil, errors.NewReservationError(500, err.Error())
 	}

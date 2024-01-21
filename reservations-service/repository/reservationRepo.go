@@ -122,8 +122,8 @@ func (rr *ReservationRepo) CreateTables() {
 		is_active boolean,
 		country text,
 		host_id text,
-		PRIMARY KEY (host_id, id)
-	) WITH CLUSTERING ORDER BY ( id ASC)`, "reservation_by_host")).Exec()
+		PRIMARY KEY (host_id,user_id,end_date, id)
+	) WITH CLUSTERING ORDER BY (user_id ASC,end_date ASC, id ASC)`, "reservation_by_host")).Exec()
 
 	if err != nil {
 		rr.logger.Println(err)
@@ -144,8 +144,8 @@ func (rr *ReservationRepo) CreateTables() {
 			is_active boolean,
 			country text,
 			host_id text,
-			PRIMARY KEY (accommodation_id, id)
-		) WITH CLUSTERING ORDER BY ( id ASC)`, "reservation_by_accommodation")).Exec()
+			PRIMARY KEY (accommodation_id,user_id,end_date, id)
+		) WITH CLUSTERING ORDER BY (user_id ASC,end_date ASC, id ASC)`, "reservation_by_accommodation")).Exec()
 
 	if err != nil {
 		rr.logger.Println(err)
@@ -160,64 +160,12 @@ func (rr *ReservationRepo) CreateTables() {
 	if err != nil {
 		rr.logger.Println(err)
 	}
-	err = rr.session.Query(fmt.Sprintf(`CREATE TABLE IF NOT EXISTS %s (
-		id UUID,
-		user_id text,
-		accommodation_id text,
-		start_date text,
-		end_date text,
-		username text,
-		accommodation_name text,
-		location text,
-		price int,
-		num_of_days int,
-		continent text,
-		date_range set<text>,
-		is_active boolean,
-		country text,
-		host_id text,
-		PRIMARY KEY ((accommodation_id,user_id), id)
-	) WITH CLUSTERING ORDER BY (id ASC)`, "reservations_for_accommodation_with_end_date")).Exec()
-
-	if err != nil {
-		rr.logger.Println(err)
-	}
-	err = rr.session.Query(fmt.Sprintf(`CREATE TABLE IF NOT EXISTS %s (
-		id UUID,
-		user_id text,
-		accommodation_id text,
-		start_date text,
-		end_date text,
-		username text,
-		accommodation_name text,
-		location text,
-		price int,
-		num_of_days int,
-		continent text,
-		date_range set<text>,
-		is_active boolean,
-		country text,
-		host_id text,
-		PRIMARY KEY ((host_id,user_id), id)
-	) WITH CLUSTERING ORDER BY (id ASC)`, "reservations_for_host_with_end_date")).Exec()
-
-	if err != nil {
-		rr.logger.Println(err)
-	}
 
 	err = rr.session.Query(fmt.Sprintf("CREATE INDEX ON reservation_by_accommodation (date_range);")).Exec()
 	if err != nil {
 		rr.logger.Println(err)
 	}
 	err = rr.session.Query(fmt.Sprintf("CREATE INDEX ON free_accommodation (date_range);")).Exec()
-	if err != nil {
-		rr.logger.Println(err)
-	}
-	err = rr.session.Query(fmt.Sprintf("CREATE INDEX end_date_index ON reservation.reservations_for_accommodation_with_end_date (end_date);")).Exec()
-	if err != nil {
-		rr.logger.Println(err)
-	}
-	err = rr.session.Query(fmt.Sprintf("CREATE INDEX end_date_index1 ON reservation.reservations_for_host_with_end_date (end_date);")).Exec()
 	if err != nil {
 		rr.logger.Println(err)
 	}
@@ -240,35 +188,8 @@ func (rr *ReservationRepo) DropTables() {
 	dropTable("reservation_by_host")
 	dropTable("reservation_by_accommodation")
 	dropTable("deleted_reservations")
-	dropTable("reservations_for_accommodation_with_end_date")
-	dropTable("reservations_for_host_with_end_date ")
 
 }
-
-/*func (rr *ReservationRepo) GetReservationsByAccommodation(id string) ([]domain.Reservation, error) {
-
-	scanner := rr.session.Query(`SELECT id,accommodation_id, user_id, start_date, end_date,accommodation_name,location,price,
-	num_of_days,date_range,country,continent,host_id,is_active FROM reservations WHERE is_active = true AND accommodation_id = ? `,
-		id).Iter().Scanner()
-
-	var reservations []domain.Reservation
-	for scanner.Next() {
-		var reservation domain.Reservation
-		err := scanner.Scan(&reservation.Id, &reservation.AccommodationID, &reservation.UserID, &reservation.StartDate, &reservation.EndDate,
-			&reservation.AccommodationName, &reservation.Location, &reservation.Price, &reservation.NumberOfDays,
-			&reservation.DateRange, &reservation.Country, &reservation.Continent, &reservation.HostID, &reservation.IsActive)
-		if err != nil {
-			rr.logger.Println(err)
-			return nil, err
-		}
-		reservations = append(reservations, reservation)
-	}
-	if err := scanner.Err(); err != nil {
-		rr.logger.Println(err)
-		return nil, err
-	}
-	return reservations, nil
-}*/
 
 func (rr *ReservationRepo) GetReservationsByUser(id string) ([]domain.Reservation, error) {
 	scanner := rr.session.Query(`SELECT id,accommodation_id, user_id, start_date, end_date,username,accommodation_name,location,price,
@@ -423,16 +344,6 @@ func (rr *ReservationRepo) InsertReservation(reservation *domain.Reservation) (*
 			VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`, Id, reservation.UserID, reservation.AccommodationID, startDate,
 		endDate, reservation.Username, reservation.AccommodationName, reservation.Location,
 		reservation.Price, reservation.NumberOfDays, continent, reservation.DateRange, true, country, reservation.HostID)
-	batch.Query(`INSERT INTO reservations_for_accommodation_with_end_date (id,user_id,accommodation_id,start_date,end_date,username,accommodation_name,location,price,num_of_days,
-			continent,date_range,is_active,country,host_id)
-			VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`, Id, reservation.UserID, reservation.AccommodationID, startDate,
-		endDate, reservation.Username, reservation.AccommodationName, reservation.Location,
-		reservation.Price, reservation.NumberOfDays, continent, reservation.DateRange, true, country, reservation.HostID)
-	batch.Query(`INSERT INTO reservations_for_host_with_end_date (id,user_id,accommodation_id,start_date,end_date,username,accommodation_name,location,price,num_of_days,
-			continent,date_range,is_active,country,host_id)
-			VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`, Id, reservation.UserID, reservation.AccommodationID, startDate,
-		endDate, reservation.Username, reservation.AccommodationName, reservation.Location,
-		reservation.Price, reservation.NumberOfDays, continent, reservation.DateRange, true, country, reservation.HostID)
 
 	if err := rr.session.ExecuteBatch(batch); err != nil {
 		rr.logger.Println(reservation.EndDate[len(reservation.EndDate)-1])
@@ -448,7 +359,7 @@ func (rr *ReservationRepo) InsertReservation(reservation *domain.Reservation) (*
 	return reservation, nil
 }
 
-func (rr *ReservationRepo) DeleteById(country string, id, userID, hostID, accommodationID string) (*domain.Reservation, *errors.ReservationError) {
+func (rr *ReservationRepo) DeleteById(country string, id, userID, hostID, accommodationID, endDate string) (*domain.Reservation, *errors.ReservationError) {
 	countryData := gountries.New()
 
 	result, err := countryData.FindCountryByName(country)
@@ -460,10 +371,8 @@ func (rr *ReservationRepo) DeleteById(country string, id, userID, hostID, accomm
 
 	batch.Query(`DELETE FROM reservations WHERE continent = ? AND country = ? AND id = ?`, continent, country, id)
 	batch.Query(`DELETE FROM reservation_by_user WHERE user_id = ? AND id = ?`, userID, id)
-	batch.Query(`DELETE FROM reservation_by_host WHERE host_id = ? AND id = ?`, hostID, id)
-	batch.Query(`DELETE FROM reservation_by_accommodation WHERE accommodation_id = ? AND id = ?`, accommodationID, id)
-	batch.Query(`DELETE FROM reservations_for_accommodation_with_end_date WHERE accommodation_id = ? AND user_id = ? AND id = ?`, accommodationID, userID, id)
-	batch.Query(`DELETE FROM reservations_for_host_with_end_date WHERE host_id = ? AND user_id = ? AND id = ?`, hostID, userID, id)
+	batch.Query(`DELETE FROM reservation_by_host WHERE host_id = ? AND user_id = ? AND end_date = ? AND id = ? `, hostID, userID, endDate, id)
+	batch.Query(`DELETE FROM reservation_by_accommodation WHERE accommodation_id = ? AND user_id = ? AND end_date = ? AND id = ?`, accommodationID, userID, endDate, id)
 	batch.Query(`INSERT INTO deleted_reservations(id,host_id) VALUES(?,?)`, id, hostID)
 
 	if err := rr.session.ExecuteBatch(batch); err != nil {
@@ -600,8 +509,8 @@ func (rr *ReservationRepo) GetTotalReservationsByHost(hostID string) (int, *erro
 func (rr *ReservationRepo) GetReservationsByAccommodationWithEndDate(accommodationID, userID string) ([]domain.Reservation, error) {
 	currentDate := time.Now().Format("2006-01-02")
 	scanner := rr.session.Query(`SELECT id,accommodation_id, user_id, start_date, end_date,username,accommodation_name,location,price,
-	num_of_days,date_range,is_active,country,host_id FROM reservations_for_accommodation_with_end_date
-	 WHERE  accommodation_id = ? AND user_id = ? AND end_date < ?`,
+	num_of_days,date_range,is_active,country,host_id FROM reservation_by_accommodation
+	 WHERE  accommodation_id = ? AND user_id = ? AND end_date <= ?`,
 		accommodationID, userID, currentDate).Iter().Scanner()
 
 	var reservations []domain.Reservation

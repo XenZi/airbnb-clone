@@ -64,8 +64,8 @@ export class ReservationService {
     }
   }
 
-  deleteById(country: string, id: string, userID: string, hostID: string, accommodationID: string): Observable<any> {
-    const url = `${this.apiURL}/reservations/${country}/${id}/${userID}/${hostID}/${accommodationID}`;
+  deleteById(country: string, id: string, userID: string, hostID: string, accommodationID: string,endDate: string): Observable<any> {
+    const url = `${this.apiURL}/reservations/${country}/${id}/${userID}/${hostID}/${accommodationID}/${endDate}`;
     return this.http.delete(url);
   }
   
