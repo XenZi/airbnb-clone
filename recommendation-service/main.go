@@ -73,6 +73,9 @@ func main() {
 	accommodationClient := client.NewAccommodationClient(accommodationServiceHost, accommodationServicePort, customAccommodationClient, accommodationServiceCircuitBreaker)
 	ratingService := services.NewRatingService(ratingRepository, accommodationClient, userClient)
 	ratingHandler := handler.NewRatingHandler(ratingService)
+	recommendationRepository := repository.NewRecommendationRepository(neo4jService.GetDriver())
+	recommendationService := services.NewRecommendationService(recommendationRepository)
+	recommendationHandler := handler.NewRecommendationHandler(recommendationService)
 	// routes
 
 	router := mux.NewRouter()
@@ -84,7 +87,7 @@ func main() {
 	router.HandleFunc("/rating/accommodation", ratingHandler.CreateRatingForAccommodation).Methods("POST")
 	router.HandleFunc("/rating/accommodation", ratingHandler.UpdateRatingForAccommodation).Methods("PUT")
 	router.HandleFunc("/rating/accommodation", ratingHandler.DeleteRatingForAccommodation).Methods("DELETE")
-
+	router.HandleFunc("/{id}", recommendationHandler.GetAllRecommendationsForUser).Methods("GET")
 	// server
 
 	if len(port) == 0 {

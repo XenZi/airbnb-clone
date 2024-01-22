@@ -8,6 +8,8 @@ import (
 	"reservation-service/errors"
 	"reservation-service/utils"
 
+	"time"
+
 	"github.com/gocql/gocql"
 	"github.com/pariz/gountries"
 )
@@ -98,7 +100,7 @@ func (rr *ReservationRepo) CreateTables() {
 		country text,
 		host_id text,
 		PRIMARY KEY (user_id, id)
-	) WITH CLUSTERING ORDER BY (id ASC)`, "reservation_by_user")).Exec()
+	) WITH CLUSTERING ORDER BY ( id ASC)`, "reservation_by_user")).Exec()
 
 	if err != nil {
 		rr.logger.Println(err)
@@ -120,8 +122,8 @@ func (rr *ReservationRepo) CreateTables() {
 		is_active boolean,
 		country text,
 		host_id text,
-		PRIMARY KEY (host_id, id)
-	) WITH CLUSTERING ORDER BY (id ASC)`, "reservation_by_host")).Exec()
+		PRIMARY KEY (host_id,user_id,end_date, id)
+	) WITH CLUSTERING ORDER BY (user_id ASC,end_date ASC, id ASC)`, "reservation_by_host")).Exec()
 
 	if err != nil {
 		rr.logger.Println(err)
@@ -142,8 +144,8 @@ func (rr *ReservationRepo) CreateTables() {
 			is_active boolean,
 			country text,
 			host_id text,
-			PRIMARY KEY (accommodation_id, id)
-		) WITH CLUSTERING ORDER BY ( id ASC)`, "reservation_by_accommodation")).Exec()
+			PRIMARY KEY (accommodation_id,user_id,end_date, id)
+		) WITH CLUSTERING ORDER BY (user_id ASC,end_date ASC, id ASC)`, "reservation_by_accommodation")).Exec()
 
 	if err != nil {
 		rr.logger.Println(err)
@@ -188,31 +190,6 @@ func (rr *ReservationRepo) DropTables() {
 	dropTable("deleted_reservations")
 
 }
-
-/*func (rr *ReservationRepo) GetReservationsByAccommodation(id string) ([]domain.Reservation, error) {
-
-	scanner := rr.session.Query(`SELECT id,accommodation_id, user_id, start_date, end_date,accommodation_name,location,price,
-	num_of_days,date_range,country,continent,host_id,is_active FROM reservations WHERE is_active = true AND accommodation_id = ? `,
-		id).Iter().Scanner()
-
-	var reservations []domain.Reservation
-	for scanner.Next() {
-		var reservation domain.Reservation
-		err := scanner.Scan(&reservation.Id, &reservation.AccommodationID, &reservation.UserID, &reservation.StartDate, &reservation.EndDate,
-			&reservation.AccommodationName, &reservation.Location, &reservation.Price, &reservation.NumberOfDays,
-			&reservation.DateRange, &reservation.Country, &reservation.Continent, &reservation.HostID, &reservation.IsActive)
-		if err != nil {
-			rr.logger.Println(err)
-			return nil, err
-		}
-		reservations = append(reservations, reservation)
-	}
-	if err := scanner.Err(); err != nil {
-		rr.logger.Println(err)
-		return nil, err
-	}
-	return reservations, nil
-}*/
 
 func (rr *ReservationRepo) GetReservationsByUser(id string) ([]domain.Reservation, error) {
 	scanner := rr.session.Query(`SELECT id,accommodation_id, user_id, start_date, end_date,username,accommodation_name,location,price,
@@ -340,33 +317,36 @@ func (rr *ReservationRepo) InsertReservation(reservation *domain.Reservation) (*
 		return nil, errors.NewReservationError(500, err.Error())
 	}
 	log.Println("COUNTRY< COUNTINET", country, continent)
+	startDate := reservation.DateRange[0]
+	endDate := reservation.DateRange[len(reservation.DateRange)-1]
+	println(startDate, endDate)
 
 	batch := rr.session.NewBatch(gocql.LoggedBatch)
 
 	// Insert into reservations table
 	batch.Query(`INSERT INTO reservations (id,user_id,accommodation_id,start_date,end_date,username,accommodation_name,location,price,num_of_days,
 	    continent,date_range,is_active,country,host_id)
-	    VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`, Id, reservation.UserID, reservation.AccommodationID, reservation.StartDate,
-		reservation.EndDate, reservation.Username, reservation.AccommodationName, reservation.Location,
+	    VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`, Id, reservation.UserID, reservation.AccommodationID, startDate,
+		endDate, reservation.Username, reservation.AccommodationName, reservation.Location,
 		reservation.Price, reservation.NumberOfDays, continent, reservation.DateRange, true, country, reservation.HostID)
 	batch.Query(`INSERT INTO reservation_by_user (id,user_id,accommodation_id,start_date,end_date,username,accommodation_name,location,price,num_of_days,
 	    continent,date_range,is_active,country,host_id)
-	    VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`, Id, reservation.UserID, reservation.AccommodationID, reservation.StartDate,
-		reservation.EndDate, reservation.Username, reservation.AccommodationName, reservation.Location,
+	    VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`, Id, reservation.UserID, reservation.AccommodationID, startDate,
+		endDate, reservation.Username, reservation.AccommodationName, reservation.Location,
 		reservation.Price, reservation.NumberOfDays, continent, reservation.DateRange, true, country, reservation.HostID)
 	batch.Query(`INSERT INTO reservation_by_host (id,user_id,accommodation_id,start_date,end_date,username,accommodation_name,location,price,num_of_days,
 	    continent,date_range,is_active,country,host_id)
-	    VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`, Id, reservation.UserID, reservation.AccommodationID, reservation.StartDate,
-		reservation.EndDate, reservation.Username, reservation.AccommodationName, reservation.Location,
+	    VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`, Id, reservation.UserID, reservation.AccommodationID, startDate,
+		endDate, reservation.Username, reservation.AccommodationName, reservation.Location,
 		reservation.Price, reservation.NumberOfDays, continent, reservation.DateRange, true, country, reservation.HostID)
 	batch.Query(`INSERT INTO reservation_by_accommodation (id,user_id,accommodation_id,start_date,end_date,username,accommodation_name,location,price,num_of_days,
 			continent,date_range,is_active,country,host_id)
-			VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`, Id, reservation.UserID, reservation.AccommodationID, reservation.StartDate,
-		reservation.EndDate, reservation.Username, reservation.AccommodationName, reservation.Location,
+			VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`, Id, reservation.UserID, reservation.AccommodationID, startDate,
+		endDate, reservation.Username, reservation.AccommodationName, reservation.Location,
 		reservation.Price, reservation.NumberOfDays, continent, reservation.DateRange, true, country, reservation.HostID)
 
 	if err := rr.session.ExecuteBatch(batch); err != nil {
-		//	rr.logger.Println("ASDASDDSAASD ", err)
+		rr.logger.Println(reservation.EndDate[len(reservation.EndDate)-1])
 		return nil, err
 	}
 
@@ -379,7 +359,7 @@ func (rr *ReservationRepo) InsertReservation(reservation *domain.Reservation) (*
 	return reservation, nil
 }
 
-func (rr *ReservationRepo) DeleteById(country string, id, userID, hostID, accommodationID string) (*domain.Reservation, *errors.ReservationError) {
+func (rr *ReservationRepo) DeleteById(country string, id, userID, hostID, accommodationID, endDate string) (*domain.Reservation, *errors.ReservationError) {
 	countryData := gountries.New()
 
 	result, err := countryData.FindCountryByName(country)
@@ -391,8 +371,8 @@ func (rr *ReservationRepo) DeleteById(country string, id, userID, hostID, accomm
 
 	batch.Query(`DELETE FROM reservations WHERE continent = ? AND country = ? AND id = ?`, continent, country, id)
 	batch.Query(`DELETE FROM reservation_by_user WHERE user_id = ? AND id = ?`, userID, id)
-	batch.Query(`DELETE FROM reservation_by_host WHERE host_id = ? AND id = ?`, hostID, id)
-	batch.Query(`DELETE FROM reservation_by_accommodation WHERE accommodation_id = ? AND id = ?`, accommodationID, id)
+	batch.Query(`DELETE FROM reservation_by_host WHERE host_id = ? AND user_id = ? AND end_date = ? AND id = ? `, hostID, userID, endDate, id)
+	batch.Query(`DELETE FROM reservation_by_accommodation WHERE accommodation_id = ? AND user_id = ? AND end_date = ? AND id = ?`, accommodationID, userID, endDate, id)
 	batch.Query(`INSERT INTO deleted_reservations(id,host_id) VALUES(?,?)`, id, hostID)
 
 	if err := rr.session.ExecuteBatch(batch); err != nil {
@@ -524,5 +504,35 @@ func (rr *ReservationRepo) GetTotalReservationsByHost(hostID string) (int, *erro
 		return totalReservations, nil
 	}
 	return 0, errors.NewReservationError(500, "Failed to get the number of total reservations")
+
+}
+func (rr *ReservationRepo) GetReservationsByAccommodationWithEndDate(accommodationID, userID string) ([]domain.Reservation, error) {
+	currentDate := time.Now().Format("2006-01-02")
+	scanner := rr.session.Query(`SELECT id,accommodation_id, user_id, start_date, end_date,username,accommodation_name,location,price,
+	num_of_days,date_range,is_active,country,host_id FROM reservation_by_accommodation
+	 WHERE  accommodation_id = ? AND user_id = ? AND end_date <= ?`,
+		accommodationID, userID, currentDate).Iter().Scanner()
+
+	var reservations []domain.Reservation
+	for scanner.Next() {
+		var reservation domain.Reservation
+
+		err := scanner.Scan(&reservation.Id, &reservation.AccommodationID, &reservation.UserID, &reservation.StartDate,
+			&reservation.EndDate, &reservation.Username, &reservation.AccommodationName, &reservation.Location, &reservation.Price,
+			&reservation.NumberOfDays, reservation.DateRange, &reservation.IsActive, &reservation.Country, &reservation.HostID)
+		if err != nil {
+			rr.logger.Println(err)
+			return nil, err
+		}
+
+		reservations = append(reservations, reservation)
+	}
+
+	if err := scanner.Err(); err != nil {
+		rr.logger.Println(err)
+		return nil, err
+	}
+
+	return reservations, nil
 
 }

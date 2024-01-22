@@ -41,7 +41,8 @@ export class UserReservationsTableComponent {
         reservation.id,
         reservation.userId,
         reservation.hostId,
-        reservation.accommodationId
+        reservation.accommodationId,
+        reservation.endDate
       )
       .subscribe(
         (deletedReservation) => {

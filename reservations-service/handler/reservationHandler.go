@@ -73,6 +73,20 @@ func (rh *ReservationHandler) GetReservationsByUser(rw http.ResponseWriter, r *h
 	rw.Header().Set("Content-Type", "application/json")
 	utils.WriteResp(reservations, 200, rw)
 }
+func (rh *ReservationHandler) GetReservationsByAccommodationWithEndDate(rw http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	accommodationID := vars["accommodationId"]
+	userID := vars["userId"]
+
+	reservations, err := rh.ReservationService.GetReservationsByAccommodationWithEndDate(accommodationID, userID)
+	if err != nil {
+		utils.WriteErrorResp(err.Message, err.Status, "api/reservations/{accommodationId}/{userId}", rw)
+		return
+	}
+
+	rw.Header().Set("Content-Type", "application/json")
+	utils.WriteResp(reservations, 200, rw)
+}
 func (rh *ReservationHandler) GetReservationsByHost(rw http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	hostID := vars["hostId"]
@@ -89,11 +103,11 @@ func (rh *ReservationHandler) GetReservationsByHost(rw http.ResponseWriter, r *h
 
 func (rh *ReservationHandler) GetAvailabilityForAccommodation(rw http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	accommodationID := vars["accommodationID"]
+	accommodationID := vars["accommodationId"]
 
 	avl, err := rh.ReservationService.GetAvailabilityForAccommodation(accommodationID)
 	if err != nil {
-		utils.WriteErrorResp(err.Message, err.Status, "api/{accommodationID}/availability", rw)
+		utils.WriteErrorResp(err.Message, err.Status, "api/{accommodationId}/availability", rw)
 	}
 	rw.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(rw).Encode(avl)
@@ -156,10 +170,11 @@ func (rh *ReservationHandler) DeleteReservationById(rw http.ResponseWriter, r *h
 	userID := vars["userID"]
 	hostID := vars["hostID"]
 	accommodationID := vars["accommodationID"]
+	endDate := vars["endDate"]
 
-	deletedReservation, err := rh.ReservationService.DeleteReservationById(country, id, userID, hostID, accommodationID)
+	deletedReservation, err := rh.ReservationService.DeleteReservationById(country, id, userID, hostID, accommodationID, endDate)
 	if err != nil {
-		utils.WriteErrorResp(err.Message, err.Status, "api/reservations/{country}/{id}/{userID}/{hostID}/{accommodationID}", rw)
+		utils.WriteErrorResp(err.Message, err.Status, "api/reservations/{country}/{id}/{userID}/{hostID}/{accommodationID}/{endDate}", rw)
 		return
 	}
 
