@@ -384,26 +384,27 @@ func (rr *ReservationRepo) DeleteById(country string, id, userID, hostID, accomm
 }
 
 func (rr *ReservationRepo) ReservationsInDateRange(accommodationIDs []string, dateRange []string) ([]string, *errors.ReservationError) {
-	var result []string
+	uniqueReservations := make(map[string]struct{})
 	for _, date := range dateRange {
-		query := `
-        SELECT accommodation_id
-        FROM reservation_by_accommodation 
-        WHERE accommodation_id IN ? 
-        AND date_range CONTAINS ? 
-    `
+		for _, accommodationID := range accommodationIDs {
+			query := `SELECT accommodation_id FROM reservation_by_accommodation WHERE accommodation_id = ? AND date_range CONTAINS ?`
 
-		iter := rr.session.Query(query, accommodationIDs, date).Iter()
+			iter := rr.session.Query(query, accommodationID, date).Iter()
 
-		var reservation string
-		for iter.Scan(&reservation) {
-			result = append(result, reservation)
+			var reservation string
+			for iter.Scan(&reservation) {
+				uniqueReservations[reservation] = struct{}{}
+			}
+			if err := iter.Close(); err != nil {
+				rr.logger.Println(err)
+				return nil, errors.NewReservationError(500, "Unable to retrieve reservations, database error")
+			}
 		}
+	}
 
-		if err := iter.Close(); err != nil {
-			rr.logger.Println(err)
-			return nil, errors.NewReservationError(500, "Unable to retrieve reservations, database error")
-		}
+	result := make([]string, 0, len(uniqueReservations))
+	for key := range uniqueReservations {
+		result = append(result, key)
 	}
 
 	return result, nil
