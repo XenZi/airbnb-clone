@@ -6,6 +6,7 @@ import (
 	"recommendation-service/domains"
 	"recommendation-service/errors"
 	"recommendation-service/repository"
+	"strings"
 	"time"
 )
 
@@ -24,7 +25,7 @@ func NewRatingService(repo *repository.RatingRepository, accommodationClient *cl
 }
 
 func (rs RatingService) CreateRatingForAccommodation(ctx context.Context, rating domains.RateAccommodation) (*domains.RateAccommodation, *errors.ErrorStruct) {
-	rating.CreatedAt = time.Now().Local().String()
+	rating.CreatedAt = strings.Split(time.Now().Local().String(), " ")[0]
 	resp, err := rs.repo.RateAccommodation(rating)
 	if err != nil {
 		return nil, err
@@ -37,7 +38,7 @@ func (rs RatingService) CreateRatingForAccommodation(ctx context.Context, rating
 }
 
 func (rs RatingService) UpdateRatingForAccommodation(ctx context.Context, rating domains.RateAccommodation) (*domains.RateAccommodation, *errors.ErrorStruct) {
-	rating.CreatedAt = time.Now().Local().String()
+	rating.CreatedAt = strings.Split(time.Now().Local().String(), " ")[0]
 	resp, err := rs.repo.UpdateRatingByAccommodationGuest(rating)
 	if err != nil {
 		return nil, err
@@ -70,7 +71,7 @@ func (rs RatingService) DeleteRatingForAccommodation(ctx context.Context, rating
 }
 
 func (rs RatingService) CreateRatingForHost(ctx context.Context, rating domains.RateHost) (*domains.RateHost, *errors.ErrorStruct) {
-	rating.CreatedAt = time.Now().Local().String()
+	rating.CreatedAt = strings.Split(time.Now().Local().String(), " ")[0]
 	resp, err := rs.repo.RateHost(rating)
 	if err != nil {
 		return nil, err
@@ -91,7 +92,7 @@ func (rs RatingService) GetAllRatingsForHostByID(id string) (*[]domains.RateHost
 }
 
 func (rs RatingService) UpdateRatingForHostAndGuest(ctx context.Context, rateHost domains.RateHost) (*domains.RateHost, *errors.ErrorStruct) {
-	rateHost.CreatedAt = time.Now().Local().String()
+	rateHost.CreatedAt = strings.Split(time.Now().Local().String(), " ")[0]
 	resp, err := rs.repo.UpdateRatingByHostAndGuest(rateHost)
 	if err != nil {
 		return nil, err
