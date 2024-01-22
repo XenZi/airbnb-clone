@@ -73,20 +73,7 @@ func (rh *ReservationHandler) GetReservationsByUser(rw http.ResponseWriter, r *h
 	rw.Header().Set("Content-Type", "application/json")
 	utils.WriteResp(reservations, 200, rw)
 }
-func (rh *ReservationHandler) GetReservationsByAccommodationWithEndDate(rw http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	accommodationID := vars["accommodationId"]
-	userID := vars["userId"]
 
-	reservations, err := rh.ReservationService.GetReservationsByAccommodationWithEndDate(accommodationID, userID)
-	if err != nil {
-		utils.WriteErrorResp(err.Message, err.Status, "api/reservations/{accommodationId}/{userId}", rw)
-		return
-	}
-
-	rw.Header().Set("Content-Type", "application/json")
-	utils.WriteResp(reservations, 200, rw)
-}
 func (rh *ReservationHandler) GetReservationsByHost(rw http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	hostID := vars["hostId"]
@@ -192,4 +179,32 @@ func (rh *ReservationHandler) GetCancelationPercentage(rw http.ResponseWriter, r
 	}
 	rw.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(rw).Encode(percentage)
+}
+func (rh *ReservationHandler) GetReservationsByAccommodationWithEndDate(rw http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	accommodationID := vars["accommodationId"]
+	userID := vars["userId"]
+
+	reservations, err := rh.ReservationService.GetReservationsByAccommodationWithEndDate(accommodationID, userID)
+	if err != nil {
+		utils.WriteErrorResp(err.Message, err.Status, "api/reservations/{accommodationId}/{userId}", rw)
+		return
+	}
+
+	rw.Header().Set("Content-Type", "application/json")
+	utils.WriteResp(reservations, 200, rw)
+}
+func (rh *ReservationHandler) GetReservationsByHostWithEndDate(rw http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	hostID := vars["hostId"]
+	userID := vars["userId"]
+
+	reservations, err := rh.ReservationService.GetReservationsByHostWithEndDate(hostID, userID)
+	if err != nil {
+		utils.WriteErrorResp(err.Message, err.Status, "api/reservations/{hostId}/{userId}", rw)
+		return
+	}
+
+	rw.Header().Set("Content-Type", "application/json")
+	utils.WriteResp(reservations, 200, rw)
 }

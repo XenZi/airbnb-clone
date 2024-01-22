@@ -78,13 +78,7 @@ func (s *ReservationService) GetReservationsByHost(hostID string) ([]domain.Rese
 	}
 	return reservations, nil
 }
-func (s *ReservationService) GetReservationsByAccommodationWithEndDate(accommodationID, userID string) ([]domain.Reservation, *errors.ReservationError) {
-	reservations, err := s.repo.GetReservationsByAccommodationWithEndDate(accommodationID, userID)
-	if err != nil {
-		return nil, errors.NewReservationError(500, err.Error())
-	}
-	return reservations, nil
-}
+
 func (s *ReservationService) ReservationsInDateRange(accommodationIDs []string, dateRange []string) ([]string, *errors.ReservationError) {
 	reservations, err := s.repo.ReservationsInDateRange(accommodationIDs, dateRange)
 	if err != nil {
@@ -171,4 +165,18 @@ func (s *ReservationService) CalculatePercentageCanceled(hostID string) (float32
 	}
 	percentageCanceled := float32(numberOfCanceled)/float32(totalReservations) + float32(numberOfCanceled)*100
 	return percentageCanceled, nil
+}
+func (s *ReservationService) GetReservationsByAccommodationWithEndDate(accommodationID, userID string) ([]domain.Reservation, *errors.ReservationError) {
+	reservations, err := s.repo.GetReservationsByAccommodationWithEndDate(accommodationID, userID)
+	if err != nil {
+		return nil, errors.NewReservationError(500, err.Error())
+	}
+	return reservations, nil
+}
+func (s *ReservationService) GetReservationsByHostWithEndDate(hostID, userID string) ([]domain.Reservation, *errors.ReservationError) {
+	reservations, err := s.repo.GetReservationsByHostWithEndDate(hostID, userID)
+	if err != nil {
+		return nil, errors.NewReservationError(500, err.Error())
+	}
+	return reservations, nil
 }
