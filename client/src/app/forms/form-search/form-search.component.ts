@@ -1,5 +1,6 @@
 import { Component, HostListener } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
 import { AccommodationsService } from 'src/app/services/accommodations-service/accommodations.service';
 
 
@@ -12,7 +13,7 @@ export class FormSearchComponent {
   searchForm: FormGroup;
   startDate:string | undefined
   endDate:string|undefined
-  constructor(private formBuilder: FormBuilder,private accommodationsService: AccommodationsService) {
+  constructor(private formBuilder: FormBuilder,private accommodationsService: AccommodationsService,private router: Router) {
     this.searchForm = this.formBuilder.group({
       city: [''],
       country: [''],
@@ -34,6 +35,10 @@ export class FormSearchComponent {
       this.searchForm.value.guestsNumber
     );
     this.searchAccommodations()
+
+    // setTimeout(() => {
+    //   window.location.reload();
+    // }, 100);
     
     console.log(this.searchAccommodations())
     console.log(this.searchForm.value.dateRange[0])
@@ -52,7 +57,15 @@ export class FormSearchComponent {
       this.endDate=""
     }
     
-    this.accommodationsService.search(this.searchForm.value.city as string,this.searchForm.value.country as string,this.searchForm.value.guestsNumber as string,this.startDate as string,this.endDate as string).subscribe({next:(data)=>{console.log(data.data)}})
+    this.router.navigate(['/search'], {
+      queryParams: {
+        city: this.searchForm.value.city,
+        country: this.searchForm.value.country,
+        numOfVisitors: this.searchForm.value.guestsNumber as string,
+        startDate:this.startDate as string,
+        endDate: this.endDate as string,
+      },
+    });
 
   }
 

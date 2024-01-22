@@ -86,6 +86,8 @@ func main() {
 
 	router := mux.NewRouter()
 
+	router.HandleFunc("/recommended", accommodationsHandler.FindAccommodationsByIds).Methods("GET")
+
 	router.HandleFunc("/", accommodationsHandler.GetAllAccommodations).Methods("GET")
 
 	router.HandleFunc("/", accommodationsHandler.CreateAccommodationById).Methods("POST")

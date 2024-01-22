@@ -137,6 +137,34 @@ func (a *AccommodationsHandler) GetAccommodationById(rw http.ResponseWriter, r *
 	utils.WriteResp(accommodation, 201, rw)
 }
 
+func (a *AccommodationsHandler) FindAccommodationsByIds(rw http.ResponseWriter, r *http.Request) {
+	log.Println("Da li ulazi?")
+	decoder := json.NewDecoder(r.Body)
+
+	type IdStruct struct {
+		Ids []string `json:"ids"`
+	}
+	var ids IdStruct
+	decodeErr := decoder.Decode(&ids)
+	if decodeErr != nil {
+		utils.WriteErrorResp(decodeErr.Error(), http.StatusInternalServerError, "api/accommodations/FindByIds", rw)
+		return
+	}
+	log.Println("Idevi su", ids.Ids)
+	accommodations, err := a.AccommodationService.FindAccommodationByIds(ids.Ids)
+	if err != nil {
+		utils.WriteErrorResp(err.GetErrorMessage(), http.StatusNotFound, "api/accommodations/FindByIds", rw)
+		return
+	}
+
+	// Serialize accommodation to JSON and write response
+
+	rw.Header().Set("Content-Type", "application/json")
+	rw.WriteHeader(http.StatusOK)
+
+	utils.WriteResp(accommodations, 201, rw)
+}
+
 func (a *AccommodationsHandler) UpdateAccommodationById(rw http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	accommodationId := vars["id"]
@@ -218,11 +246,33 @@ func (a *AccommodationsHandler) SearchAccommodations(w http.ResponseWriter, r *h
 	startDate := r.URL.Query().Get("startDate")
 	endDate := r.URL.Query().Get("endDate")
 
+	minPriceString := r.URL.Query().Get("minPrice")
+	maxPriceString := r.URL.Query().Get("maxPrice")
+
+	if minPriceString == "" {
+		minPriceString = "0"
+	}
+	if maxPriceString == "" {
+		maxPriceString = "10000"
+	}
+
+	minPrice, err := strconv.Atoi(minPriceString)
+	maxPrice, err := strconv.Atoi(maxPriceString)
+
+	conveniencesCsv := r.URL.Query().Get("conveniences")
+
+	var conveniences []string
+	if conveniencesCsv != "" {
+		conveniences = strings.Split(conveniencesCsv, ",")
+	}
+
+	isDistinguished := r.URL.Query().Get("isDistinguished")
+
 	// Handle empty dateRange as needed
 
 	ctx, cancel := context.WithTimeout(r.Context(), time.Second*5)
 	defer cancel()
-	accommodations, errS := a.AccommodationService.SearchAccommodations(city, country, numOfVisitors, startDate, endDate, ctx)
+	accommodations, errS := a.AccommodationService.SearchAccommodations(city, country, numOfVisitors, startDate, endDate, minPrice, maxPrice, conveniences, isDistinguished, ctx)
 
 	if errS != nil {
 		utils.WriteErrorResp(errS.GetErrorMessage(), http.StatusInternalServerError, "api/accommodations/BILOSTA", w)

@@ -205,18 +205,12 @@ export class AccommodationsService {
     startDate: string,
     endDate: string
   ): Observable<any> {
-    this.router.navigate(['/search'], {
-      queryParams: {
-        city: city,
-        country: country,
-        numOfVisitors: numOfVisitors,
-        startDate: startDate,
-        endDate: endDate,
-      },
-    });
+    
+    
     console.log('pocetni datum je', startDate);
     return this.http.get<any>(
       `${apiURL}/accommodations/search?city=${city}&country=${country}&numOfVisitors=${numOfVisitors}&startDate=${startDate}&endDate=${endDate}`
     );
+    
   }
 }

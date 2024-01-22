@@ -155,6 +155,35 @@ func (as *AccommodationService) GetAccommodationById(accommodationId string) (*d
 
 }
 
+func (as *AccommodationService) FindAccommodationByIds(ids []string) ([]*domain.AccommodationDTO, *errors.ErrorStruct) {
+	accomm, err := as.accommodationRepository.FindAccommodationByIds(ids)
+	if err != nil {
+		return nil, err
+	}
+	var domainAccommodations []*domain.AccommodationDTO
+	for _, accommodation := range accomm {
+
+		imageIds := accommodation.ImageIds
+		id := accommodation.Id.Hex()
+		domainAccommodations = append(domainAccommodations, &domain.AccommodationDTO{
+			Id:               id,
+			Name:             accommodation.Name,
+			UserName:         accommodation.UserName,
+			UserId:           accommodation.UserId,
+			Address:          accommodation.Address,
+			City:             accommodation.City,
+			Country:          accommodation.Country,
+			Conveniences:     accommodation.Conveniences,
+			MinNumOfVisitors: accommodation.MinNumOfVisitors,
+			MaxNumOfVisitors: accommodation.MaxNumOfVisitors,
+			ImageIds:         imageIds,
+			Rating:           accommodation.Rating,
+		})
+	}
+	return domainAccommodations, nil
+
+}
+
 func (as *AccommodationService) UpdateAccommodation(updatedAccommodation domain.Accommodation) (*domain.Accommodation, *errors.ErrorStruct) {
 	as.validator.ValidateAccommodation(&updatedAccommodation)
 	validatorErrors := as.validator.GetErrors()
@@ -221,9 +250,9 @@ func (as *AccommodationService) PutAccommodationRating(accommodationID string, a
 	return nil
 }
 
-func (as *AccommodationService) SearchAccommodations(city, country string, numOfVisitors int, startDate string, endDate string, ctx context.Context) ([]domain.Accommodation, *errors.ErrorStruct) {
+func (as *AccommodationService) SearchAccommodations(city, country string, numOfVisitors int, startDate string, endDate string, minPrice int, maxPrice int, conveniences []string, isDistinguished string, ctx context.Context) ([]domain.Accommodation, *errors.ErrorStruct) {
 	log.Println("USLO U SERVIS")
-	accommodations, err := as.accommodationRepository.SearchAccommodations(city, country, numOfVisitors)
+	accommodations, err := as.accommodationRepository.SearchAccommodations(city, country, numOfVisitors, minPrice, maxPrice, conveniences)
 	if err != nil {
 		// Handle the error returned by the repository
 		return nil, errors.NewError("Failed to find accommodations", 500) // Modify according to your error handling approach

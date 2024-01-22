@@ -50,6 +50,50 @@ func (ar *AccommodationRepo) GetAccommodationById(id string) (*do.Accommodation,
 	return accommodation, nil
 }
 
+func (ar *AccommodationRepo) FindAccommodationByIds(ids []string) ([]*do.Accommodation, *errors.ErrorStruct) {
+	accommodationCollection := ar.cli.Database("accommodations-service").Collection("accommodations")
+	log.Println("Idevi za get su ", ids)
+
+	// Convert string IDs to primitive.ObjectID
+	var objectIDs []primitive.ObjectID
+	for _, id := range ids {
+		objectID, err := primitive.ObjectIDFromHex(id)
+		if err != nil {
+			return nil, errors.NewError(
+				"Not able to convert to primitive",
+				500) // Handle invalid ID error
+		}
+		objectIDs = append(objectIDs, objectID)
+	}
+
+	// Prepare the filter for finding accommodations by IDs
+	filter := bson.M{"_id": bson.M{"$in": objectIDs}}
+
+	// Find accommodations
+	cursor, err := accommodationCollection.Find(context.TODO(), filter)
+	if err != nil {
+		return nil, errors.NewError(
+			"Not able to find data",
+			500)
+	}
+	defer cursor.Close(context.TODO())
+
+	// Decode results into Accommodation
+	var accommodations []*do.Accommodation
+	for cursor.Next(context.TODO()) {
+		var accommodation do.Accommodation
+		err := cursor.Decode(&accommodation)
+		if err != nil {
+			return nil, errors.NewError(
+				"Not able to retrieve data",
+				500)
+		}
+		accommodations = append(accommodations, &accommodation)
+	}
+	log.Println("akomodacije su", accommodations)
+	return accommodations, nil
+}
+
 func (ar *AccommodationRepo) GetAllAccommodations() ([]*do.Accommodation, *errors.ErrorStruct) {
 	accommodationCollection := ar.cli.Database("accommodations-service").Collection("accommodations")
 	var accommodations []*do.Accommodation
@@ -165,10 +209,12 @@ func (ar *AccommodationRepo) DeleteAccommodationsByUserId(id string) *errors.Err
 	return nil
 }
 
-func (ar *AccommodationRepo) SearchAccommodations(city, country string, numOfVisitors int) ([]do.Accommodation, *errors.ErrorStruct) {
+func (ar *AccommodationRepo) SearchAccommodations(city, country string, numOfVisitors int, minPrice int, maxPrice int, conveniences []string) ([]do.Accommodation, *errors.ErrorStruct) {
 	accommodationCollection := ar.cli.Database("accommodations-service").Collection("accommodations")
 	filter := bson.M{}
-
+	log.Println("minimalnaCijena", minPrice)
+	log.Println("maximalnaCijena", maxPrice)
+	log.Println("convies", conveniences)
 	// Build the filter based on the provided parameters
 	if city != "" {
 		filter["city"] = city
@@ -182,6 +228,17 @@ func (ar *AccommodationRepo) SearchAccommodations(city, country string, numOfVis
 			bson.M{"minNumOfVisitors": bson.M{"$lte": numOfVisitors}},
 			bson.M{"maxNumOfVisitors": bson.M{"$gte": numOfVisitors}},
 		}
+	}
+
+	if numOfVisitors > 0 {
+		filter["$and"] = bson.A{
+			bson.M{"minNumOfVisitors": bson.M{"$lte": numOfVisitors}},
+			bson.M{"maxNumOfVisitors": bson.M{"$gte": numOfVisitors}},
+		}
+	}
+	log.Println("duzina je", len(conveniences))
+	if len(conveniences) > 0 {
+		filter["conveniences"] = bson.M{"$in": conveniences}
 	}
 
 	// Perform the search using the constructed filter
