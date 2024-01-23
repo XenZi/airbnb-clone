@@ -24,6 +24,8 @@ services:
       - NOTIFICATION_SERVICE_PORT=${NOTIFICATION_SERVICE_PORT}
     networks:
       - network
+    volumes:
+      - auth_logs:/app/logs
 
   notifications-service:
     build:
@@ -387,3 +389,5 @@ volumes:
   hadoop_datanode2:
   neo4j_data:
   redis_data:
+  auth_logs:
+    driver: local
