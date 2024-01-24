@@ -34,6 +34,8 @@ COPY --from=builder /app/main .
 RUN mkdir data
 COPY ./auth-service/data/blacklist-passwords.txt ./data/
 COPY ./auth-service/security/rbac.json ./security/
+RUN mkdir logs
+COPY ./auth-service/logs/log.log ./logs/
 
 # Command to run the executable
 CMD ["./main"]

@@ -1,23 +1,25 @@
 package services
 
 import (
+	"auth-service/config"
 	"context"
 	"fmt"
+	"os"
+	"time"
+
+	log "github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
-	"log"
-	"os"
-	"time"
 )
 
 type MongoService struct {
 	cli    *mongo.Client
-	logger *log.Logger
+	logger *config.Logger
 }
 
-func New(ctx context.Context, logger *log.Logger) (*MongoService, error) {
+func New(ctx context.Context, logger *config.Logger) (*MongoService, error) {
 	uri := os.Getenv("MONGO_DB_URI")
 	logger.Println("URI: ", uri)
 	client, err := mongo.Connect(ctx, options.Client().ApplyURI(uri))
@@ -32,9 +34,16 @@ func New(ctx context.Context, logger *log.Logger) (*MongoService, error) {
 				Options: options.Index().SetUnique(true),
 			},
 		})
-	logger.Println("Constraints created for mongo-db Auth model with name ", indexName)
+	logger.Info("Indexes created for Auth Service, MongoDB", log.Fields{
+		"module":    "database",
+		"operation": "Creating index",
+		"id":        indexName,
+	})
 	if err != nil {
-		logger.Fatal("Error while connecting to auth-mongo", err)
+		logger.Error("Error while connecting or creating indexes", log.Fields{
+			"module": "database",
+			"error":  err.Error(),
+		})
 		return nil, err
 	}
 

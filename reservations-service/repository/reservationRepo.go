@@ -384,26 +384,27 @@ func (rr *ReservationRepo) DeleteById(country string, id, userID, hostID, accomm
 }
 
 func (rr *ReservationRepo) ReservationsInDateRange(accommodationIDs []string, dateRange []string) ([]string, *errors.ReservationError) {
-	var result []string
+	uniqueReservations := make(map[string]struct{})
 	for _, date := range dateRange {
-		query := `
-        SELECT accommodation_id
-        FROM reservation_by_accommodation 
-        WHERE accommodation_id IN ? 
-        AND date_range CONTAINS ? 
-    `
+		for _, accommodationID := range accommodationIDs {
+			query := `SELECT accommodation_id FROM reservation_by_accommodation WHERE accommodation_id = ? AND date_range CONTAINS ?`
 
-		iter := rr.session.Query(query, accommodationIDs, date).Iter()
+			iter := rr.session.Query(query, accommodationID, date).Iter()
 
-		var reservation string
-		for iter.Scan(&reservation) {
-			result = append(result, reservation)
+			var reservation string
+			for iter.Scan(&reservation) {
+				uniqueReservations[reservation] = struct{}{}
+			}
+			if err := iter.Close(); err != nil {
+				rr.logger.Println(err)
+				return nil, errors.NewReservationError(500, "Unable to retrieve reservations, database error")
+			}
 		}
+	}
 
-		if err := iter.Close(); err != nil {
-			rr.logger.Println(err)
-			return nil, errors.NewReservationError(500, "Unable to retrieve reservations, database error")
-		}
+	result := make([]string, 0, len(uniqueReservations))
+	for key := range uniqueReservations {
+		result = append(result, key)
 	}
 
 	return result, nil
@@ -512,6 +513,37 @@ func (rr *ReservationRepo) GetReservationsByAccommodationWithEndDate(accommodati
 	num_of_days,date_range,is_active,country,host_id FROM reservation_by_accommodation
 	 WHERE  accommodation_id = ? AND user_id = ? AND end_date <= ?`,
 		accommodationID, userID, currentDate).Iter().Scanner()
+
+	var reservations []domain.Reservation
+	for scanner.Next() {
+		var reservation domain.Reservation
+
+		err := scanner.Scan(&reservation.Id, &reservation.AccommodationID, &reservation.UserID, &reservation.StartDate,
+			&reservation.EndDate, &reservation.Username, &reservation.AccommodationName, &reservation.Location, &reservation.Price,
+			&reservation.NumberOfDays, reservation.DateRange, &reservation.IsActive, &reservation.Country, &reservation.HostID)
+		if err != nil {
+			rr.logger.Println(err)
+			return nil, err
+		}
+
+		reservations = append(reservations, reservation)
+	}
+
+	if err := scanner.Err(); err != nil {
+		rr.logger.Println(err)
+		return nil, err
+	}
+
+	return reservations, nil
+
+}
+
+func (rr *ReservationRepo) GetReservationsByHostWithEndDate(hostID, userID string) ([]domain.Reservation, error) {
+	currentDate := time.Now().Format("2006-01-02")
+	scanner := rr.session.Query(`SELECT id,accommodation_id, user_id, start_date, end_date,username,accommodation_name,location,price,
+	num_of_days,date_range,is_active,country,host_id FROM reservation_by_host
+	 WHERE  accommodation_id = ? AND user_id = ? AND end_date <= ?`,
+		hostID, userID, currentDate).Iter().Scanner()
 
 	var reservations []domain.Reservation
 	for scanner.Next() {

@@ -1,11 +1,12 @@
 package repository
 
 import (
+	"auth-service/config"
 	"auth-service/domains"
 	"auth-service/errors"
 	"context"
-	"log"
 
+	log "github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -13,10 +14,10 @@ import (
 
 type UserRepository struct {
 	cli    *mongo.Client
-	logger *log.Logger
+	logger *config.Logger
 }
 
-func NewUserRepository(cli *mongo.Client, logger *log.Logger) *UserRepository {
+func NewUserRepository(cli *mongo.Client, logger *config.Logger) *UserRepository {
 	return &UserRepository{
 		cli:    cli,
 		logger: logger,
@@ -32,9 +33,13 @@ func (u UserRepository) SaveUser(user domains.User) (*domains.User, *errors.Erro
 		if status == -1 {
 			status = 500
 		}
+		u.logger.Error("Error while inserting new user", log.Fields{
+			"module": "database",
+			"error":  err.Error(),
+		})
 		return nil, errors.NewError(err.Error(), status)
 	}
-	u.logger.Println("Inserted ID is %v", insertedUser)
+	u.logger.Infof("Successfully inserted ID %v", insertedUser)
 	user.ID = insertedUser.InsertedID.(primitive.ObjectID)
 	return &user, nil
 }
@@ -51,7 +56,6 @@ func (u UserRepository) FindUserByEmail(email string) (*domains.User, *errors.Er
 	log.Println(user)
 	return &user, nil
 }
-
 
 func (u UserRepository) FindUserById(id string) (*domains.User, *errors.ErrorStruct) {
 	userCollection := u.cli.Database("auth").Collection("user")
@@ -74,15 +78,15 @@ func (u UserRepository) UpdateUserConfirmation(id string) (*domains.User, *error
 	collection := database.Collection("user")
 	objectID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
-		return nil, errors.NewError(err.Error(),500)
+		return nil, errors.NewError(err.Error(), 500)
 	}
 	filter := bson.D{{Key: "_id", Value: objectID}}
-		// Define the update to be applied
-		update := bson.D{
-			{Key: "$set", Value: bson.D{
-				{Key: "confirmed", Value: true},
-			}},
-		}
+	// Define the update to be applied
+	update := bson.D{
+		{Key: "$set", Value: bson.D{
+			{Key: "confirmed", Value: true},
+		}},
+	}
 	updateResult, err := collection.UpdateOne(context.Background(), filter, update)
 	if err != nil {
 		return nil, errors.NewError(err.Error(), 500)
@@ -104,15 +108,15 @@ func (u UserRepository) UpdateUserPassword(id string, newPassword string) (*doma
 	collection := database.Collection("user")
 	objectID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
-		return nil, errors.NewError(err.Error(),500)
+		return nil, errors.NewError(err.Error(), 500)
 	}
 	filter := bson.D{{Key: "_id", Value: objectID}}
-		// Define the update to be applied
-		update := bson.D{
-			{Key: "$set", Value: bson.D{
-				{Key: "password", Value: newPassword},
-			}},
-		}
+	// Define the update to be applied
+	update := bson.D{
+		{Key: "$set", Value: bson.D{
+			{Key: "password", Value: newPassword},
+		}},
+	}
 	updateResult, err := collection.UpdateOne(context.Background(), filter, update)
 	if err != nil {
 		return nil, errors.NewError(err.Error(), 500)
@@ -134,16 +138,16 @@ func (u UserRepository) UpdateUserCredentials(user domains.User) (*domains.User,
 	collection := database.Collection("user")
 	objectID, err := primitive.ObjectIDFromHex(user.ID.Hex())
 	if err != nil {
-		return nil, errors.NewError(err.Error(),500)
+		return nil, errors.NewError(err.Error(), 500)
 	}
 	filter := bson.D{{Key: "_id", Value: objectID}}
-		// Define the update to be applied
-		update := bson.D{
-			{Key: "$set", Value: bson.D{
-				{Key: "email", Value: user.Email},
-				{Key: "username", Value: user.Username},
-			}},
-		}
+	// Define the update to be applied
+	update := bson.D{
+		{Key: "$set", Value: bson.D{
+			{Key: "email", Value: user.Email},
+			{Key: "username", Value: user.Username},
+		}},
+	}
 	updateResult, err := collection.UpdateOne(context.Background(), filter, update)
 	if err != nil {
 		return nil, errors.NewError(err.Error(), 500)
@@ -171,7 +175,6 @@ func (u UserRepository) FindUserByUsername(username string) (*domains.User, *err
 	}
 	return &user, nil
 }
-
 
 func (u UserRepository) DeleteUserById(id string) (*domains.User, *errors.ErrorStruct) {
 	user, err := u.FindUserById(id)

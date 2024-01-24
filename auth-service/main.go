@@ -2,6 +2,7 @@ package main
 
 import (
 	"auth-service/client"
+	"auth-service/config"
 	"auth-service/handler"
 	"auth-service/middlewares"
 	"auth-service/repository"
@@ -9,11 +10,12 @@ import (
 	"auth-service/services"
 	"auth-service/utils"
 	"context"
-	"log"
 	"net/http"
 	"os"
 	"os/signal"
 	"time"
+
+	log "github.com/sirupsen/logrus"
 
 	gorillaHandlers "github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
@@ -23,7 +25,7 @@ import (
 func main() {
 	timeoutContext, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
-	logger := log.New(os.Stdout, "[auth-api] ", log.LstdFlags)
+	logger := config.NewLogger("./logs/log.log")
 
 	// env reads
 
@@ -43,18 +45,18 @@ func main() {
 
 	customUserServiceClient := &http.Client{
 		Transport: &http.Transport{
-			MaxIdleConns: 10,
+			MaxIdleConns:        10,
 			MaxIdleConnsPerHost: 10,
-			MaxConnsPerHost: 10,
+			MaxConnsPerHost:     10,
 		},
 	}
-	
+
 	userServiceCircuitBreaker := gobreaker.NewCircuitBreaker(
 		gobreaker.Settings{
-			Name: "user-service",
+			Name:        "user-service",
 			MaxRequests: 1,
-			Timeout: 10 * time.Second,
-			Interval: 0,
+			Timeout:     10 * time.Second,
+			Interval:    0,
 			OnStateChange: func(name string, from gobreaker.State, to gobreaker.State) {
 				log.Printf("Circuit Breaker %v: %v -> %v", name, from, to)
 			},
@@ -64,18 +66,18 @@ func main() {
 
 	customNotificationServiceClient := &http.Client{
 		Transport: &http.Transport{
-			MaxIdleConns: 10,
+			MaxIdleConns:        10,
 			MaxIdleConnsPerHost: 10,
-			MaxConnsPerHost: 10,
+			MaxConnsPerHost:     10,
 		},
 	}
-	
+
 	notificationServiceCircuitBreaker := gobreaker.NewCircuitBreaker(
 		gobreaker.Settings{
-			Name: "notification-service",
+			Name:        "notification-service",
 			MaxRequests: 1,
-			Timeout: 10 * time.Second,
-			Interval: 0,
+			Timeout:     10 * time.Second,
+			Interval:    0,
 			OnStateChange: func(name string, from gobreaker.State, to gobreaker.State) {
 				log.Printf("Circuit Breaker %v: %v -> %v", name, from, to)
 			},
@@ -138,7 +140,7 @@ func main() {
 	go func() {
 		err := server.ListenAndServe()
 		if err != nil {
-			logger.Fatal(err)
+			logger.Panicf("PANIC FROM AUTH-SERVICE ON LISTENING")
 		}
 	}()
 
@@ -151,7 +153,7 @@ func main() {
 
 	//Try to shutdown gracefully
 	if server.Shutdown(timeoutContext) != nil {
-		logger.Fatal("Cannot gracefully shutdown...")
+		logger.Fatalf("Cannot gracefully shutdown...")
 	}
 	logger.Println("Server stopped")
 
