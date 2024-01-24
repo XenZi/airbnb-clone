@@ -58,6 +58,8 @@ export class FormCreateAccommodationComponent {
   
   ngOnInit() {
     this.user = this.userService.getLoggedUser();
+    console.log("User je",this.user?.email as string)
+
     this.getCountriesData();
     console.log(this.getCountriesData)
   }
@@ -209,10 +211,11 @@ export class FormCreateAccommodationComponent {
     console.log(this.dateAvailabilities.value)
     const availabilites=processDateAvailabilities(dateAvailabilitiesValue)
     console.log(availabilites)
-   
+    console.log(this.user?.email as string)   
     this.accommodationsService.create(
       this.user?.id as string,
       this.user?.username as string,
+      this.user?.email as string,
       this.createAccommodationForm.value.name,
       this.createAccommodationForm.value.address,
       this.createAccommodationForm.value.city,

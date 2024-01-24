@@ -37,6 +37,7 @@ export class AccommodationsService {
   private formatFormData(
     userId: string,
     username: string,
+    email:string,
     name: string,
     address: string,
     city: string,
@@ -51,6 +52,7 @@ export class AccommodationsService {
     let formData: FormData = new FormData();
     formData.append('userId', userId);
     formData.append('username', username);
+    formData.append('email', email);
     formData.append('name', name);
     formData.append('address', address);
     formData.append('city', city);
@@ -80,6 +82,7 @@ export class AccommodationsService {
   create(
     userId: string,
     username: string,
+    email:string,
     name: string,
     address: string,
     city: string,
@@ -91,11 +94,12 @@ export class AccommodationsService {
     location: string,
     images:FormArray
   ): void {
-    console.log(availableAccommodationDates)
+    console.log(email)
     this.http
       .post(`${apiURL}/accommodations/`, this.formatFormData(
         userId,
         username,
+        email,
         name,
         address,
         city,

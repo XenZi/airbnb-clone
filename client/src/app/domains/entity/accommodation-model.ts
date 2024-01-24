@@ -5,6 +5,7 @@ export interface Accommodation {
   name: string;
   userId: string;
   username: string;
+  email:string;
   address: string;
   city: string;
   country: string;
