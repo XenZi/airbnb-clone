@@ -17,6 +17,11 @@ import (
 
 	//opentracing "github.com/opentracing/opentracing-go"
 
+	"reservations-service/tracing"
+
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/propagation"
+
 	gorillaHandlers "github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/sony/gobreaker"
@@ -58,21 +63,42 @@ func main() {
 		},
 	)
 
+	exp, err := tracing.newExporter(cfg.JaegerAddress)
+	if err != nil {
+		log.Fatalf("failed to initialize exporter: %v", err)
+	}
+
+	// Create a context for trace provider and store initialization
+	ctx := context.Background()
+
+	tp := tracing.NewTraceProvider()
+	defer func() {
+		if err := tp.Shutdown(ctx); err != nil {
+			log.Printf("failed to shutdown trace provider: %v", err)
+		}
+	}()
+
+	otel.SetTracerProvider(tp)
+	tracer := tp.Tracer("reservations-service")
+	otel.SetTextMapPropagator(propagation.TraceContext{})
+
 	validator := utils.NewValidator()
 	notificationsClient := client.NewNotificationClient(notificationServiceHost, notificationServicePort, customNotificationServiceClient, notificationServiceCircuitBreaker)
 
 	store, err := repository.New(storeLogger)
 	if err != nil {
-		logger.Fatal(err)
+		log.Fatalf("failed to create store: %v", err)
 	}
 	defer store.CloseSession()
 	store.CreateTables()
+
 	reservationRepo, err := repository.New(logger)
 	if err != nil {
-		return
+		log.Fatalf("failed to create reservation repository: %v", err)
 	}
+
 	reservationService := service.NewReservationService(reservationRepo, validator, notificationsClient)
-	reservationsHandler := handler.ReservationHandler{
+	reservationsHandler := handler.ReservationHandler{tracer,
 		ReservationService: reservationService,
 	}
 	/*
