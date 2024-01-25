@@ -55,25 +55,25 @@ func (l Logger) Panic(message string, fields map[string]interface{}) {
 }
 
 func (l Logger) Infof(message string, args ...interface{}) {
-	l.Infof(message, args...)
+	l.Infoln(message)
 }
 
 func (l Logger) Warnf(message string, args ...interface{}) {
-	l.Warnf(message, args...)
+	l.Warnln(message)
 }
 
 func (l Logger) Errorf(message string, args ...interface{}) {
-	l.Errorf(message, args...)
+	l.Errorln(message)
 }
 
 func (l Logger) Debugf(message string, args ...interface{}) {
-	l.Debugf(message, args...)
+	l.Debugln(message)
 }
 
 func (l Logger) Fatalf(message string, args ...interface{}) {
-	l.Fatalf(message)
+	l.Fatalln(message)
 }
 
 func (l Logger) Panicf(message string, args ...interface{}) {
-	l.Panicf(message)
+	l.Panicln(message)
 }
