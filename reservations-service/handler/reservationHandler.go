@@ -11,18 +11,18 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
-	opentracing "github.com/opentracing/opentracing-go"
+	"go.opentelemetry.io/otel/trace"
 )
 
 type KeyProduct struct{}
 
 type ReservationHandler struct {
-	logger             *log.Logger
-	Tracer             opentracing.Tracer
+	Logger             *log.Logger
+	Tracer             trace.Tracer
 	ReservationService *service.ReservationService
 }
 
-func NewReservationsHandler(l *log.Logger, tr opentracing.Tracer, rs *service.ReservationService) *ReservationHandler {
+func NewReservationsHandler(l *log.Logger, tr trace.Tracer, rs *service.ReservationService) *ReservationHandler {
 	return &ReservationHandler{l, tr, rs}
 }
 

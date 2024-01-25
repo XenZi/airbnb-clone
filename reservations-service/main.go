@@ -10,6 +10,7 @@ import (
 	"reservation-service/handler"
 	"reservation-service/repository"
 	"reservation-service/service"
+	"reservation-service/tracing"
 	"reservation-service/utils"
 	"time"
 
@@ -17,14 +18,11 @@ import (
 
 	//opentracing "github.com/opentracing/opentracing-go"
 
-	"reservations-service/tracing"
-
-	"go.opentelemetry.io/otel"
-	"go.opentelemetry.io/otel/propagation"
-
 	gorillaHandlers "github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/sony/gobreaker"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/propagation"
 )
 
 func main() {
@@ -63,22 +61,19 @@ func main() {
 		},
 	)
 
-	exp, err := tracing.newExporter(cfg.JaegerAddress)
+	cfg := tracing.GetConfig()
+	log.Println(cfg.JaegerAddress)
+	ctx := context.Background()
+	exp, err := tracing.NewExporter(cfg.JaegerAddress)
 	if err != nil {
 		log.Fatalf("failed to initialize exporter: %v", err)
 	}
-
-	// Create a context for trace provider and store initialization
-	ctx := context.Background()
-
-	tp := tracing.NewTraceProvider()
-	defer func() {
-		if err := tp.Shutdown(ctx); err != nil {
-			log.Printf("failed to shutdown trace provider: %v", err)
-		}
-	}()
-
+	// Create a new tracer provider with a batch span processor and the given exporter.
+	tp := tracing.NewTraceProvider(exp)
+	// Handle shutdown properly so nothing leaks.
+	defer func() { _ = tp.Shutdown(ctx) }()
 	otel.SetTracerProvider(tp)
+	// Finally, set the tracer that can be used for this package.
 	tracer := tp.Tracer("reservations-service")
 	otel.SetTextMapPropagator(propagation.TraceContext{})
 
@@ -87,27 +82,21 @@ func main() {
 
 	store, err := repository.New(storeLogger)
 	if err != nil {
-		log.Fatalf("failed to create store: %v", err)
+		logger.Fatal(err)
 	}
 	defer store.CloseSession()
 	store.CreateTables()
-
 	reservationRepo, err := repository.New(logger)
 	if err != nil {
-		log.Fatalf("failed to create reservation repository: %v", err)
+		return
 	}
-
 	reservationService := service.NewReservationService(reservationRepo, validator, notificationsClient)
-	reservationsHandler := handler.ReservationHandler{tracer,
+	reservationsHandler := handler.ReservationHandler{
+		Logger:             logger,
+		Tracer:             tracer,
 		ReservationService: reservationService,
 	}
-	/*
-		tracer, closer := tracing.Init("reservations-service")
-		defer closer.Close()
-		opentracing.SetGlobalTracer(tracer)
 
-
-	*/
 	router := mux.NewRouter()
 	router.HandleFunc("/user/guest/{userId}", reservationsHandler.GetReservationsByUser).Methods("GET")
 	router.HandleFunc("/", reservationsHandler.CreateReservation).Methods("POST")
@@ -134,7 +123,7 @@ func main() {
 	}
 
 	logger.Println("Server listening on port", port)
-	//Distribute all the connections to goroutines
+	// Distribute all the connections to goroutines
 	go func() {
 		err := server.ListenAndServe()
 		if err != nil {
@@ -149,10 +138,9 @@ func main() {
 	sig := <-sigCh
 	logger.Println("Received terminate, graceful shutdown", sig)
 
-	//Try to shutdown gracefully
-	if server.Shutdown(timeoutContext) != nil {
-		logger.Fatal("Cannot gracefully shutdown...")
+	// Try to shutdown gracefully
+	if err := server.Shutdown(timeoutContext); err != nil {
+		logger.Fatal("Cannot gracefully shutdown:", err)
 	}
 	logger.Println("Server stopped")
-
 }

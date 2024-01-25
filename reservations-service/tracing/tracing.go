@@ -1,6 +1,8 @@
 package tracing
 
 import (
+	"fmt"
+
 	"go.opentelemetry.io/otel/exporters/jaeger"
 	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
@@ -21,13 +23,15 @@ func NewTraceProvider(exp sdktrace.SpanExporter) *sdktrace.TracerProvider {
 		resource.Default(),
 		resource.NewWithAttributes(
 			semconv.SchemaURL,
-			semconv.ServiceNameKey.String("catalogue-service"),
+			semconv.ServiceNameKey.String("reservations-service"),
 		),
 	)
 
 	if err != nil {
 		panic(err)
 	}
+
+	fmt.Println("Merged Resources:", r.Attributes())
 
 	return sdktrace.NewTracerProvider(
 		sdktrace.WithBatcher(exp),
