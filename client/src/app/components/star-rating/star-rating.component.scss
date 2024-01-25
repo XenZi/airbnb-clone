@@ -1,0 +1,35 @@
+.star-rating {
+  unicode-bidi: bidi-override;
+  color: #c5c5c5;
+  font-size: 25px;
+  line-height: 1;
+  cursor: pointer;
+  display: inline-block;
+  position: relative;
+}
+
+.filled {
+  color: gold;
+}
+
+.filled:last-of-type.half::after {
+  content: "";
+  color: gold;
+}
+
+.star-rating__list {
+  display: flex;
+}
+
+.full-star {
+  color: gold;
+}
+
+.half-star {
+  color: gold;
+  width: 25%;
+}
+
+.empty-star {
+}
+//★

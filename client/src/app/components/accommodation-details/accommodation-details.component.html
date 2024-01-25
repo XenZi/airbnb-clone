@@ -1,6 +1,8 @@
 <div class="accommodation-details" *ngIf="accommodation">
   <h3 class="accommodation-details__location text--light">
-    {{accommodation.address}},{{ accommodation.city }},{{accommodation.country}}
+    {{ accommodation.address }},{{ accommodation.city }},{{
+      accommodation.country
+    }}
   </h3>
   <p class="accommodation-details__adults text--dark-gray">
     {{ accommodation.minNumOfVisitors }} guest minimum,

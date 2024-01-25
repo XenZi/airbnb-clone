@@ -28,7 +28,6 @@ export class NotificationsComponent {
         .getAllNotificationsForUser(this.user.id)
         .subscribe({
           next: (data) => {
-            console.log(data);
             this.notifications = data.data;
           },
         });
@@ -49,7 +48,6 @@ export class NotificationsComponent {
   }
 
   clickBox() {
-    console.log(this.user);
     this.isClicked = !this.isClicked;
     if (this.isClicked) {
       this.notificationsService.makeAllNotificationsReader(
@@ -57,6 +55,5 @@ export class NotificationsComponent {
         this.notifications
       );
     }
-    console.log(this.isClicked);
   }
 }

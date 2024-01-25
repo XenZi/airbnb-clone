@@ -2,6 +2,7 @@ package handler
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 	"recommendation-service/domains"
 	"recommendation-service/services"
@@ -54,6 +55,9 @@ func (rh RatingHandler) UpdateRatingForAccommodation(r http.ResponseWriter, h *h
 }
 
 func (rh RatingHandler) DeleteRatingForAccommodation(r http.ResponseWriter, h *http.Request) {
+	vars := mux.Vars(h)
+	accommodationID := vars["accommodationID"]
+	guestID := vars["guestID"]
 	decoder := json.NewDecoder(h.Body)
 	decoder.DisallowUnknownFields()
 	var rating domains.RateAccommodation
@@ -61,7 +65,7 @@ func (rh RatingHandler) DeleteRatingForAccommodation(r http.ResponseWriter, h *h
 		utils.WriteErrorResp("Internal server error", 500, "api/login", r)
 	}
 	ctx := h.Context()
-	resp, err := rh.service.DeleteRatingForAccommodation(ctx, rating)
+	resp, err := rh.service.DeleteRatingForAccommodation(ctx, accommodationID, guestID)
 	if err != nil {
 		utils.WriteErrorResp(err.GetErrorMessage(), err.GetErrorStatus(), "api/recommendation/rating/accommodation", r)
 		return
@@ -145,6 +149,23 @@ func (rh RatingHandler) GetAllRatingsForAccommmodation(r http.ResponseWriter, h 
 	resp, err := rh.service.GetAllAccommodationRatings(id)
 	if err != nil {
 		utils.WriteErrorResp("Bad request", 400, "api/recommondations/host/"+id, r)
+		return
+	}
+	utils.WriteResp(resp, 200, r)
+}
+
+func (rh RatingHandler) GetUserRatingForAccommodation(r http.ResponseWriter, h *http.Request) {
+	vars := mux.Vars(h)
+	accommodationID := vars["accommodationID"]
+	guestID := vars["guestID"]
+	if accommodationID == "" || guestID == "" {
+		utils.WriteErrorResp("Bad request", 400, "api/recommondations/rating/{accommodationID}/{guestID}", r)
+		return
+	}
+	log.Println(accommodationID, guestID)
+	resp, err := rh.service.GetRatingByGuestForAccommodation(guestID, accommodationID)
+	if err != nil {
+		utils.WriteErrorResp(err.GetErrorMessage(), err.GetErrorStatus(), "api/recommondations/rating/{accommodationID}/{guestID}", r)
 		return
 	}
 	utils.WriteResp(resp, 200, r)

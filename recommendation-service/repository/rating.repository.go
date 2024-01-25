@@ -225,7 +225,7 @@ func (r RatingRepository) UpdateRatingByAccommodationGuest(rating domains.RateAc
 	return &rateAccommodationResult, nil
 }
 
-func (r RatingRepository) DeleteRatingByGuestAndAccommodation(rating domains.RateAccommodation) (*domains.RateAccommodation, *errors.ErrorStruct) {
+func (r RatingRepository) DeleteRatingByGuestAndAccommodation(accommodationID, guestID string) (*domains.RateAccommodation, *errors.ErrorStruct) {
 	ctx := context.Background()
 	session := r.driver.NewSession(ctx, neo4j.SessionConfig{
 		DatabaseName: "neo4j",
@@ -243,8 +243,8 @@ func (r RatingRepository) DeleteRatingByGuestAndAccommodation(rating domains.Rat
 				SET a.averageRating = averageRating
 				RETURN a.id AS accommodationID, a.averageRating as avgRating`,
 				map[string]any{
-					"guestId":         rating.Guest.ID,
-					"accommodationId": rating.AccommodationID,
+					"guestId":         guestID,
+					"accommodationId": accommodationID,
 				})
 			if err != nil {
 				return nil, err
@@ -565,4 +565,67 @@ func (r RatingRepository) DeleteRatingByHostAndUser(rating domains.RateHost) (fl
 		return -1, errors.NewError(err.Error(), 500)
 	}
 	return returnedVal.(float64), nil
+}
+
+func (r RatingRepository) GetRatingByGuestForAccommodation(guestID, accommodationID string) (*domains.RateAccommodation, *errors.ErrorStruct) {
+	ctx := context.Background()
+	session := r.driver.NewSession(ctx, neo4j.SessionConfig{
+		DatabaseName: "neo4j",
+	})
+	defer session.Close(ctx)
+
+	rateAccommodation, err := session.ExecuteWrite(ctx,
+		func(transaction neo4j.ManagedTransaction) (any, error) {
+			result, err := transaction.Run(ctx,
+				`MATCH (g:Guest {id: $guestID})-[r:RATED]->(a:Accommodation {id: $accommodationID})
+                WITH a, g, r
+                MATCH (a)<-[r2:RATED]-()
+                WITH a, g, r, AVG(r2.rate) AS averageRating
+                RETURN a.id AS accommodationId, averageRating AS avgRating,
+                       g.id AS guestID, g.email AS guestEmail, g.username AS guestUsername,
+                       r.rate AS rate, r.createdAt AS createdAt
+				`,
+				map[string]any{
+					"guestID":         guestID,
+					"accommodationID": accommodationID,
+				})
+			if err != nil {
+				return nil, err
+			}
+
+			if result.Next(ctx) {
+				record := result.Record()
+				accommodationID, _ := record.Get("accommodationId")
+				guestID, _ := record.Get("guestID")
+				guestEmail, _ := record.Get("guestEmail")
+				guestUsername, _ := record.Get("guestUsername")
+				avgRating, _ := record.Get("avgRating")
+				rate, _ := record.Get("rate")
+				createdAt, _ := record.Get("createdAt")
+				rateAccommodation := domains.RateAccommodation{
+					Guest: domains.Guest{
+						ID:       guestID.(string),
+						Email:    guestEmail.(string),
+						Username: guestUsername.(string),
+					},
+					AccommodationID: accommodationID.(string),
+					Rate:            rate.(int64),
+					CreatedAt:       createdAt.(string),
+					AvgRating:       avgRating.(float64),
+				}
+				return rateAccommodation, nil
+			}
+
+			return nil, result.Err()
+		})
+
+	if err != nil {
+		return nil, errors.NewError(err.Error(), 500)
+	}
+
+	if rateAccommodation == nil {
+		return nil, errors.NewError("Resource not found", 404)
+	}
+	rateAccResult := rateAccommodation.(domains.RateAccommodation)
+	return &rateAccResult, nil
 }

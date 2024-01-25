@@ -1,0 +1,18 @@
+<div class="show-rate" *ngFor="let rate of rates">
+  <div class="show-rate__container">
+    <div class="flex flex-row">
+      <div class="show-rate__author">
+        <i class="fa-solid fa-user"></i>
+      </div>
+      <div class="show-rate__details">
+        <h4 class="show-rate__user">
+          {{ rate.guest?.username }}
+        </h4>
+        <h4 class="show-rate__rating">Rated: {{ rate.rate }}</h4>
+        <p class="show-rate__date">
+          {{ rate.createdAt }}
+        </p>
+      </div>
+    </div>
+  </div>
+</div>

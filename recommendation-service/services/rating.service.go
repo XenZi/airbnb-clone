@@ -58,8 +58,8 @@ func (rs RatingService) GetAllAccommodationRatings(id string) (*[]domains.RateAc
 	return resp, nil
 }
 
-func (rs RatingService) DeleteRatingForAccommodation(ctx context.Context, rating domains.RateAccommodation) (*domains.BaseMessageResponse, *errors.ErrorStruct) {
-	data, err := rs.repo.DeleteRatingByGuestAndAccommodation(rating)
+func (rs RatingService) DeleteRatingForAccommodation(ctx context.Context, accommodationID, guestID string) (*domains.BaseMessageResponse, *errors.ErrorStruct) {
+	data, err := rs.repo.DeleteRatingByGuestAndAccommodation(accommodationID, guestID)
 	if err != nil {
 		return nil, err
 	}
@@ -116,4 +116,12 @@ func (rs RatingService) DeleteRatingBetweenGuestAndHost(ctx context.Context, rat
 	return &domains.BaseMessageResponse{
 		Message: "You have deleted your message successfully",
 	}, nil
+}
+
+func (rs RatingService) GetRatingByGuestForAccommodation(guestID, accommodation string) (*domains.RateAccommodation, *errors.ErrorStruct) {
+	rate, err := rs.repo.GetRatingByGuestForAccommodation(guestID, accommodation)
+	if err != nil {
+		return nil, err
+	}
+	return rate, nil
 }

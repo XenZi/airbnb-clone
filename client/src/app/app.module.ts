@@ -46,6 +46,9 @@ import { SearchComponent } from './components/search/search.component';
 import { FormSearchComponent } from './forms/form-search/form-search.component';
 import { SearchPageComponent } from './pages/search-page/search-page.component';
 import { UserReservationsTableComponent } from './components/user-reservations-table/user-reservations-table.component';
+import { FormRateAccommodationComponent } from './forms/form-rate-accommodation/form-rate-accommodation.component';
+import { StarRatingComponent } from './components/star-rating/star-rating.component';
+import { ShowRatesForAccommodationComponent } from './components/show-rates-for-accommodation/show-rates-for-accommodation.component';
 @NgModule({
   declarations: [
     AppComponent,
@@ -85,6 +88,9 @@ import { UserReservationsTableComponent } from './components/user-reservations-t
     FormSearchComponent,
     SearchPageComponent,
     UserReservationsTableComponent,
+    FormRateAccommodationComponent,
+    StarRatingComponent,
+    ShowRatesForAccommodationComponent,
   ],
   imports: [
     BrowserModule,

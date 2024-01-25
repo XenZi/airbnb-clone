@@ -14,9 +14,7 @@ export class AccommodationCardComponent {
 
   constructor(private router: Router) {}
 
-  ngOnInit() {
-    // console.log(this.accommodation);
-  }
+  ngOnInit() {}
   clickOnCard() {
     this.router.navigate([`/accommodations/${this.accommodation.id}`]);
   }

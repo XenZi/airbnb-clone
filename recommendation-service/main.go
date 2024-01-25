@@ -83,11 +83,12 @@ func main() {
 	router.HandleFunc("/rating/accommodation/{id}", ratingHandler.GetAllRatingsForAccommmodation).Methods("GET")
 	router.HandleFunc("/rating/host", ratingHandler.CreateRatingForHost).Methods("POST")
 	router.HandleFunc("/rating/host", ratingHandler.UpdateRatingForHost).Methods("PUT")
-	router.HandleFunc("/rating/host", ratingHandler.DeleteRatingForHost).Methods("DELETE")
+	router.HandleFunc("/rating/host/{hostID}/{guestID}", ratingHandler.DeleteRatingForHost).Methods("DELETE")
 	router.HandleFunc("/rating/accommodation", ratingHandler.CreateRatingForAccommodation).Methods("POST")
 	router.HandleFunc("/rating/accommodation", ratingHandler.UpdateRatingForAccommodation).Methods("PUT")
-	router.HandleFunc("/rating/accommodation", ratingHandler.DeleteRatingForAccommodation).Methods("DELETE")
+	router.HandleFunc("/rating/accommodation/{accommodationID}/{guestID}", ratingHandler.DeleteRatingForAccommodation).Methods("DELETE")
 	router.HandleFunc("/{id}", recommendationHandler.GetAllRecommendationsForUser).Methods("GET")
+	router.HandleFunc("/rating/{accommodationID}/{guestID}", ratingHandler.GetUserRatingForAccommodation).Methods("GET")
 	// server
 
 	if len(port) == 0 {

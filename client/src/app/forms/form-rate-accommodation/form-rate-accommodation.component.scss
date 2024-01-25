@@ -1,0 +1,9 @@
+.form-rate-button {
+  display: inline-block;
+  width: 100px;
+  margin: 10px 0px;
+
+  &:last-of-type {
+    margin-left: 5px;
+  }
+}
