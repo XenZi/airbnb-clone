@@ -47,6 +47,7 @@ func (rh RatingHandler) UpdateRatingForAccommodation(r http.ResponseWriter, h *h
 	}
 	ctx := h.Context()
 	resp, err := rh.service.UpdateRatingForAccommodation(ctx, rating)
+	log.Println(resp)
 	if err != nil {
 		utils.WriteErrorResp(err.GetErrorMessage(), err.GetErrorStatus(), "api/recommendation/rating/accommodation", r)
 		return
@@ -58,11 +59,11 @@ func (rh RatingHandler) DeleteRatingForAccommodation(r http.ResponseWriter, h *h
 	vars := mux.Vars(h)
 	accommodationID := vars["accommodationID"]
 	guestID := vars["guestID"]
-	decoder := json.NewDecoder(h.Body)
-	decoder.DisallowUnknownFields()
-	var rating domains.RateAccommodation
-	if err := decoder.Decode(&rating); err != nil {
+	log.Println(accommodationID)
+	log.Println(guestID)
+	if guestID == "" || accommodationID == "" {
 		utils.WriteErrorResp("Internal server error", 500, "api/login", r)
+		return
 	}
 	ctx := h.Context()
 	resp, err := rh.service.DeleteRatingForAccommodation(ctx, accommodationID, guestID)

@@ -69,4 +69,11 @@ export class FormRateAccommodationComponent {
     }
     this.ratingService.rateAccommodation(rateAccommodation);
   }
+
+  deleteRating() {
+    this.ratingService.deleteRateForAccomodation(
+      this.accommodationID,
+      this.user.id
+    );
+  }
 }

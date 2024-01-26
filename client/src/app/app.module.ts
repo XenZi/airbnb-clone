@@ -49,6 +49,8 @@ import { UserReservationsTableComponent } from './components/user-reservations-t
 import { FormRateAccommodationComponent } from './forms/form-rate-accommodation/form-rate-accommodation.component';
 import { StarRatingComponent } from './components/star-rating/star-rating.component';
 import { ShowRatesForAccommodationComponent } from './components/show-rates-for-accommodation/show-rates-for-accommodation.component';
+import { ShowRatesForUserComponent } from './components/show-rates-for-user/show-rates-for-user.component';
+import { FormCreateRatingForUserComponent } from './forms/form-create-rating-for-user/form-create-rating-for-user.component';
 @NgModule({
   declarations: [
     AppComponent,
@@ -91,6 +93,8 @@ import { ShowRatesForAccommodationComponent } from './components/show-rates-for-
     FormRateAccommodationComponent,
     StarRatingComponent,
     ShowRatesForAccommodationComponent,
+    ShowRatesForUserComponent,
+    FormCreateRatingForUserComponent,
   ],
   imports: [
     BrowserModule,

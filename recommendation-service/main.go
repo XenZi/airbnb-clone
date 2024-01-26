@@ -79,6 +79,7 @@ func main() {
 	// routes
 
 	router := mux.NewRouter()
+	router.HandleFunc("/rating/accommodation/{accommodationID}/{guestID}", ratingHandler.DeleteRatingForAccommodation).Methods("DELETE")
 	router.HandleFunc("/rating/host/{id}", ratingHandler.GetAllRatingsForHost).Methods("GET")
 	router.HandleFunc("/rating/accommodation/{id}", ratingHandler.GetAllRatingsForAccommmodation).Methods("GET")
 	router.HandleFunc("/rating/host", ratingHandler.CreateRatingForHost).Methods("POST")
@@ -86,7 +87,6 @@ func main() {
 	router.HandleFunc("/rating/host/{hostID}/{guestID}", ratingHandler.DeleteRatingForHost).Methods("DELETE")
 	router.HandleFunc("/rating/accommodation", ratingHandler.CreateRatingForAccommodation).Methods("POST")
 	router.HandleFunc("/rating/accommodation", ratingHandler.UpdateRatingForAccommodation).Methods("PUT")
-	router.HandleFunc("/rating/accommodation/{accommodationID}/{guestID}", ratingHandler.DeleteRatingForAccommodation).Methods("DELETE")
 	router.HandleFunc("/{id}", recommendationHandler.GetAllRecommendationsForUser).Methods("GET")
 	router.HandleFunc("/rating/{accommodationID}/{guestID}", ratingHandler.GetUserRatingForAccommodation).Methods("GET")
 	// server
@@ -95,7 +95,7 @@ func main() {
 		port = "8080"
 	}
 	headersOk := gorillaHandlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"})
-	methodsOk := gorillaHandlers.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "OPTIONS"})
+	methodsOk := gorillaHandlers.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "OPTIONS", "DELETE"})
 	originsOk := gorillaHandlers.AllowedOrigins([]string{"http://localhost:4200"})
 	server := http.Server{
 		Addr:         ":" + port,

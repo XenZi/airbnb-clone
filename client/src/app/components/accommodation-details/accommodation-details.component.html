@@ -15,7 +15,11 @@
     </div>
     <div class="flex-col">
       <p class="text--light text--gray">Hosted by</p>
-      <h3 class="text--bold text--black">{{ accommodation.username }}</h3>
+      <a
+        class="text--bold text--black"
+        [href]="'profile/' + accommodation.userId"
+        >{{ accommodation.username }}</a
+      >
     </div>
   </div>
 </div>

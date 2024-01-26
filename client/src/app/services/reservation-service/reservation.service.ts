@@ -68,4 +68,11 @@ export class ReservationService {
   ): Observable<any> {
     return this.http.get(`${apiURL}/reservations/${accommodationID}/${userID}`);
   }
+
+  getPastReservationsByUserForGuest(
+    hostID: string,
+    userID: string
+  ): Observable<any> {
+    return this.http.get(`${apiURL}/reservations/host/${hostID}/${userID}`);
+  }
 }

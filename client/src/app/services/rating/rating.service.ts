@@ -20,12 +20,6 @@ export class RatingService {
     );
   }
 
-  getAllRatingsForHost(hostID: string): Observable<any> {
-    return this.http.get<HostRate>(
-      `${apiURL}/recommendations/rating/host/${hostID}`
-    );
-  }
-
   rateAccommodation(rateAccommodation: AccommodationRate) {
     this.http
       .post<AccommodationRate>(
@@ -69,7 +63,7 @@ export class RatingService {
 
   deleteRateForAccomodation(accommodationID: string, guestID: string) {
     this.http
-      .delete<AccommodationRate>(
+      .delete(
         `${apiURL}/recommendations/rating/accommodation/${accommodationID}/${guestID}`
       )
       .subscribe({
@@ -80,5 +74,11 @@ export class RatingService {
           console.log(err);
         },
       });
+  }
+
+  getAllRatingsForHost(hostID: string): Observable<any> {
+    return this.http.get<any>(
+      `${apiURL}/recommendations/rating/host/${hostID}`
+    );
   }
 }

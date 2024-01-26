@@ -64,7 +64,6 @@ func (rs RatingService) DeleteRatingForAccommodation(ctx context.Context, accomm
 		return nil, err
 	}
 	err = rs.accommodationClient.SendNewRatingForAccommodation(ctx, data.AvgRating, data.AccommodationID)
-
 	return &domains.BaseMessageResponse{
 		Message: "You have successfully deleted your rating for accommodation",
 	}, nil

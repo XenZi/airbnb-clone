@@ -12,7 +12,7 @@ import { ProfileService } from 'src/app/services/profile/profile.service';
   styleUrls: ['./user-profile-page.component.scss'],
 })
 export class UserProfilePageComponent {
-  profileID: string | undefined;
+  profileID!: string;
   user!: User;
 
   constructor(
@@ -23,11 +23,9 @@ export class UserProfilePageComponent {
 
   ngOnInit() {
     this.getUserID();
-    console.log(this.profileID);
     this.profileService
       .getUserById(this.profileID as string)
       .subscribe((data) => {
-        console.log(2);
         this.user = data.data;
       });
     if (this.user === undefined) {
@@ -41,7 +39,7 @@ export class UserProfilePageComponent {
         username: 'username ssl mock',
         age: 25,
         distinguished: true,
-        rating: 4.8
+        rating: 4.8,
       };
     }
   }
