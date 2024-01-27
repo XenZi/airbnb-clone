@@ -542,7 +542,7 @@ func (rr *ReservationRepo) GetReservationsByHostWithEndDate(hostID, userID strin
 	currentDate := time.Now().Format("2006-01-02")
 	scanner := rr.session.Query(`SELECT id,accommodation_id, user_id, start_date, end_date,username,accommodation_name,location,price,
 	num_of_days,date_range,is_active,country,host_id FROM reservation_by_host
-	 WHERE  accommodation_id = ? AND user_id = ? AND end_date <= ?`,
+	 WHERE  host_id = ? AND user_id = ? AND end_date <= ?`,
 		hostID, userID, currentDate).Iter().Scanner()
 
 	var reservations []domain.Reservation

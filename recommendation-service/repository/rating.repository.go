@@ -19,82 +19,6 @@ func NewRatingRepository(driver neo4j.DriverWithContext) *RatingRepository {
 	}
 }
 
-func (r RatingRepository) CreateGuest(guest domains.Guest) error {
-	ctx := context.Background()
-	session := r.driver.NewSession(ctx, neo4j.SessionConfig{
-		DatabaseName: "neo4j",
-	})
-	defer session.Close(ctx)
-	_, err := session.ExecuteWrite(ctx,
-		func(transaction neo4j.ManagedTransaction) (any, error) {
-			result, err := transaction.Run(ctx,
-				"CREATE (g:Guest) SET g.id = $id, g.email = $email, g.username = $username RETURN g.name + ', from node ' + id(g)",
-				map[string]any{"id": guest.ID, "email": guest.Email, "username": guest.Username})
-			if err != nil {
-				return nil, err
-			}
-
-			if result.Next(ctx) {
-				return result.Record().Values[0], nil
-			}
-
-			return nil, result.Err()
-		})
-
-	return err
-}
-
-func (r RatingRepository) CreateHost(host domains.Host) error {
-	ctx := context.Background()
-	session := r.driver.NewSession(ctx, neo4j.SessionConfig{
-		DatabaseName: "neo4j",
-	})
-	defer session.Close(ctx)
-	_, err := session.ExecuteWrite(ctx,
-		func(transaction neo4j.ManagedTransaction) (any, error) {
-			result, err := transaction.Run(ctx,
-				"CREATE (h:Host) SET h.id = $id, h.email = $email, h.username = $username RETURN h.name + ', from node ' + id(g)",
-				map[string]any{"id": host.ID, "email": host.Email, "username": host.Username})
-			if err != nil {
-				return nil, err
-			}
-
-			if result.Next(ctx) {
-				return result.Record().Values[0], nil
-			}
-
-			return nil, result.Err()
-		})
-
-	return err
-}
-
-func (r RatingRepository) CreateAccommodation(accommodation domains.Accommodation) error {
-	ctx := context.Background()
-	session := r.driver.NewSession(ctx, neo4j.SessionConfig{
-		DatabaseName: "neo4j",
-	})
-	defer session.Close(ctx)
-
-	_, err := session.ExecuteWrite(ctx,
-		func(transaction neo4j.ManagedTransaction) (any, error) {
-			result, err := transaction.Run(ctx,
-				"CREATE (a:Accommodation) SET a.id = $id RETURN id(a)",
-				map[string]any{"id": accommodation.ID})
-			if err != nil {
-				return nil, err
-			}
-
-			if result.Next(ctx) {
-				return result.Record().Values[0], nil
-			}
-
-			return nil, result.Err()
-		})
-
-	return err
-}
-
 func (r RatingRepository) RateAccommodation(rating domains.RateAccommodation) (*domains.RateAccommodation, *errors.ErrorStruct) {
 	ctx := context.Background()
 	session := r.driver.NewSession(ctx, neo4j.SessionConfig{
@@ -225,7 +149,7 @@ func (r RatingRepository) UpdateRatingByAccommodationGuest(rating domains.RateAc
 	return &rateAccommodationResult, nil
 }
 
-func (r RatingRepository) DeleteRatingByGuestAndAccommodation(rating domains.RateAccommodation) (*domains.RateAccommodation, *errors.ErrorStruct) {
+func (r RatingRepository) DeleteRatingByGuestAndAccommodation(accommodationID, guestID string) (*domains.RateAccommodation, *errors.ErrorStruct) {
 	ctx := context.Background()
 	session := r.driver.NewSession(ctx, neo4j.SessionConfig{
 		DatabaseName: "neo4j",
@@ -238,13 +162,13 @@ func (r RatingRepository) DeleteRatingByGuestAndAccommodation(rating domains.Rat
 				`MATCH (a:Accommodation {id: $accommodationId})<-[r:RATED]-(g:Guest {id: $guestId})
 				DETACH DELETE r
 				WITH a
-				MATCH (a)<-[r2:RATED]-()
-				WITH a, AVG(r2.rate) AS averageRating
+				OPTIONAL MATCH (a)<-[r2:RATED]-()
+				WITH a, COALESCE(AVG(r2.rate), 0.0) AS averageRating
 				SET a.averageRating = averageRating
 				RETURN a.id AS accommodationID, a.averageRating as avgRating`,
 				map[string]any{
-					"guestId":         rating.Guest.ID,
-					"accommodationId": rating.AccommodationID,
+					"guestId":         guestID,
+					"accommodationId": accommodationID,
 				})
 			if err != nil {
 				return nil, err
@@ -265,6 +189,10 @@ func (r RatingRepository) DeleteRatingByGuestAndAccommodation(rating domains.Rat
 	if err != nil {
 		return nil, errors.NewError(err.Error(), 500)
 	}
+
+	if data == nil {
+		return nil, errors.NewError("Resource not found", 404)
+	}
 	rateAccommodationResult := data.(domains.RateAccommodation)
 	return &rateAccommodationResult, nil
 }
@@ -280,9 +208,13 @@ func (r RatingRepository) GetAllRatingsByHostID(hostID string) (*[]domains.RateH
 		func(transaction neo4j.ManagedTransaction) (any, error) {
 			result, err := transaction.Run(ctx,
 				`MATCH (h:Host {id: $hostID})<-[r:RATED]-(g:Guest)
-			RETURN h.id AS hostID, h.email AS hostEmail, h.username AS hostUsername, 
-				   g.id AS guestID, g.email AS guestEmail, g.username AS guestUsername, 
-				   r.rate AS rate, r.createdAt AS createdAt
+				WITH h, g, r
+				MATCH (otherGuest:Guest)-[otherRating:RATED]->(h)
+				WITH h, g, r, AVG(otherRating.rate) AS avgRating
+				RETURN h.id AS hostID, h.email AS hostEmail, h.username AS hostUsername, 
+					   g.id AS guestID, g.email AS guestEmail, g.username AS guestUsername, 
+					   r.rate AS rate, r.createdAt AS createdAt, avgRating
+				
 			`,
 				map[string]any{
 					"hostID": hostID,
@@ -301,7 +233,7 @@ func (r RatingRepository) GetAllRatingsByHostID(hostID string) (*[]domains.RateH
 				guestUsername, _ := record.Get("guestUsername")
 				createdAt, _ := record.Get("createdAt")
 				rate, _ := record.Get("rate")
-
+				avgRating, _ := record.Get("avgRating")
 				rateHost := domains.RateHost{
 					Host: domains.Host{
 						ID:       hostID.(string),
@@ -315,6 +247,7 @@ func (r RatingRepository) GetAllRatingsByHostID(hostID string) (*[]domains.RateH
 					},
 					Rate:      rate.(int64),
 					CreatedAt: createdAt.(string),
+					AvgRating: avgRating.(float64),
 				}
 				hostRatings = append(hostRatings, rateHost)
 			}
@@ -474,13 +407,13 @@ func (r RatingRepository) UpdateRatingByHostAndGuest(rating domains.RateHost) (*
 			result, err := transaction.Run(ctx,
 				`MATCH (h:Host {id: $hostId})<-[r:RATED]-(g:Guest {id: $guestId})
 				SET r.rate = $newRate, r.createdAt = $createdAt
-				WITH h
+				WITH h, g, r
 				MATCH (otherGuest:Guest)-[otherRating:RATED]->(h)
-				WITH h, AVG(otherRating.rate) AS avgRating
+				WITH h, g, r, AVG(otherRating.rate) AS avgRating
 				SET h.avgRating = avgRating
 				RETURN h.id AS hostID, h.email AS hostEmail, h.username AS hostUsername, 
 					   g.id AS guestID, g.email AS guestEmail, g.username AS guestUsername, 
-					   r.rate AS rate, h.avgRating AS avgRating
+					   r.rate AS rate, h.avgRating AS avgRating, r.createdAt AS createdAt
 				`,
 				map[string]any{
 					"guestId":   rating.Guest.ID,
@@ -525,11 +458,12 @@ func (r RatingRepository) UpdateRatingByHostAndGuest(rating domains.RateHost) (*
 	if err != nil {
 		return nil, errors.NewError(err.Error(), 500)
 	}
+
 	rateHostResult := rateHost.(domains.RateHost)
 	return &rateHostResult, nil
 }
 
-func (r RatingRepository) DeleteRatingByHostAndUser(rating domains.RateHost) (float64, *errors.ErrorStruct) {
+func (r RatingRepository) DeleteRatingByHostAndUser(hostID, guestID string) (float64, *errors.ErrorStruct) {
 	ctx := context.Background()
 	session := r.driver.NewSession(ctx, neo4j.SessionConfig{
 		DatabaseName: "neo4j",
@@ -547,8 +481,8 @@ func (r RatingRepository) DeleteRatingByHostAndUser(rating domains.RateHost) (fl
 				SET h.avgRating = avgRating
 				RETURN h.id AS hostID, h.email AS hostEmail, h.username AS hostUsername, h.avgRating AS avgRating`,
 				map[string]any{
-					"guestId": rating.Guest.ID,
-					"hostId":  rating.Host.ID,
+					"guestId": guestID,
+					"hostId":  hostID,
 				})
 			if err != nil {
 				return nil, err
@@ -564,5 +498,137 @@ func (r RatingRepository) DeleteRatingByHostAndUser(rating domains.RateHost) (fl
 	if err != nil {
 		return -1, errors.NewError(err.Error(), 500)
 	}
+	if returnedVal == nil {
+		return -1, errors.NewError("Resource not found", 404)
+	}
 	return returnedVal.(float64), nil
+}
+
+func (r RatingRepository) GetRatingByGuestForAccommodation(guestID, accommodationID string) (*domains.RateAccommodation, *errors.ErrorStruct) {
+	ctx := context.Background()
+	session := r.driver.NewSession(ctx, neo4j.SessionConfig{
+		DatabaseName: "neo4j",
+	})
+	defer session.Close(ctx)
+	rateAccommodation, err := session.ExecuteWrite(ctx,
+		func(transaction neo4j.ManagedTransaction) (any, error) {
+			result, err := transaction.Run(ctx,
+				`MATCH (g:Guest {id: $guestID})-[r:RATED]->(a:Accommodation {id: $accommodationID})
+                WITH a, g, r
+                MATCH (a)<-[r2:RATED]-()
+                WITH a, g, r, AVG(r2.rate) AS averageRating
+                RETURN a.id AS accommodationId, averageRating AS avgRating,
+                       g.id AS guestID, g.email AS guestEmail, g.username AS guestUsername,
+                       r.rate AS rate, r.createdAt AS createdAt
+				`,
+				map[string]any{
+					"guestID":         guestID,
+					"accommodationID": accommodationID,
+				})
+			if err != nil {
+				return nil, err
+			}
+
+			if result.Next(ctx) {
+				record := result.Record()
+				accommodationID, _ := record.Get("accommodationId")
+				guestID, _ := record.Get("guestID")
+				guestEmail, _ := record.Get("guestEmail")
+				guestUsername, _ := record.Get("guestUsername")
+				avgRating, _ := record.Get("avgRating")
+				rate, _ := record.Get("rate")
+				createdAt, _ := record.Get("createdAt")
+				rateAccommodation := domains.RateAccommodation{
+					Guest: domains.Guest{
+						ID:       guestID.(string),
+						Email:    guestEmail.(string),
+						Username: guestUsername.(string),
+					},
+					AccommodationID: accommodationID.(string),
+					Rate:            rate.(int64),
+					CreatedAt:       createdAt.(string),
+					AvgRating:       avgRating.(float64),
+				}
+				return rateAccommodation, nil
+			}
+
+			return nil, result.Err()
+		})
+
+	if err != nil {
+		return nil, errors.NewError(err.Error(), 500)
+	}
+
+	if rateAccommodation == nil {
+		return nil, errors.NewError("Resource not found", 404)
+	}
+	rateAccResult := rateAccommodation.(domains.RateAccommodation)
+	return &rateAccResult, nil
+}
+
+func (r RatingRepository) GetRatingByGuestForHost(guestID, hostID string) (*domains.RateHost, *errors.ErrorStruct) {
+	ctx := context.Background()
+	session := r.driver.NewSession(ctx, neo4j.SessionConfig{
+		DatabaseName: "neo4j",
+	})
+	defer session.Close(ctx)
+
+	rateHost, err := session.ExecuteWrite(ctx,
+		func(transaction neo4j.ManagedTransaction) (any, error) {
+			result, err := transaction.Run(ctx,
+				`MATCH (h:Host {id: $hostId})<-[r:RATED]-(g:Guest {id: $guestId})
+				WITH h, g, r
+				MATCH (otherGuest:Guest)-[otherRating:RATED]->(h)
+				WITH h, g, r, AVG(otherRating.rate) AS avgRating
+				RETURN h.id AS hostID, h.email AS hostEmail, h.username AS hostUsername, 
+					   g.id AS guestID, g.email AS guestEmail, g.username AS guestUsername, 
+					   r.rate AS rate, avgRating AS avgRating,
+					   r.createdAt AS createdAt
+				`,
+				map[string]any{
+					"guestId": guestID,
+					"hostId":  hostID,
+				})
+			if err != nil {
+				return nil, err
+			}
+			if result.Next(ctx) {
+				record := result.Record()
+				hostID, _ := record.Get("hostID")
+				hostEmail, _ := record.Get("hostEmail")
+				hostUsername, _ := record.Get("hostUsername")
+				guestID, _ := record.Get("guestID")
+				guestEmail, _ := record.Get("guestEmail")
+				guestUsername, _ := record.Get("guestUsername")
+				avgRating, _ := record.Get("avgRating")
+				rate, _ := record.Get("rate")
+				createdAt, _ := record.Get("createdAt")
+
+				rateHost := domains.RateHost{
+					Host: domains.Host{
+						ID:       hostID.(string),
+						Email:    hostEmail.(string),
+						Username: hostUsername.(string),
+					},
+					Guest: domains.Guest{
+						ID:       guestID.(string),
+						Email:    guestEmail.(string),
+						Username: guestUsername.(string),
+					},
+					Rate:      rate.(int64),
+					CreatedAt: createdAt.(string),
+					AvgRating: avgRating.(float64),
+				}
+				return rateHost, nil
+			}
+			return nil, result.Err()
+		})
+	if err != nil {
+		return nil, errors.NewError(err.Error(), 500)
+	}
+	if rateHost == nil {
+		return nil, errors.NewError("Resource not found", 404)
+	}
+	rateHostResult := rateHost.(domains.RateHost)
+	return &rateHostResult, nil
 }

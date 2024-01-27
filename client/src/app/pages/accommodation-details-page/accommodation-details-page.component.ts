@@ -52,10 +52,8 @@ export class AccommodationDetailsPageComponent {
     this.accommodationsService
       .getAccommodationById(this.accommodationID as string)
       .subscribe((data) => {
-
-        console.log(data)
+        console.log(data);
         this.accommodation = data.data;
-
       });
   }
 

@@ -28,7 +28,6 @@ func (u UserRepository) SaveUser(user domains.User) (*domains.User, *errors.Erro
 	userCollection := u.cli.Database("auth").Collection("user")
 	insertedUser, err := userCollection.InsertOne(context.TODO(), user)
 	if err != nil {
-		u.logger.Println(err.Error())
 		err, status := errors.HandleInsertError(err, user)
 		if status == -1 {
 			status = 500
@@ -39,7 +38,7 @@ func (u UserRepository) SaveUser(user domains.User) (*domains.User, *errors.Erro
 		})
 		return nil, errors.NewError(err.Error(), status)
 	}
-	u.logger.Infof("Successfully inserted ID %v", insertedUser)
+	u.logger.Infof("Successfully inserted user with email " + user.Email)
 	user.ID = insertedUser.InsertedID.(primitive.ObjectID)
 	return &user, nil
 }
