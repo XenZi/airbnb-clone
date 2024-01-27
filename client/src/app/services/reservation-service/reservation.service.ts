@@ -73,6 +73,8 @@ export class ReservationService {
     hostID: string,
     userID: string
   ): Observable<any> {
+    console.log(hostID);
+    console.log(userID);
     return this.http.get(`${apiURL}/reservations/host/${hostID}/${userID}`);
   }
 }

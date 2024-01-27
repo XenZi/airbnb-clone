@@ -109,15 +109,15 @@ func (rh RatingHandler) UpdateRatingForHost(r http.ResponseWriter, h *http.Reque
 }
 
 func (rh RatingHandler) DeleteRatingForHost(r http.ResponseWriter, h *http.Request) {
-	decoder := json.NewDecoder(h.Body)
-	decoder.DisallowUnknownFields()
-	var rating domains.RateHost
-	if err := decoder.Decode(&rating); err != nil {
+	vars := mux.Vars(h)
+	guestID := vars["guestID"]
+	hostID := vars["hostID"]
+	if guestID == "" || hostID == "" {
 		utils.WriteErrorResp("Internal server error", 500, "api/login", r)
 		return
 	}
 	ctx := h.Context()
-	resp, err := rh.service.DeleteRatingBetweenGuestAndHost(ctx, rating)
+	resp, err := rh.service.DeleteRatingBetweenGuestAndHost(ctx, hostID, guestID)
 	if err != nil {
 		utils.WriteErrorResp(err.GetErrorMessage(), err.GetErrorStatus(), "api/recommendations/ratings/host", r)
 		return
@@ -126,6 +126,7 @@ func (rh RatingHandler) DeleteRatingForHost(r http.ResponseWriter, h *http.Reque
 }
 
 func (rh RatingHandler) GetAllRatingsForHost(r http.ResponseWriter, h *http.Request) {
+	log.Println("TESTA")
 	vars := mux.Vars(h)
 	id := vars["id"]
 	if id == "" {
@@ -167,6 +168,24 @@ func (rh RatingHandler) GetUserRatingForAccommodation(r http.ResponseWriter, h *
 	resp, err := rh.service.GetRatingByGuestForAccommodation(guestID, accommodationID)
 	if err != nil {
 		utils.WriteErrorResp(err.GetErrorMessage(), err.GetErrorStatus(), "api/recommondations/rating/{accommodationID}/{guestID}", r)
+		return
+	}
+	utils.WriteResp(resp, 200, r)
+}
+
+func (rh RatingHandler) GetUserRatingForHost(r http.ResponseWriter, h *http.Request) {
+	vars := mux.Vars(h)
+	hostID := vars["hostID"]
+	guestID := vars["guestID"]
+	log.Println(hostID)
+	log.Println(guestID)
+	if hostID == "" || guestID == "" {
+		utils.WriteErrorResp("Bad request", 400, "api/recommondations/rating/{accommodationID}/{guestID}", r)
+		return
+	}
+	resp, err := rh.service.GetRatingByGuestForHost(guestID, hostID)
+	if err != nil {
+		utils.WriteErrorResp(err.GetErrorMessage(), err.GetErrorStatus(), "api/recommendations/rating/{hostID}/{guestID}", r)
 		return
 	}
 	utils.WriteResp(resp, 200, r)

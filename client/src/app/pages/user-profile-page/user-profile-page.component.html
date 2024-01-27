@@ -20,7 +20,7 @@
             <h4 class="user-profile__criteria">Reviews</h4>
           </div>
           <div class="flex flex-col user-profile__small-criteria-box">
-            <h4 class="user-profile__number">4.98</h4>
+            <h4 class="user-profile__number">{{ user.rating }}</h4>
             <h4 class="user-profile__criteria">Rating</h4>
           </div>
         </div>
@@ -44,6 +44,7 @@
         <h2 class="user-profile__section-title">Ratings</h2>
         <app-form-create-rating-for-user
           [hostID]="this.profileID"
+          [userFromParent]="this.user"
         ></app-form-create-rating-for-user>
         <app-show-rates-for-user
           [hostID]="this.profileID"

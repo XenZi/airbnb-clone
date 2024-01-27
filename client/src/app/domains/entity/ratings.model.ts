@@ -7,11 +7,11 @@ export interface AccommodationRate {
 }
 
 export interface HostRate {
-  host: Host;
-  rate: number;
-  guest: Guest;
-  createdAt: string;
-  avgRating: number;
+  host?: Host;
+  rate?: number;
+  guest?: Guest;
+  createdAt?: string;
+  avgRating?: number;
 }
 
 export interface Guest {

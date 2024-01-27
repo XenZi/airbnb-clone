@@ -103,12 +103,12 @@ func (rs RatingService) UpdateRatingForHostAndGuest(ctx context.Context, rateHos
 	return resp, nil
 }
 
-func (rs RatingService) DeleteRatingBetweenGuestAndHost(ctx context.Context, rateHost domains.RateHost) (*domains.BaseMessageResponse, *errors.ErrorStruct) {
-	newAvgRating, err := rs.repo.DeleteRatingByHostAndUser(rateHost)
+func (rs RatingService) DeleteRatingBetweenGuestAndHost(ctx context.Context, hostID, guestID string) (*domains.BaseMessageResponse, *errors.ErrorStruct) {
+	newAvgRating, err := rs.repo.DeleteRatingByHostAndUser(hostID, guestID)
 	if err != nil {
 		return nil, err
 	}
-	err = rs.userClient.SendNewRatingForUser(ctx, newAvgRating, rateHost.Host.ID)
+	err = rs.userClient.SendNewRatingForUser(ctx, newAvgRating, hostID)
 	if err != nil {
 		return nil, err
 	}
@@ -119,6 +119,14 @@ func (rs RatingService) DeleteRatingBetweenGuestAndHost(ctx context.Context, rat
 
 func (rs RatingService) GetRatingByGuestForAccommodation(guestID, accommodation string) (*domains.RateAccommodation, *errors.ErrorStruct) {
 	rate, err := rs.repo.GetRatingByGuestForAccommodation(guestID, accommodation)
+	if err != nil {
+		return nil, err
+	}
+	return rate, nil
+}
+
+func (rs RatingService) GetRatingByGuestForHost(guestID, hostID string) (*domains.RateHost, *errors.ErrorStruct) {
+	rate, err := rs.repo.GetRatingByGuestForHost(guestID, hostID)
 	if err != nil {
 		return nil, err
 	}

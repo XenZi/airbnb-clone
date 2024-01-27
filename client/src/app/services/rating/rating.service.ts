@@ -81,4 +81,47 @@ export class RatingService {
       `${apiURL}/recommendations/rating/host/${hostID}`
     );
   }
+
+  getRatingForHostByUser(guestID: string, hostID: string): Observable<any> {
+    return this.http.get<any>(
+      `${apiURL}/recommendations/rating/host-by/${hostID}/${guestID}`
+    );
+  }
+
+  rateHost(rateHost: HostRate) {
+    this.http
+      .post(`${apiURL}/recommendations/rating/host`, rateHost)
+      .subscribe({
+        next: (data) => {
+          console.log(data);
+        },
+        error: (err) => {
+          console.log(err);
+        },
+      });
+  }
+
+  updateRateHost(rateHost: HostRate) {
+    this.http.put(`${apiURL}/recommendations/rating/host`, rateHost).subscribe({
+      next: (data) => {
+        console.log(data);
+      },
+      error: (err) => {
+        console.log(err);
+      },
+    });
+  }
+
+  deleteRateHost(hostID: string, guestID: string) {
+    this.http
+      .delete(`${apiURL}/recommendations/rating/host/${hostID}/${guestID}`)
+      .subscribe({
+        next: (data) => {
+          console.log(data);
+        },
+        error: (err) => {
+          console.log(err);
+        },
+      });
+  }
 }

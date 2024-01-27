@@ -85,6 +85,7 @@ func main() {
 	router.HandleFunc("/rating/host", ratingHandler.CreateRatingForHost).Methods("POST")
 	router.HandleFunc("/rating/host", ratingHandler.UpdateRatingForHost).Methods("PUT")
 	router.HandleFunc("/rating/host/{hostID}/{guestID}", ratingHandler.DeleteRatingForHost).Methods("DELETE")
+	router.HandleFunc("/rating/host-by/{hostID}/{guestID}", ratingHandler.GetUserRatingForHost).Methods("GET")
 	router.HandleFunc("/rating/accommodation", ratingHandler.CreateRatingForAccommodation).Methods("POST")
 	router.HandleFunc("/rating/accommodation", ratingHandler.UpdateRatingForAccommodation).Methods("PUT")
 	router.HandleFunc("/{id}", recommendationHandler.GetAllRecommendationsForUser).Methods("GET")
