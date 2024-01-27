@@ -1,6 +1,12 @@
 <app-header></app-header>
 <div class="base-page">
   <div class="wrapper">
+    <div class="base-page__recommended">
+      <app-accommodation-card
+        *ngFor="let accommodation of this.recommendedAccommodations"
+        [accommodation]="accommodation"
+      ></app-accommodation-card>
+    </div>
     <div class="base-page__container">
       <app-accommodation-card
         *ngFor="let accommodation of accommodations"
