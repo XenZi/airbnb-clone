@@ -2,7 +2,7 @@ package user_joined
 
 import (
 	"encoding/json"
-	metrics_events "metrics-events"
+	metrics_events "example/metrics_events"
 )
 
 type Event struct {

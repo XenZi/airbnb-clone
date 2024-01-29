@@ -2,7 +2,7 @@ package user_rated
 
 import (
 	"encoding/json"
-	metrics_events "metrics-events"
+	metrics_events "example/metrics_events"
 )
 
 type Event struct {
@@ -29,7 +29,7 @@ func NewEmptyEvent() metrics_events.Event {
 }
 
 func (e *Event) Type() string {
-	return metrics_events.EventTypeUserJoined
+	return metrics_events.EventTypeUserRated
 }
 
 func (e *Event) ToJSON() ([]byte, error) {
@@ -49,7 +49,7 @@ func (e *Event) SetNumber(number uint64) {
 }
 
 func (e *Event) Stream() string {
-	return "user_joined"
+	return "user_rated"
 }
 
 func (e *Event) ExpectedLastEventNumber() int64 {
