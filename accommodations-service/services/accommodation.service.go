@@ -18,15 +18,17 @@ type AccommodationService struct {
 	accommodationRepository *repository.AccommodationRepo
 	validator               *utils.Validator
 	reservationsClient      *client.ReservationsClient
+	userClient              *client.UserClient
 	fileStorage             *repository.FileStorage
 	cache                   *repository.ImageCache
 }
 
-func NewAccommodationService(accommodationRepo *repository.AccommodationRepo, validator *utils.Validator, reservationsClient *client.ReservationsClient, fileStorage *repository.FileStorage, cache *repository.ImageCache) *AccommodationService {
+func NewAccommodationService(accommodationRepo *repository.AccommodationRepo, validator *utils.Validator, reservationsClient *client.ReservationsClient, userClient *client.UserClient, fileStorage *repository.FileStorage, cache *repository.ImageCache) *AccommodationService {
 	return &AccommodationService{
 		accommodationRepository: accommodationRepo,
 		validator:               validator,
 		reservationsClient:      reservationsClient,
+		userClient:              userClient,
 		fileStorage:             fileStorage,
 		cache:                   cache,
 	}

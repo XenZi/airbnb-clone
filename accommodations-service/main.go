@@ -36,9 +36,22 @@ func main() {
 	reservationsServicePort := os.Getenv("RESERVATIONS_SERVICE_PORT")
 	log.Println("PORT", reservationsServicePort)
 
+	userServiceHost := os.Getenv("USER_SERVICE_HOST")
+	log.Println("HOST", reservationsServiceHost)
+	userServicePort := os.Getenv("USER_SERVICE_PORT")
+	log.Println("PORT", reservationsServicePort)
+
 	//clients
 
 	customReservationsServiceClient := &http.Client{
+		Transport: &http.Transport{
+			MaxIdleConns:        10,
+			MaxIdleConnsPerHost: 10,
+			MaxConnsPerHost:     10,
+		},
+	}
+
+	customUserServiceClient := &http.Client{
 		Transport: &http.Transport{
 			MaxIdleConns:        10,
 			MaxIdleConnsPerHost: 10,
@@ -57,8 +70,22 @@ func main() {
 			},
 		},
 	)
+
+	userServiceCircuitBreaker := gobreaker.NewCircuitBreaker(
+		gobreaker.Settings{
+			Name:        "user-service",
+			MaxRequests: 1,
+			Timeout:     10 * time.Second,
+			Interval:    0,
+			OnStateChange: func(name string, from gobreaker.State, to gobreaker.State) {
+				log.Printf("Circuit Breaker %v: %v -> %v", name, from, to)
+			},
+		},
+	)
 	validator := utils.NewValidator()
 	reservationsClient := client.NewReservationsClient(reservationsServiceHost, reservationsServicePort, customReservationsServiceClient, reservationsServiceCircuitBreaker)
+
+	userClient := client.NewUserClient(userServiceHost, userServicePort, customUserServiceClient, userServiceCircuitBreaker)
 
 	mongoService, err := services.New(timeoutContext, logger)
 
@@ -72,7 +99,7 @@ func main() {
 	defer fileStorage.Close()
 	_ = fileStorage.CreateDirectories()
 	cache := repository.NewCache(loggerCach)
-	accommodationService := services.NewAccommodationService(accommodationRepo, validator, reservationsClient, fileStorage, cache)
+	accommodationService := services.NewAccommodationService(accommodationRepo, validator, reservationsClient, userClient, fileStorage, cache)
 	accommodationsHandler := handlers.AccommodationsHandler{
 		AccommodationService: accommodationService,
 	}

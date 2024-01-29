@@ -110,3 +110,15 @@ func (fs *FileStorage) ReadFile(fileName string) ([]byte, error) {
 
 	return fileContent, nil
 }
+
+func (fs *FileStorage) DeleteFile(fileName string) error {
+	filePath := hdfsWriteDir + fileName
+	err := fs.client.Remove(filePath)
+	if err != nil {
+		fs.logger.Println("Error deleting file on HDFS:", err)
+		return err
+	}
+
+	fs.logger.Printf("File deleted: %s\n", filePath)
+	return nil
+}

@@ -34,6 +34,7 @@ type CreateAccommodation struct {
 	MaxNumOfVisitors            int                           `json:"maxNumOfVisitors" bson:"maxNumOfVisitors"`
 	AvailableAccommodationDates []AvailableAccommodationDates `json:"availableAccommodationDates"`
 	Location                    string                        `json:"location" `
+	Status                      AccommodationStatus           `json:"status"`
 }
 
 type AvailableAccommodationDates struct {
@@ -58,3 +59,10 @@ type AccommodationDTO struct {
 	ImageIds         []string `json:"imageIds"`
 	Rating           float32  `json:"rating"`
 }
+
+type AccommodationStatus string
+
+const (
+	Pending AccommodationStatus = "Pending"
+	Created AccommodationStatus = "Created"
+)
