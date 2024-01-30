@@ -1,9 +1,9 @@
 package repository
 
 import (
-	do "accommodations-service/domain"
-	"accommodations-service/errors"
 	"context"
+	do "github.com/XenZi/airbnb-clone/accommodations-service/domain"
+	"github.com/XenZi/airbnb-clone/accommodations-service/errors"
 	"log"
 
 	"go.mongodb.org/mongo-driver/bson"

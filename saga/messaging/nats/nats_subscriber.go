@@ -1,6 +1,7 @@
 package nats
 
 import (
+	saga "github.com/XenZi/airbnb-clone/saga/messaging"
 	"github.com/nats-io/nats.go"
 )
 

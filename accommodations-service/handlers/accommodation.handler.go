@@ -1,13 +1,13 @@
 package handlers
 
 import (
-	"accommodations-service/domain"
-	"accommodations-service/services"
-	"accommodations-service/utils"
 	"context"
 	"encoding/csv"
 	"encoding/json"
 	"fmt"
+	"github.com/XenZi/airbnb-clone/accommodations-service/domain"
+	"github.com/XenZi/airbnb-clone/accommodations-service/services"
+	"github.com/XenZi/airbnb-clone/accommodations-service/utils"
 	"log"
 	"mime/multipart"
 	"net/http"

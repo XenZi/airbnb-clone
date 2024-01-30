@@ -1,12 +1,12 @@
 package services
 
 import (
-	"accommodations-service/client"
-	"accommodations-service/domain"
-	"accommodations-service/errors"
-	"accommodations-service/repository"
-	"accommodations-service/utils"
 	"context"
+	"github.com/XenZi/airbnb-clone/accommodations-service/client"
+	"github.com/XenZi/airbnb-clone/accommodations-service/domain"
+	"github.com/XenZi/airbnb-clone/accommodations-service/errors"
+	"github.com/XenZi/airbnb-clone/accommodations-service/repository"
+	"github.com/XenZi/airbnb-clone/accommodations-service/utils"
 	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"log"

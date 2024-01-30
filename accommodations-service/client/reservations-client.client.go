@@ -1,12 +1,12 @@
 package client
 
 import (
-	"accommodations-service/domain"
-	"accommodations-service/errors"
 	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/XenZi/airbnb-clone/accommodations-service/domain"
+	"github.com/XenZi/airbnb-clone/accommodations-service/errors"
 	"log"
 	"net/http"
 

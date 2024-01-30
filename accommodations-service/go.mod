@@ -1,11 +1,11 @@
-module accommodations-service
+module github.com/XenZi/airbnb-clone/accommodations-service
 
-go 1.21
-require (
-    common/saga/messaging v1.0.0
-)
+go 1.21.3
+
+replace github.com/XenZi/airbnb-clone/saga => ../saga
 
 require (
+	github.com/XenZi/airbnb-clone/saga v1.0.0
 	github.com/colinmarc/hdfs/v2 v2.4.0
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/go-redis/redis v6.15.9+incompatible
@@ -14,6 +14,7 @@ require (
 	github.com/gorilla/mux v1.8.1
 	github.com/sony/gobreaker v0.5.0
 	go.mongodb.org/mongo-driver v1.13.1
+
 )
 
 require (
