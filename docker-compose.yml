@@ -343,6 +343,28 @@ services:
     networks:
       - network
 
+  metrics_query:
+    image: metrics_query
+    container_name: metrics_query
+    hostname: ${QUERY_SERVICE_HOST}
+    build:
+      context: .
+      dockerfile: ./metrics_query/Dockerfile
+    restart: always
+    environment:
+      PORT: ${QUERY_SERVICE_PORT}
+      QUERY_SERVICE_HOST: ${QUERY_SERVICE_HOST}
+      QUERY_SERVICE_PORT: ${QUERY_SERVICE_PORT}
+      ESDB_USER: ${ESDB_USER}
+      ESDB_PASS: ${ESDB_PASS}
+      ESDB_HOST: ${ESDB_HOST}
+      ESDB_PORT: ${ESDB_PORT}
+      ESDB_GROUP: ${ESDB_GROUP}
+    depends_on:
+      - esdb
+    networks:
+      - network
+
   api-gateway:
     build:
       context: ./api-gateway/
