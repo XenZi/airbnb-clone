@@ -21,6 +21,7 @@ type AccommodationService struct {
 	userClient              *client.UserClient
 	fileStorage             *repository.FileStorage
 	cache                   *repository.ImageCache
+	orchestrator            *CreateAccommodationOrchestrator
 }
 
 func NewAccommodationService(accommodationRepo *repository.AccommodationRepo, validator *utils.Validator, reservationsClient *client.ReservationsClient, userClient *client.UserClient, fileStorage *repository.FileStorage, cache *repository.ImageCache) *AccommodationService {
