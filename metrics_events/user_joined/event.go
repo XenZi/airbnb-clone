@@ -9,15 +9,17 @@ type Event struct {
 	UserID                  string `json:"userID"`
 	AccommodationID         string `json:"accommodationID"`
 	JoinedAt                string `json:"joinedAt"`
+	CustomUUID              string `json:"customUUID"`
 	number                  uint64
 	expectedLastEventNumber int64
 }
 
-func NewEvent(userID, accommodationID, joinedAt string, expectedLastEventNumber int64) metrics_events.Event {
+func NewEvent(userID, accommodationID, joinedAt, customUUID string, expectedLastEventNumber int64) metrics_events.Event {
 	return &Event{
 		UserID:                  userID,
 		AccommodationID:         accommodationID,
 		JoinedAt:                joinedAt,
+		CustomUUID:              customUUID,
 		expectedLastEventNumber: expectedLastEventNumber,
 	}
 }

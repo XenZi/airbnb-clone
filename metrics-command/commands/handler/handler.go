@@ -71,6 +71,7 @@ func (h Handler) createUserJoined(command *user_joined.UserJoinedCommand) (metri
 			command.UserID,
 			command.AccommodationID,
 			command.JoinedAt,
+			command.CustomUUID,
 			-1),
 		nil
 }
@@ -80,6 +81,7 @@ func (h Handler) createUserLeft(command *user_left.UserLeftCommand) (metrics_eve
 			command.UserID,
 			command.AccommodationID,
 			command.LeftAt,
+			command.CustomUUID,
 			-1),
 		nil
 }
