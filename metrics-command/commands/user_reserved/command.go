@@ -2,14 +2,14 @@ package user_reserved
 
 import "metrics-command/commands"
 
-type Reserved struct {
+type UserReservedCommand struct {
 	UserID          string
 	AccommodationID string
 	ReservedAt      string
 }
 
 func NewCommand(userID, accommodationID, reservedAt string) commands.Command {
-	return &Reserved{
+	return &UserReservedCommand{
 		UserID:          userID,
 		AccommodationID: accommodationID,
 		ReservedAt:      reservedAt,

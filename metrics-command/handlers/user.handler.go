@@ -30,7 +30,7 @@ func (h UserHandler) CreateJoinedAt(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	command := user_joined.NewCommand(req.UserID, req.AccommodationID, req.JoinedAt)
+	command := user_joined.NewCommand(req.UserID, req.AccommodationID, req.JoinedAt, req.CustomUUID)
 	err = h.handler.Handle(command)
 	if err != nil {
 		log.Println(err)
@@ -38,7 +38,7 @@ func (h UserHandler) CreateJoinedAt(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.WriteHeader(http.StatusCreated)
+	utils.WriteResp("Successfully inserted user join", 200, w)
 }
 
 func (h UserHandler) CreateLeftAt(w http.ResponseWriter, r *http.Request) {
@@ -50,7 +50,7 @@ func (h UserHandler) CreateLeftAt(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	command := user_left.NewCommand(req.UserID, req.AccommodationID, req.LeftAt)
+	command := user_left.NewCommand(req.UserID, req.AccommodationID, req.LeftAt, req.CustomUUID)
 	err = h.handler.Handle(command)
 	if err != nil {
 		log.Println(err)
@@ -58,5 +58,6 @@ func (h UserHandler) CreateLeftAt(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.WriteHeader(http.StatusCreated)
+	utils.WriteResp("Successfully inserted user left", 200, w)
+
 }
