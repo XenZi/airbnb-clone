@@ -36,6 +36,6 @@ func (h ReservationHandler) CreateReserved(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	w.WriteHeader(http.StatusCreated)
+	utils.WriteResp(string("Successfully inserted"), 200, w)
 
 }

@@ -38,7 +38,7 @@ func (h UserHandler) CreateJoinedAt(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.WriteHeader(http.StatusCreated)
+	utils.WriteResp("Successfully inserted user join", 200, w)
 }
 
 func (h UserHandler) CreateLeftAt(w http.ResponseWriter, r *http.Request) {
@@ -58,5 +58,6 @@ func (h UserHandler) CreateLeftAt(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.WriteHeader(http.StatusCreated)
+	utils.WriteResp("Successfully inserted user left", 200, w)
+
 }

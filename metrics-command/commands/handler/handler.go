@@ -6,11 +6,15 @@ import (
 	"metrics-command/commands"
 	"metrics-command/commands/user_joined"
 	"metrics-command/commands/user_left"
+	"metrics-command/commands/user_rated"
+	"metrics-command/commands/user_reserved"
 	"metrics-command/store"
 
 	"example/metrics_events"
 	user_joined_event "example/metrics_events/user_joined"
 	user_left_event "example/metrics_events/user_left"
+	user_rated_event "example/metrics_events/user_rated"
+	user_reserved_event "example/metrics_events/user_reserved"
 )
 
 type Handler struct {
@@ -52,6 +56,10 @@ func (h Handler) execute(command commands.Command) (event metrics_events.Event, 
 		event, err = h.createUserJoined(c)
 	case *user_left.UserLeftCommand:
 		event, err = h.createUserLeft(c)
+	case *user_reserved.UserReservedCommand:
+		event, err = h.createUserReserved(c)
+	case *user_rated.UserRatedCommand:
+		event, err = h.createUserRated(c)
 	default:
 		err = errors.New("unknown command")
 	}
@@ -72,6 +80,24 @@ func (h Handler) createUserLeft(command *user_left.UserLeftCommand) (metrics_eve
 			command.UserID,
 			command.AccommodationID,
 			command.LeftAt,
+			-1),
+		nil
+}
+
+func (h Handler) createUserReserved(command *user_reserved.UserReservedCommand) (metrics_events.Event, error) {
+	return user_reserved_event.NewEvent(
+			command.UserID,
+			command.AccommodationID,
+			command.ReservedAt,
+			-1),
+		nil
+}
+
+func (h Handler) createUserRated(command *user_rated.UserRatedCommand) (metrics_events.Event, error) {
+	return user_rated_event.NewEvent(
+			command.UserID,
+			command.AccommodationID,
+			command.RatedAt,
 			-1),
 		nil
 }

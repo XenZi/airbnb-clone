@@ -9,17 +9,15 @@ type Event struct {
 	UserID                  string
 	AccommodationID         string
 	RatedAt                 string
-	Rate                    int16
 	expectedLastEventNumber int64
 	number                  uint64
 }
 
-func NewEvent(userID, accommodationID, ratedAt string, rate int16, expectedLastEventNumber int64) metrics_events.Event {
+func NewEvent(userID, accommodationID, ratedAt string, expectedLastEventNumber int64) metrics_events.Event {
 	return &Event{
 		UserID:                  userID,
 		AccommodationID:         accommodationID,
 		RatedAt:                 ratedAt,
-		Rate:                    rate,
 		expectedLastEventNumber: expectedLastEventNumber,
 	}
 }

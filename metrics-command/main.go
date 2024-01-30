@@ -38,7 +38,7 @@ func main() {
 	commandHandler := handler.NewHandler(eventStore)
 	userHandler := handlers.NewUserHandler(commandHandler)
 	reservationHandler := handlers.NewReservationHandler(commandHandler)
-	_ = handlers.NewRatingHandler(commandHandler)
+	ratingHandler := handlers.NewRatingHandler(commandHandler)
 
 	port := os.Getenv("PORT")
 
@@ -46,6 +46,7 @@ func main() {
 	router.HandleFunc("/joinedAt", userHandler.CreateJoinedAt).Methods("POST")
 	router.HandleFunc("/leftAt", userHandler.CreateLeftAt).Methods("POST")
 	router.HandleFunc("/reserved", reservationHandler.CreateReserved).Methods("POST")
+	router.HandleFunc("/rated", ratingHandler.CreateRatedAt).Methods("POST")
 	if len(port) == 0 {
 		port = "8080"
 	}
