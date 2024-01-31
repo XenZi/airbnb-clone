@@ -56,7 +56,10 @@ func (h EventHandler) Handle(event metrics_events.Event) error {
 			if err != nil {
 				log.Println(err)
 			}
-			err = h.store.Update(*accommodation, monthly)
+			monthlyAccommodation.NotClosedEventTimeStamps[e.CustomUUID] = e.JoinedAt
+			monthlyAccommodation.NumberOfVisits += 1
+			monthlyAccommodation.LastAppliedUserJoinedEventNumber = int64(e.Number())
+			err = h.store.Update(*monthlyAccommodation, monthly)
 			if err != nil {
 				log.Println(err)
 			}
@@ -114,6 +117,7 @@ func (h EventHandler) Handle(event metrics_events.Event) error {
 			return err
 		}
 		duration := leftTime.Sub(*joinedTime).Minutes()
+		dayStartDuration := leftTime.Sub(eventDay).Minutes()
 		if checkDay(accommodation.ReportingDate, eventDay) {
 			accommodation.OnScreenTime += duration
 			accommodation.LastAppliedUserLeftEventNumber = int64(e.Number())
@@ -125,13 +129,13 @@ func (h EventHandler) Handle(event metrics_events.Event) error {
 			monthlyAccommodation.OnScreenTime += duration
 			monthlyAccommodation.LastAppliedUserLeftEventNumber = int64(e.Number())
 			delete(monthlyAccommodation.NotClosedEventTimeStamps, e.CustomUUID)
-			err = h.store.Update(*accommodation, monthly)
+			err = h.store.Update(*monthlyAccommodation, monthly)
 			if err != nil {
 				log.Println(err)
 			}
 		} else if checkMonth(monthlyAccommodation.ReportingDate, eventDay) {
 			accommodation = generateBlankReport(eventDay, e.AccommodationID)
-			accommodation.OnScreenTime += duration / 2
+			accommodation.OnScreenTime += dayStartDuration
 			accommodation.NumberOfVisits += 1
 			accommodation.LastAppliedUserJoinedEventNumber = monthlyAccommodation.LastAppliedUserJoinedEventNumber
 			accommodation.LastAppliedUserLeftEventNumber = int64(e.Number())
@@ -142,13 +146,13 @@ func (h EventHandler) Handle(event metrics_events.Event) error {
 			monthlyAccommodation.OnScreenTime += duration
 			monthlyAccommodation.LastAppliedUserLeftEventNumber = int64(e.Number())
 			delete(monthlyAccommodation.NotClosedEventTimeStamps, e.CustomUUID)
-			err = h.store.Update(*accommodation, monthly)
+			err = h.store.Update(*monthlyAccommodation, monthly)
 			if err != nil {
 				log.Println(err)
 			}
 		} else {
 			accommodation = generateBlankReport(eventDay, e.AccommodationID)
-			accommodation.OnScreenTime += duration / 2
+			accommodation.OnScreenTime += dayStartDuration
 			accommodation.NumberOfVisits += 1
 			accommodation.LastAppliedUserJoinedEventNumber = monthlyAccommodation.LastAppliedUserJoinedEventNumber
 			accommodation.LastAppliedUserLeftEventNumber = int64(e.Number())
@@ -197,9 +201,9 @@ func (h EventHandler) Handle(event metrics_events.Event) error {
 			if err != nil {
 				log.Println(err)
 			}
-			accommodation.NumberOfRatings += 1
-			accommodation.LastAppliedUserRatedEventNumber = int64(e.Number())
-			err = h.store.Update(*accommodation, monthly)
+			monthlyAccommodation.NumberOfRatings += 1
+			monthlyAccommodation.LastAppliedUserRatedEventNumber = int64(e.Number())
+			err = h.store.Update(*monthlyAccommodation, monthly)
 			if err != nil {
 				log.Println(err)
 			}
