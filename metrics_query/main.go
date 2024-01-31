@@ -39,17 +39,16 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	handler := events.NewEventHandler(accommodationStore, eventStream)
+	handler := events.NewEventHandler(accommodationStore)
 	go eventStream.Process(handler.Handle)
 
 	port := os.Getenv("PORT")
 
 	router := mux.NewRouter()
-	accommodationHandler := handlers.NewAccommodationHandler(accommodationStore)
+	accommodationHandler := handlers.NewAccommodationHandler(accommodationStore, esdbClient)
 
+	router.HandleFunc("/get/daily", accommodationHandler.Det).Methods("GET")
 	router.HandleFunc("/get/{id}", accommodationHandler.Get).Methods("GET")
-	//router.HandlFunc("/get/daily/{id}")
-	//router.HandlFunc("/get/monthly/{id}")
 	router.HandleFunc("/get/all", accommodationHandler.GetAll).Methods("GET")
 
 	headersOk := gorillaHandlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"})
