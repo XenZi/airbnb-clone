@@ -216,9 +216,10 @@ services:
       # If we don't wait for it to fully initialize we will get exceptions and will not be able to connect!
       - NOTIFICATION_SERVICE_HOST=${NOTIFICATION_SERVICE_HOST}
       - NOTIFICATION_SERVICE_PORT=${NOTIFICATION_SERVICE_PORT}
+      - JAEGER_ADDRESS=${JAEGER_ADDRESS}
     depends_on:
-      reservations-db:
-        condition: service_healthy
+      - reservations-db
+      - jaeger
     networks:
       - network
 
@@ -370,6 +371,22 @@ services:
       - NEO4J_AUTH=neo4j/nekasifrabrateu
     volumes:
       - neo4j_data:/data
+    networks:
+      - network
+
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    ports:
+      - "6831:6831/udp"
+      - "16686:16686"
+    networks:
+      - network
+
+  collector:
+    image: otel/opentelemetry-collector:0.69.0
+    command: [ "--config=/etc/otel-collector-config.yaml" ]
+    volumes:
+      - ./api_gateway/otel-collector-config.yaml:/etc/otel-collector-config.yaml
     networks:
       - network
 

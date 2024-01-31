@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"os"
@@ -12,11 +13,13 @@ import (
 
 	"github.com/gocql/gocql"
 	"github.com/pariz/gountries"
+	"go.opentelemetry.io/otel/trace"
 )
 
 type ReservationRepo struct {
 	session *gocql.Session
 	logger  *log.Logger
+	Tracer  trace.Tracer
 }
 
 // db config and creating keyspace
@@ -303,10 +306,11 @@ func (rr *ReservationRepo) AvailableDates(accommodationID string, dateRange []st
 	return result, nil
 }
 
-func (rr *ReservationRepo) InsertReservation(reservation *domain.Reservation) (*domain.Reservation, error) {
+func (rr *ReservationRepo) InsertReservation(reservation *domain.Reservation, context context.Context) (*domain.Reservation, error) {
+	_, span := rr.Tracer.Start(context, "ReservationRepo.InsertReservation")
+	defer span.End()
 	Id, _ := gocql.RandomUUID()
-	// dateRangeString := strings.Join(reservation.DateRange, ",")
-	// dateRangeS
+
 	country, err := utils.GetCountry(reservation.Location)
 	if err != nil {
 		return nil, errors.NewReservationError(500, err.Error())
@@ -323,7 +327,6 @@ func (rr *ReservationRepo) InsertReservation(reservation *domain.Reservation) (*
 
 	batch := rr.session.NewBatch(gocql.LoggedBatch)
 
-	// Insert into reservations table
 	batch.Query(`INSERT INTO reservations (id,user_id,accommodation_id,start_date,end_date,username,accommodation_name,location,price,num_of_days,
 	    continent,date_range,is_active,country,host_id)
 	    VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`, Id, reservation.UserID, reservation.AccommodationID, startDate,

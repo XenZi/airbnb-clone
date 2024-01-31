@@ -10,6 +10,7 @@ import (
 	"reservation-service/handler"
 	"reservation-service/repository"
 	"reservation-service/service"
+	"reservation-service/tracing"
 	"reservation-service/utils"
 	"time"
 
@@ -20,6 +21,8 @@ import (
 	gorillaHandlers "github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/sony/gobreaker"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/propagation"
 )
 
 func main() {
@@ -57,9 +60,18 @@ func main() {
 			},
 		},
 	)
+	cfg := tracing.GetConfig()
+
+	tracerProvider, err := tracing.NewTracerProvider(cfg.ServiceName, cfg.JaegerAddress)
+	if err != nil {
+		log.Fatal("JaegerTraceProvider failed to Initialize", err)
+	}
+	tracer := tracerProvider.Tracer(cfg.ServiceName)
+
+	otel.SetTextMapPropagator(propagation.TraceContext{})
 
 	validator := utils.NewValidator()
-	notificationsClient := client.NewNotificationClient(notificationServiceHost, notificationServicePort, customNotificationServiceClient, notificationServiceCircuitBreaker)
+	notificationsClient := client.NewNotificationClient(notificationServiceHost, notificationServicePort, customNotificationServiceClient, notificationServiceCircuitBreaker, tracer)
 
 	store, err := repository.New(storeLogger)
 	if err != nil {
@@ -71,8 +83,25 @@ func main() {
 	if err != nil {
 		return
 	}
-	reservationService := service.NewReservationService(reservationRepo, validator, notificationsClient)
+
+	/*	ctx := context.Background()
+		exp, err := tracing.NewExporter(cfg.JaegerAddress)
+		if err != nil {
+			log.Fatalf("failed to initialize exporter: %v", err)
+		}*/
+	// Create a new tracer provider with a batch span processor and the given exporter.
+	//	tp := tracing.NewTraceProvider(exp)
+	// Handle shutdown properly so nothing leaks.
+	//	defer func() { _ = tp.Shutdown(ctx) }()
+	//	otel.SetTracerProvider(tp)
+	// Finally, set the tracer that can be used for this package.
+	//	tracer := tp.Tracer("ordering-service")
+
+	otel.SetTextMapPropagator(propagation.TraceContext{})
+	reservationService := service.NewReservationService(reservationRepo, validator, notificationsClient, tracer)
 	reservationsHandler := handler.ReservationHandler{
+		Logger:             logger,
+		Tracer:             tracer,
 		ReservationService: reservationService,
 	}
 	/*
@@ -83,6 +112,7 @@ func main() {
 
 	*/
 	router := mux.NewRouter()
+	router.Use(handler.ExtractTraceInfoMiddleware)
 	router.HandleFunc("/user/guest/{userId}", reservationsHandler.GetReservationsByUser).Methods("GET")
 	router.HandleFunc("/", reservationsHandler.CreateReservation).Methods("POST")
 	router.HandleFunc("/accommodations", reservationsHandler.ReservationsInDateRangeHandler).Methods("GET")

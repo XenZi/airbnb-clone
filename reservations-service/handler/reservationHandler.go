@@ -1,31 +1,35 @@
 package handler
 
 import (
-	"context"
 	"encoding/json"
 	"log"
 	"net/http"
 	"reservation-service/domain"
 	"reservation-service/service"
 	"reservation-service/utils"
-	"time"
 
 	"github.com/gorilla/mux"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/codes"
+	"go.opentelemetry.io/otel/propagation"
+	"go.opentelemetry.io/otel/trace"
 )
 
 type KeyProduct struct{}
 
 type ReservationHandler struct {
-	logger *log.Logger
-
+	Logger             *log.Logger
+	Tracer             trace.Tracer
 	ReservationService *service.ReservationService
 }
 
-func NewReservationsHandler(l *log.Logger, rs *service.ReservationService) *ReservationHandler {
-	return &ReservationHandler{l, rs}
+func NewReservationsHandler(l *log.Logger, tr trace.Tracer, rs *service.ReservationService) *ReservationHandler {
+	return &ReservationHandler{l, tr, rs}
 }
 
 func (r *ReservationHandler) CreateReservation(rw http.ResponseWriter, h *http.Request) {
+	ctx, span := r.Tracer.Start(h.Context(), "ReservationHandler.CreateReservation")
+	defer span.End()
 	decoder := json.NewDecoder(h.Body)
 	decoder.DisallowUnknownFields()
 	var res domain.Reservation
@@ -33,13 +37,14 @@ func (r *ReservationHandler) CreateReservation(rw http.ResponseWriter, h *http.R
 		utils.WriteErrorResp(err.Error(), 500, "api/reservations", rw)
 		return
 	}
-	ctx, cancel := context.WithTimeout(h.Context(), time.Second*5)
-	defer cancel()
+
 	newRes, err := r.ReservationService.CreateReservation(res, ctx)
 	if err != nil {
+		span.SetStatus(codes.Error, err.Error())
 		utils.WriteErrorResp(err.Message, err.Status, "api/reservations", rw)
 		return
 	}
+	span.SetStatus(codes.Ok, "")
 	utils.WriteResp(newRes, 201, rw)
 }
 func (r *ReservationHandler) CreateAvailability(rw http.ResponseWriter, h *http.Request) {
@@ -207,4 +212,11 @@ func (rh *ReservationHandler) GetReservationsByHostWithEndDate(rw http.ResponseW
 
 	rw.Header().Set("Content-Type", "application/json")
 	utils.WriteResp(reservations, 200, rw)
+}
+
+func ExtractTraceInfoMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ctx := otel.GetTextMapPropagator().Extract(r.Context(), propagation.HeaderCarrier(r.Header))
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
 }

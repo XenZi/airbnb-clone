@@ -8,21 +8,26 @@ import (
 	"reservation-service/errors"
 	"reservation-service/repository"
 	"reservation-service/utils"
+
+	"go.opentelemetry.io/otel/trace"
 )
 
 type ReservationService struct {
 	repo         *repository.ReservationRepo
 	validator    *utils.Validator
 	notification *client.NotificationClient
+	Tracer       trace.Tracer
 }
 
-func NewReservationService(repo *repository.ReservationRepo, validator *utils.Validator, notification *client.NotificationClient) *ReservationService {
-	return &ReservationService{repo: repo, validator: validator, notification: notification}
+func NewReservationService(repo *repository.ReservationRepo, validator *utils.Validator, notification *client.NotificationClient, tracer trace.Tracer) *ReservationService {
+	return &ReservationService{repo: repo, validator: validator, notification: notification, Tracer: tracer}
 }
 
 // service/reservationService.go
 
 func (r ReservationService) CreateReservation(reservation domain.Reservation, ctx context.Context) (*domain.Reservation, *errors.ReservationError) {
+	ctx, span := r.Tracer.Start(ctx, "ReservationService.CreateReservation")
+	defer span.End()
 	r.validator.ValidateReservation(&reservation)
 	validationErrors := r.validator.GetErrors()
 
@@ -45,7 +50,7 @@ func (r ReservationService) CreateReservation(reservation domain.Reservation, ct
 	if reserved {
 		return nil, errors.NewReservationError(400, "Accommodation not available for the specified date range1")
 	}
-	createdReservation, insertErr := r.repo.InsertReservation(&reservation)
+	createdReservation, insertErr := r.repo.InsertReservation(&reservation, ctx)
 	if insertErr != nil {
 		return nil, errors.NewReservationError(500, "Unable to create reservation: "+insertErr.Error())
 	}
