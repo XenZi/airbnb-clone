@@ -140,11 +140,31 @@ func (ar *AccommodationRepo) UpdateAccommodationById(accommodation do.Accommodat
 		{Key: "$set", Value: bson.D{
 			{Key: "address", Value: accommodation.Address},
 			{Key: "city", Value: accommodation.City},
-
 			{Key: "name", Value: accommodation.Name},
 			{Key: "conveniences", Value: accommodation.Conveniences},
 			{Key: "minNumOfVisitors", Value: accommodation.MinNumOfVisitors},
 			{Key: "maxNumOfVisitors", Value: accommodation.MaxNumOfVisitors},
+			{Key: "status", Value: accommodation.Status},
+		}},
+	}
+
+	_, err := accommodationCollection.UpdateOne(context.TODO(), filter, update)
+	if err != nil {
+		ar.logger.Println(err)
+		return nil, errors.NewError("Unable to update, database error", 500)
+	}
+
+	return &accommodation, nil
+}
+
+func (ar *AccommodationRepo) UpdateAccommodationStatus(accommodation do.Accommodation, accomId string) (*do.Accommodation, *errors.ErrorStruct) {
+	accommodationCollection := ar.cli.Database("accommodations-service").Collection("accommodations")
+	id, _ := primitive.ObjectIDFromHex(accomId)
+	log.Println("STATUS U REPOU JE", accommodation)
+	filter := bson.D{{Key: "_id", Value: id}}
+	update := bson.D{
+		{Key: "$set", Value: bson.D{
+			{Key: "status", Value: accommodation.Status},
 		}},
 	}
 

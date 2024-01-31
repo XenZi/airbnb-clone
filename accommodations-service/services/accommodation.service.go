@@ -64,6 +64,8 @@ func (as *AccommodationService) CreateAccommodation(accommodation domain.CreateA
 	as.fileStorage.WriteFile(image, uuidStr)
 	as.cache.Post(image, uuidStr)
 	accomm.ImageIds = imageIds
+	accomm.Status = domain.Pending
+
 	newAccommodation, foundErr := as.accommodationRepository.SaveAccommodation(accomm)
 	if foundErr != nil {
 		return nil, foundErr
@@ -74,6 +76,12 @@ func (as *AccommodationService) CreateAccommodation(accommodation domain.CreateA
 	if err != nil {
 		as.DeleteAccommodation(id)
 		return nil, errors.NewError("Service is not responding correcrtly", 500)
+	} else {
+		accomId := newAccommodation.Id.Hex()
+		accomm.Status = domain.Created
+
+		log.Println("Uslo je u update", accomm.Status)
+		as.accommodationRepository.UpdateAccommodationStatus(accomm, accomId)
 	}
 
 	return &domain.AccommodationDTO{
@@ -89,6 +97,7 @@ func (as *AccommodationService) CreateAccommodation(accommodation domain.CreateA
 		MinNumOfVisitors: accommodation.MinNumOfVisitors,
 		MaxNumOfVisitors: accommodation.MaxNumOfVisitors,
 		ImageIds:         imageIds,
+		Status:           accommodation.Status,
 	}, nil
 }
 
@@ -131,6 +140,7 @@ func (as *AccommodationService) GetAllAccommodations() ([]*domain.AccommodationD
 			MaxNumOfVisitors: accommodation.MaxNumOfVisitors,
 			ImageIds:         imageIds,
 			Rating:           accommodation.Rating,
+			Status:           accommodation.Status,
 		})
 	}
 
@@ -155,6 +165,7 @@ func (as *AccommodationService) GetAccommodationById(accommodationId string) (*d
 		MinNumOfVisitors: accomm.MinNumOfVisitors,
 		MaxNumOfVisitors: accomm.MaxNumOfVisitors,
 		ImageIds:         accomm.ImageIds,
+		Status:           accomm.Status,
 	}, nil
 
 }
@@ -183,6 +194,7 @@ func (as *AccommodationService) FindAccommodationByIds(ids []string) ([]*domain.
 			MaxNumOfVisitors: accommodation.MaxNumOfVisitors,
 			ImageIds:         imageIds,
 			Rating:           accommodation.Rating,
+			Status:           accommodation.Status,
 		})
 	}
 	return domainAccommodations, nil
@@ -219,6 +231,7 @@ func (as *AccommodationService) UpdateAccommodation(updatedAccommodation domain.
 		Conveniences:     updatedAccommodation.Conveniences,
 		MinNumOfVisitors: updatedAccommodation.MinNumOfVisitors,
 		MaxNumOfVisitors: updatedAccommodation.MaxNumOfVisitors,
+		Status:           updatedAccommodation.Status,
 	}, nil
 }
 
