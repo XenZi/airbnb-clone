@@ -85,9 +85,9 @@ func (rr *ReservationRepo) CreateTables() {
 	}
 	err = rr.session.Query(
 		fmt.Sprintf(`CREATE TABLE IF NOT EXISTS %s
-			(id UUID, accommodation_id text,  location text, price int, continent text, country text, date_range set<text>,
-			 PRIMARY KEY((price),id))
-			WITH CLUSTERING ORDER BY(id ASC)`, "avl_by_price")).Exec()
+			(id UUID, accommodation_id text,  location text, price int, continent text, country text, date_range set<text>,is_active boolean,
+			 PRIMARY KEY((is_active),price,id))
+			WITH CLUSTERING ORDER BY(price ASC,id ASC)`, "avl_by_price")).Exec()
 
 	if err != nil {
 		rr.logger.Println(err)
@@ -277,9 +277,9 @@ func (rr *ReservationRepo) InsertAvailability(reservation *domain.FreeReservatio
 				VALUES(?, ?, ?, ?, ?, ?, ?)
 			`, ID, reservation.AccommodationID, reservation.Location, drwp.Price, continent, country, drwp.DateRange)
 		batch.Query(`
-				INSERT INTO avl_by_price (id, accommodation_id, location, price, continent, country, date_range)
-				VALUES(?, ?, ?, ?, ?, ?, ?)
-			`, ID, reservation.AccommodationID, reservation.Location, drwp.Price, continent, country, drwp.DateRange)
+				INSERT INTO avl_by_price (id, accommodation_id, location, price, continent, country, date_range,is_active)
+				VALUES(?, ?, ?, ?, ?, ?, ?,?)
+			`, ID, reservation.AccommodationID, reservation.Location, drwp.Price, continent, country, drwp.DateRange, true)
 
 		if err := rr.session.ExecuteBatch(batch); err != nil {
 			return nil, err
@@ -589,7 +589,7 @@ func (rr *ReservationRepo) DeleteAvl(accommodationID, id, country string, price 
 	batch := rr.session.NewBatch(gocql.LoggedBatch)
 
 	batch.Query(`DELETE FROM free_accommodation WHERE accommodation_id = ? AND country = ? AND id = ?`, accommodationID, country, id)
-	batch.Query(`DELETE FROM avl_by_price WHERE price = ? AND id = ?`, price, id)
+	batch.Query(`DELETE FROM avl_by_price WHERE is_active = ? AND price = ? AND id = ?`, true, price, id)
 
 	if err := rr.session.ExecuteBatch(batch); err != nil {
 		rr.logger.Println(err)
@@ -598,4 +598,31 @@ func (rr *ReservationRepo) DeleteAvl(accommodationID, id, country string, price 
 
 	return nil, nil
 
+}
+
+func (rr *ReservationRepo) GetAccommodationIDsByMaxPrice(maxPrice int) ([]string, error) {
+	scanner := rr.session.Query(`
+        SELECT accommodation_id FROM avl_by_price WHERE is_active = ? AND price < ?
+    `, true, maxPrice).Iter().Scanner()
+
+	var accommodationIDs []string
+	for scanner.Next() {
+		var accommodationID string
+		err := scanner.Scan(&accommodationID)
+		if err != nil {
+
+			rr.logger.Println(err)
+			return nil, err
+		}
+		log.Println(accommodationID)
+		accommodationIDs = append(accommodationIDs, accommodationID)
+		log.Println(len(accommodationIDs))
+
+	}
+
+	if err := scanner.Err(); err != nil {
+		rr.logger.Println(err)
+		return nil, err
+	}
+	return accommodationIDs, nil
 }

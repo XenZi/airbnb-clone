@@ -207,3 +207,12 @@ func (s *ReservationService) UpdateAvailability(accommodationID, id, country str
 
 	return updatedReservation, nil
 }
+
+func (s *ReservationService) GetAccommodationIDsByMaxPrice(maxPrice int) ([]string, *errors.ReservationError) {
+	accommodations, err := s.repo.GetAccommodationIDsByMaxPrice(maxPrice)
+	if err != nil {
+		return nil, errors.NewReservationError(500, "Unable to get accommodations!")
+	}
+
+	return accommodations, nil
+}

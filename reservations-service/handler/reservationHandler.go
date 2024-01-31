@@ -239,3 +239,23 @@ func (rh *ReservationHandler) UpdateAvailability(w http.ResponseWriter, r *http.
 	w.Header().Set("Content-Type", "application/json")
 	utils.WriteResp(result, 200, w)
 }
+
+func (rh *ReservationHandler) GetAccommodationIDsByMaxPrice(rw http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	maxPriceStr := vars["maxPrice"]
+	maxPrice, err := strconv.Atoi(maxPriceStr)
+	if err != nil {
+		http.Error(rw, "Invalid price parameter", http.StatusBadRequest)
+		return
+	}
+	log.Println(maxPrice)
+	accommodations, err := rh.ReservationService.GetAccommodationIDsByMaxPrice(maxPrice)
+	if err != nil {
+		log.Println(accommodations)
+		http.Error(rw, "", 500)
+		return
+	}
+
+	rw.Header().Set("Content-Type", "application/json")
+	utils.WriteResp(accommodations, http.StatusOK, rw)
+}
