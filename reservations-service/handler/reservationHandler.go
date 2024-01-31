@@ -8,6 +8,7 @@ import (
 	"reservation-service/domain"
 	"reservation-service/service"
 	"reservation-service/utils"
+	"strconv"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -207,4 +208,34 @@ func (rh *ReservationHandler) GetReservationsByHostWithEndDate(rw http.ResponseW
 
 	rw.Header().Set("Content-Type", "application/json")
 	utils.WriteResp(reservations, 200, rw)
+}
+
+func (rh *ReservationHandler) UpdateAvailability(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	accommodationID := vars["accommodationId"]
+	id := vars["id"]
+	country := vars["country"]
+	priceStr := vars["price"]
+
+	price, err := strconv.Atoi(priceStr)
+	if err != nil {
+		http.Error(w, "Invalid price parameter", http.StatusBadRequest)
+		return
+	}
+
+	var updatedReservation domain.FreeReservation
+	err = json.NewDecoder(r.Body).Decode(&updatedReservation)
+	if err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	result, reservationErr := rh.ReservationService.UpdateAvailability(accommodationID, id, country, price, &updatedReservation)
+	if reservationErr != nil {
+		http.Error(w, reservationErr.Message, 500)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	utils.WriteResp(result, 200, w)
 }
