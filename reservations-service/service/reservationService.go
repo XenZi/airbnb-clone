@@ -128,6 +128,7 @@ func (s *ReservationService) IsAvailable(accommodationID string, dateRange []str
 
 	return available, nil
 }
+
 func (s *ReservationService) IsReserved(accommodationID string, dateRange []string) (bool, *errors.ReservationError) {
 
 	available, err := s.repo.IsReserved(accommodationID, dateRange)
@@ -138,6 +139,7 @@ func (s *ReservationService) IsReserved(accommodationID string, dateRange []stri
 
 	return available, nil
 }
+
 func (s *ReservationService) getNumberOfCanceledReservations(hostID string) (int, *errors.ReservationError) {
 	numberOfCanceledReservations, err := s.repo.GetNumberOfCanceledReservations(hostID)
 	if err != nil {
@@ -146,6 +148,7 @@ func (s *ReservationService) getNumberOfCanceledReservations(hostID string) (int
 
 	return numberOfCanceledReservations, nil
 }
+
 func (s *ReservationService) getTotalReservationsByHost(hostID string) (int, *errors.ReservationError) {
 	totalReservations, err := s.repo.GetTotalReservationsByHost(hostID)
 	if err != nil {
@@ -166,6 +169,7 @@ func (s *ReservationService) CalculatePercentageCanceled(hostID string) (float32
 	percentageCanceled := float32(numberOfCanceled)/float32(totalReservations) + float32(numberOfCanceled)*100
 	return percentageCanceled, nil
 }
+
 func (s *ReservationService) GetReservationsByAccommodationWithEndDate(accommodationID, userID string) ([]domain.Reservation, *errors.ReservationError) {
 	reservations, err := s.repo.GetReservationsByAccommodationWithEndDate(accommodationID, userID)
 	if err != nil {
@@ -173,10 +177,33 @@ func (s *ReservationService) GetReservationsByAccommodationWithEndDate(accommoda
 	}
 	return reservations, nil
 }
+
 func (s *ReservationService) GetReservationsByHostWithEndDate(hostID, userID string) ([]domain.Reservation, *errors.ReservationError) {
 	reservations, err := s.repo.GetReservationsByHostWithEndDate(hostID, userID)
 	if err != nil {
 		return nil, errors.NewReservationError(500, err.Error())
 	}
 	return reservations, nil
+}
+
+func (s *ReservationService) DeleteAvl(accommodationID, id, country string, price int) (*domain.FreeReservation, *errors.ReservationError) {
+	deletedAvl, err := s.repo.DeleteAvl(accommodationID, id, country, price)
+	if err != nil {
+		return nil, errors.NewReservationError(500, err.Error())
+	}
+	return deletedAvl, nil
+}
+
+func (s *ReservationService) UpdateAvailability(accommodationID, id, country string, price int, reservation *domain.FreeReservation) (*domain.FreeReservation, *errors.ReservationError) {
+	_, err := s.repo.DeleteAvl(accommodationID, id, country, price)
+	if err != nil {
+		return nil, errors.NewReservationError(500, err.Error())
+	}
+
+	updatedReservation, err := s.repo.InsertAvailability(reservation)
+	if err != nil {
+		return nil, errors.NewReservationError(500, "Unable to update availability!")
+	}
+
+	return updatedReservation, nil
 }

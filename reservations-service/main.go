@@ -95,6 +95,7 @@ func main() {
 	router.HandleFunc("/percentage-cancelation/{hostId}", reservationsHandler.GetCancelationPercentage).Methods("GET")
 	router.HandleFunc("/{accommodationId}/{userId}", reservationsHandler.GetReservationsByAccommodationWithEndDate).Methods("GET")
 	router.HandleFunc("/host/{hostId}/{userId}", reservationsHandler.GetReservationsByHostWithEndDate).Methods("GET")
+	router.HandleFunc("/{accommodationId}/{id}/{country}/{price}", reservationsHandler.UpdateAvailability).Methods("POST")
 
 	headersOk := gorillaHandlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"})
 	methodsOk := gorillaHandlers.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "OPTIONS", "DELETE"})
