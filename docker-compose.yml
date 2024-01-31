@@ -352,6 +352,7 @@ services:
       dockerfile: ./metrics_query/Dockerfile
     restart: always
     environment:
+      MONGO_DB_URI: ${MONGO_DB_URI}
       PORT: ${QUERY_SERVICE_PORT}
       QUERY_SERVICE_HOST: ${QUERY_SERVICE_HOST}
       QUERY_SERVICE_PORT: ${QUERY_SERVICE_PORT}
@@ -361,9 +362,13 @@ services:
       ESDB_PORT: ${ESDB_PORT}
       ESDB_GROUP: ${ESDB_GROUP}
     depends_on:
-      - esdb
+      accommodation-db:
+        condition: service_healthy
+      esdb:
+        condition: service_healthy
     networks:
       - network
+
 
   api-gateway:
     build:
