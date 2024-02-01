@@ -239,3 +239,22 @@ func (rh *ReservationHandler) UpdateAvailability(w http.ResponseWriter, r *http.
 	w.Header().Set("Content-Type", "application/json")
 	utils.WriteResp(result, 200, w)
 }
+
+func (rh *ReservationHandler) GetAccommodationIDsByMaxPrice(rw http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	maxPriceStr := vars["maxPrice"]
+	maxPrice, err := strconv.Atoi(maxPriceStr)
+	if err != nil {
+		utils.WriteErrorResp(err.Error(), 500, "api/reservations/price/myprice/janko/mateja/aca/{maxPrice}", rw)
+		return
+	}
+	log.Println(maxPrice)
+	accommodations, erro := rh.ReservationService.GetAccommodationIDsByMaxPrice(maxPrice)
+	if erro != nil {
+		utils.WriteErrorResp(err.Error(), 500, "api/reservations/price/myprice/janko/mateja/aca/{maxPrice}", rw)
+		return
+	}
+
+	rw.Header().Set("Content-Type", "application/json")
+	utils.WriteResp(accommodations, http.StatusOK, rw)
+}
