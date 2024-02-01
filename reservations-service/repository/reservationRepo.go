@@ -600,9 +600,9 @@ func (rr *ReservationRepo) DeleteAvl(accommodationID, id, country string, price 
 
 }
 
-func (rr *ReservationRepo) GetAccommodationIDsByMaxPrice(maxPrice int) ([]string, error) {
+func (rr *ReservationRepo) GetAccommodationIDsByMaxPrice(maxPrice int) ([]string, *errors.ReservationError) {
 	scanner := rr.session.Query(`
-        SELECT accommodation_id FROM avl_by_price WHERE is_active = ? AND price < ?
+        SELECT accommodation_id FROM avl_by_price WHERE is_active = ? AND price <= ?
     `, true, maxPrice).Iter().Scanner()
 
 	var accommodationIDs []string
@@ -610,19 +610,15 @@ func (rr *ReservationRepo) GetAccommodationIDsByMaxPrice(maxPrice int) ([]string
 		var accommodationID string
 		err := scanner.Scan(&accommodationID)
 		if err != nil {
-
-			rr.logger.Println(err)
-			return nil, err
+			return nil, errors.NewReservationError(500, "Unable to retrive the data")
 		}
-		log.Println(accommodationID)
 		accommodationIDs = append(accommodationIDs, accommodationID)
-		log.Println(len(accommodationIDs))
 
 	}
 
-	if err := scanner.Err(); err != nil {
-		rr.logger.Println(err)
-		return nil, err
+	if erro := scanner.Err(); erro != nil {
+		rr.logger.Println(erro)
+		return nil, errors.NewReservationError(500, "Unable to retrive the data")
 	}
 	return accommodationIDs, nil
 }

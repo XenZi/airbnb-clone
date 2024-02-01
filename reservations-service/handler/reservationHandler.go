@@ -245,14 +245,13 @@ func (rh *ReservationHandler) GetAccommodationIDsByMaxPrice(rw http.ResponseWrit
 	maxPriceStr := vars["maxPrice"]
 	maxPrice, err := strconv.Atoi(maxPriceStr)
 	if err != nil {
-		http.Error(rw, "Invalid price parameter", http.StatusBadRequest)
+		utils.WriteErrorResp(err.Error(), 500, "api/reservations/price/myprice/janko/mateja/aca/{maxPrice}", rw)
 		return
 	}
 	log.Println(maxPrice)
-	accommodations, err := rh.ReservationService.GetAccommodationIDsByMaxPrice(maxPrice)
-	if err != nil {
-		log.Println(accommodations)
-		http.Error(rw, "", 500)
+	accommodations, erro := rh.ReservationService.GetAccommodationIDsByMaxPrice(maxPrice)
+	if erro != nil {
+		utils.WriteErrorResp(err.Error(), 500, "api/reservations/price/myprice/janko/mateja/aca/{maxPrice}", rw)
 		return
 	}
 

@@ -96,7 +96,7 @@ func main() {
 	router.HandleFunc("/{accommodationId}/{userId}", reservationsHandler.GetReservationsByAccommodationWithEndDate).Methods("GET")
 	router.HandleFunc("/host/{hostId}/{userId}", reservationsHandler.GetReservationsByHostWithEndDate).Methods("GET")
 	router.HandleFunc("/{accommodationId}/{id}/{country}/{price}", reservationsHandler.UpdateAvailability).Methods("POST")
-	router.HandleFunc("/price/myprice/janko/mateja/aca/{maxPrice}", reservationsHandler.GetAccommodationIDsByMaxPrice).Methods("GET")
+	router.HandleFunc("/price/myPrice/{maxPrice}", reservationsHandler.GetAccommodationIDsByMaxPrice).Methods("GET")
 
 	headersOk := gorillaHandlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"})
 	methodsOk := gorillaHandlers.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "OPTIONS", "DELETE"})
