@@ -1,60 +1,55 @@
 <app-header></app-header>
-
-    <div class="container">
-    <div class="profile">
-        <div class="profile__header">
-            <div class="profile__distinguished" *ngIf="user.role=='Host'">
-            <h2 class="profile__status" *ngIf="user.distinguished">Distinguished</h2>
+<div class="user-profile">
+  <div class="wrapper">
+    <div class="user-profile__container flex flex-row">
+      <div class="user-profile__card flex flex-row">
+        <div class="flex flex-row">
+          <div class="flex flex-col justify-center items-center">
+            <div class="user-profile__avatar">
+              <i class="fa-solid fa-user"></i>
             </div>
-            <h1 class="profile__name">{{user.firstName}} {{user.lastName}}</h1>
+            <h3 class="user-profile__fullname">
+              {{ user.firstName + " " + user.lastName }}
+            </h3>
+            <h3 class="user-profile__super">Superhost</h3>
+          </div>
         </div>
-        <div class="profile__info">
-            <div class="profile__info-item">
-                <span class="profile__label">ID:</span>
-                <span class="profile__value">{{user.id}}</span>
-            </div>
-            <div class="profile__info-item">
-                <span class="profile__label">First Name:</span>
-                <span class="profile__value">{{user.firstName}}</span>
-            </div>
-            <div class="profile__info-item">
-                <span class="profile__label">Last Name:</span>
-                <span class="profile__value">{{user.lastName}}</span>
-            </div>
-            <div class="profile__info-item">
-                <span class="profile__label">Email:</span>
-                <span class="profile__value">{{user.email}}</span>
-            </div>
-            <div class="profile__info-item">
-                <span class="profile__label">Residence:</span>
-                <span class="profile__value">{{user.residence}}</span>
-            </div>
-            <div class="profile__info-item">
-                <span class="profile__label">Role:</span>
-                <span class="profile__value">{{user.role}}</span>
-            </div>
-            <div class="profile__info-item">
-                <span class="profile__label">Username:</span>
-                <span class="profile__value">{{user.username}}</span>
-            </div>
-            <div class="profile__info-item">
-                <span class="profile__label">Age:</span>
-                <span class="profile__value">{{user.age}}</span>
-            </div>
-            <div class="profile__info-item" *ngIf="user.role=='Host'">
-                <span class="profile__label">Rating:</span>
-                <span class="profile__value">{{user.rating}}</span>
-            </div>
+        <div class="user-profile__small-stats flex flex-col justify-center">
+          <div class="flex flex-col user-profile__small-criteria-box">
+            <h4 class="user-profile__number">132</h4>
+            <h4 class="user-profile__criteria">Reviews</h4>
+          </div>
+          <div class="flex flex-col user-profile__small-criteria-box">
+            <h4 class="user-profile__number">{{ user.rating }}</h4>
+            <h4 class="user-profile__criteria">Rating</h4>
+          </div>
         </div>
+      </div>
+      <div class="user-profile__right flex-col">
+        <h2 class="user-profile__section-title">About {{ user.username }}</h2>
+        <ul class="user-profile__list">
+          <li class="user-profile__item">
+            <i class="fa-solid fa-globe user-profile__item-icon"></i>
+            <span class="user-profile__item-span">{{ user.residence }}</span>
+          </li>
+          <li class="user-profile__item">
+            <i class="fa-solid fa-circle-info user-profile__item-icon"></i>
+            <span class="user-profile__item-span">{{ user.age }}</span>
+          </li>
+          <li class="user-profile__item">
+            <i class="fa-solid fa-envelope user-profile__item-icon"></i>
+            <span class="user-profile__item-span">{{ user.email }}</span>
+          </li>
+        </ul>
+        <h2 class="user-profile__section-title">Ratings</h2>
+        <app-form-create-rating-for-user
+          [hostID]="this.profileID"
+          [userFromParent]="this.user"
+        ></app-form-create-rating-for-user>
+        <app-show-rates-for-user
+          [hostID]="this.profileID"
+        ></app-show-rates-for-user>
+      </div>
     </div>
-    <div *ngIf=true>
-        <app-button size="md" color="blue" class="update__button" type="submit" (click)="updateClick()">
-            Update Profile
-        </app-button>
-    </div>
-    <div *ngIf=true>
-        <app-button size="md" color="blue" class="update__button" type="submit" (click)="deleteClick()">
-            Delete Profile
-        </app-button>
-    </div>
-    </div>
+  </div>
+</div>

@@ -15,3 +15,19 @@ type BaseErrorHttpResponse struct {
 type BaseMessageResponse struct {
 	Message string `json:"message"`
 }
+
+type AccommodationDTO struct {
+	Id               string   `json:"id"`
+	UserId           string   `json:"userId" `
+	UserName         string   `json:"username" `
+	Email            string   `json:"email" bson:"email"`
+	Name             string   `json:"name" `
+	Address          string   `json:"address" `
+	City             string   `json:"city" `
+	Country          string   `json:"country" `
+	Conveniences     []string `json:"conveniences" `
+	MinNumOfVisitors int      `json:"minNumOfVisitors" `
+	MaxNumOfVisitors int      `json:"maxNumOfVisitors" `
+	ImageIds         []string `json:"imageIds"`
+	Rating           float32  `json:"rating"`
+}

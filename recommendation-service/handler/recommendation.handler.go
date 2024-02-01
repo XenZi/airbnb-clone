@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"log"
 	"net/http"
 	"recommendation-service/services"
 	"recommendation-service/utils"
@@ -25,7 +26,19 @@ func (rh RecommendationHandler) GetAllRecommendationsForUser(r http.ResponseWrit
 		utils.WriteErrorResp("Bad request", 400, "api/recommondations/host/"+id, r)
 		return
 	}
-	recommendations, err := rh.service.GetAllRecommendationsByUserID(id)
+	ctx := h.Context()
+	recommendations, err := rh.service.GetAllRecommendationsByUserID(ctx, id)
+	if err != nil {
+		utils.WriteErrorResp(err.GetErrorMessage(), err.GetErrorStatus(), "api/recommendations", r)
+		return
+	}
+	utils.WriteResp(recommendations, 200, r)
+}
+
+func (rh RecommendationHandler) GetAllRecommendationsByRating(r http.ResponseWriter, h *http.Request) {
+	log.Println("USLO")
+	ctx := h.Context()
+	recommendations, err := rh.service.GetAllRecommendationsByRating(ctx)
 	if err != nil {
 		utils.WriteErrorResp(err.GetErrorMessage(), err.GetErrorStatus(), "api/recommendations", r)
 		return

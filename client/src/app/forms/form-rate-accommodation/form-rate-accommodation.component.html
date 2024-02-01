@@ -1,0 +1,27 @@
+<form
+  action="#"
+  class="form-rate-accommodation"
+  *ngIf="this.doesUserHaveReservedThisInPast"
+>
+  <h2 class="h1 form-rate-accommodation__title">Rate Accommodation</h2>
+  <app-star-rating
+    [rating]="rating"
+    (ratingChange)="onRatingChanged($event)"
+  ></app-star-rating>
+  <div class="flex flex-row">
+    <app-button
+      size="sm"
+      color="blue"
+      class="form-rate-button"
+      (onClick)="rateAccommodation()"
+      >Rate</app-button
+    >
+    <app-button
+      size="sm"
+      color="rose"
+      class="form-rate-button"
+      (onClick)="deleteRating()"
+      >Delete</app-button
+    >
+  </div>
+</form>

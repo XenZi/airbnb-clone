@@ -58,13 +58,12 @@ func (rs RatingService) GetAllAccommodationRatings(id string) (*[]domains.RateAc
 	return resp, nil
 }
 
-func (rs RatingService) DeleteRatingForAccommodation(ctx context.Context, rating domains.RateAccommodation) (*domains.BaseMessageResponse, *errors.ErrorStruct) {
-	data, err := rs.repo.DeleteRatingByGuestAndAccommodation(rating)
+func (rs RatingService) DeleteRatingForAccommodation(ctx context.Context, accommodationID, guestID string) (*domains.BaseMessageResponse, *errors.ErrorStruct) {
+	data, err := rs.repo.DeleteRatingByGuestAndAccommodation(accommodationID, guestID)
 	if err != nil {
 		return nil, err
 	}
 	err = rs.accommodationClient.SendNewRatingForAccommodation(ctx, data.AvgRating, data.AccommodationID)
-
 	return &domains.BaseMessageResponse{
 		Message: "You have successfully deleted your rating for accommodation",
 	}, nil
@@ -104,16 +103,32 @@ func (rs RatingService) UpdateRatingForHostAndGuest(ctx context.Context, rateHos
 	return resp, nil
 }
 
-func (rs RatingService) DeleteRatingBetweenGuestAndHost(ctx context.Context, rateHost domains.RateHost) (*domains.BaseMessageResponse, *errors.ErrorStruct) {
-	newAvgRating, err := rs.repo.DeleteRatingByHostAndUser(rateHost)
+func (rs RatingService) DeleteRatingBetweenGuestAndHost(ctx context.Context, hostID, guestID string) (*domains.BaseMessageResponse, *errors.ErrorStruct) {
+	newAvgRating, err := rs.repo.DeleteRatingByHostAndUser(hostID, guestID)
 	if err != nil {
 		return nil, err
 	}
-	err = rs.userClient.SendNewRatingForUser(ctx, newAvgRating, rateHost.Host.ID)
+	err = rs.userClient.SendNewRatingForUser(ctx, newAvgRating, hostID)
 	if err != nil {
 		return nil, err
 	}
 	return &domains.BaseMessageResponse{
 		Message: "You have deleted your message successfully",
 	}, nil
+}
+
+func (rs RatingService) GetRatingByGuestForAccommodation(guestID, accommodation string) (*domains.RateAccommodation, *errors.ErrorStruct) {
+	rate, err := rs.repo.GetRatingByGuestForAccommodation(guestID, accommodation)
+	if err != nil {
+		return nil, err
+	}
+	return rate, nil
+}
+
+func (rs RatingService) GetRatingByGuestForHost(guestID, hostID string) (*domains.RateHost, *errors.ErrorStruct) {
+	rate, err := rs.repo.GetRatingByGuestForHost(guestID, hostID)
+	if err != nil {
+		return nil, err
+	}
+	return rate, nil
 }

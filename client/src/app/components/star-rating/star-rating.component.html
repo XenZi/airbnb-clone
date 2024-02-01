@@ -1,0 +1,14 @@
+<ul class="star-rating__list">
+  <li class="star-rating__item" *ngFor="let i of this.ratings">
+    <i
+      class="star-rating"
+      (click)="onStarClick($event, i)"
+      [ngClass]="{
+        'full-star': i <= rating,
+        'empty-star': i > rating,
+      }"
+    >
+      ★
+    </i>
+  </li>
+</ul>

@@ -111,8 +111,7 @@ func (u UserHandler) UpdateRating(rw http.ResponseWriter, h *http.Request) {
 		utils.WriteErrorResponse(erro.GetErrorMessage(), erro.GetErrorStatus(), "api/users/rating", rw)
 		return
 	}
-	rw.Header().Set("Content-Type", "application/json")
-	rw.WriteHeader(http.StatusNoContent)
+	utils.WriteResp(id, 200, rw)
 }
 
 func (u UserHandler) DeleteHandler(rw http.ResponseWriter, h *http.Request) {
@@ -126,6 +125,5 @@ func (u UserHandler) DeleteHandler(rw http.ResponseWriter, h *http.Request) {
 		utils.WriteErrorResponse(err.GetErrorMessage(), err.GetErrorStatus(), "api/delete", rw)
 		return
 	}
-	rw.Header().Set("Content-Type", "application/json")
-	rw.WriteHeader(http.StatusNoContent)
+	utils.WriteResp(id, 200, rw)
 }

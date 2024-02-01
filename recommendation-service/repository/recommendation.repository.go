@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"log"
 	"recommendation-service/domains"
 	"recommendation-service/errors"
 
@@ -53,6 +54,47 @@ func (rr RecommendationRepository) GetAllRecommendationsForUser(id string, pastT
 			for result.Next(ctx) {
 				record := result.Record()
 				accommodationID, _ := record.Get("accommodationId")
+				rating, _ := record.Get("avgRating")
+				recc := domains.Recommendation{
+					AccommodationID: accommodationID.(string),
+					Rating:          rating.(float64),
+				}
+				recommendations = append(recommendations, recc)
+			}
+
+			return recommendations, nil
+		})
+
+	if err != nil {
+		return nil, errors.NewError(err.Error(), 500)
+	}
+	return recommendedAccommodations.([]domains.Recommendation), nil
+}
+
+func (rr RecommendationRepository) GetAllRecommendationsByRating() ([]domains.Recommendation, *errors.ErrorStruct) {
+	ctx := context.Background()
+	session := rr.driver.NewSession(ctx, neo4j.SessionConfig{
+		DatabaseName: "neo4j",
+	})
+	defer session.Close(ctx)
+	recommendedAccommodations, err := session.ExecuteWrite(ctx,
+		func(transaction neo4j.ManagedTransaction) (any, error) {
+			result, err := transaction.Run(ctx,
+				`MATCH (a:Accommodation)<-[r:RATED]-()
+				WITH a, AVG(r.rate) AS averageRating
+				ORDER BY averageRating DESC
+				LIMIT 10
+				RETURN a.id AS accommodationId, averageRating AS avgRating
+				`,
+				map[string]any{})
+			if err != nil {
+				return nil, err
+			}
+			var recommendations []domains.Recommendation
+			for result.Next(ctx) {
+				record := result.Record()
+				accommodationID, _ := record.Get("accommodationId")
+				log.Println(accommodationID)
 				rating, _ := record.Get("avgRating")
 				recc := domains.Recommendation{
 					AccommodationID: accommodationID.(string),

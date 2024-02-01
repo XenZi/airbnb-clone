@@ -1,54 +1,120 @@
+// body {
+//     font-family:'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
 
-body {
-    font-family:'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
-   
-    margin: 0;
-    padding: 0;
+//     margin: 0;
+//     padding: 0;
+// }
+
+// .container {
+//     max-width: 1200px;
+//     margin: 20px auto;
+//     padding: 20px;
+
+// }
+
+// .profile {
+//     width: 80%;
+//     max-width: 600px;
+//     margin: 0 auto;
+// }
+
+// .profile__header {
+//     text-align: left;
+// }
+
+// .profile__name {
+//     margin-top: 10px;
+// }
+
+// .profile__info {
+//     margin-top: 20px;
+// }
+
+// .profile__info-item {
+//     margin-bottom: 10px;
+// }
+
+// .profile__label {
+//     font-weight: bold;
+//     margin-right: 10px;
+// }
+
+// .profile__value {
+//     color: #333;
+// }
+
+// .update__button {
+//     padding-top: 30px;
+//     display: block;
+//     margin: 0 auto;
+//     width: 150px;
+//     color: #000000;
+// }
+
+.user-profile__card {
+  box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
+  padding: 40px;
+  border-radius: 20px;
 }
 
-.container {
-    max-width: 1200px;
-    margin: 20px auto;
-    padding: 20px;
-    
+.user-profile__avatar i {
+  padding: 15px;
+  border: 1px solid black;
+  border-radius: 50%;
 }
 
-.profile {
-    width: 80%;
-    max-width: 600px;
-    margin: 0 auto;
+.user-profile__avatar {
+  margin-bottom: 10px;
+}
+.user-profile__fullname {
+  font-weight: 400;
+  font-size: 16px;
+  margin-bottom: 10px;
 }
 
-.profile__header {
-    text-align: left;
+.user-profile__super {
+  font-size: 18px;
+  font-weight: 700;
 }
 
-
-.profile__name {
-    margin-top: 10px;
+.user-profile__small-stats {
+  margin-left: 40px;
 }
 
-.profile__info {
-    margin-top: 20px;
+.user-profile__small-criteria-box {
+  padding: 10px;
+  border-bottom: 1px solid #c9c9c9;
 }
 
-.profile__info-item {
-    margin-bottom: 10px;
+.user-profile__number {
+  font-size: 16px;
+  font-weight: 600;
 }
 
-.profile__label {
-    font-weight: bold;
-    margin-right: 10px;
+.user-profile__criteria {
+  font-size: 12px;
+  font-weight: 400;
 }
 
-.profile__value {
-    color: #333;
+.user-profile__right {
+  margin-left: 30px;
 }
 
-.update__button {
-    padding-top: 30px;
-    display: block;
-    margin: 0 auto;
-    width: 150px;
-    color: #000000;
+.user-profile__section-title {
+  font-weight: 700;
+  margin-bottom: 20px;
+}
+
+.user-profile__list {
+  align-items: flex-end;
+  margin-bottom: 20px;
+}
+
+.user-profile__item {
+  margin-bottom: 10px;
+}
+
+.user-profile__item-icon {
+  margin-right: 10px;
+  color: #ff5977;
 }

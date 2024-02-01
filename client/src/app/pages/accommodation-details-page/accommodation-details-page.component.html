@@ -5,15 +5,19 @@
       <h1 class="accommodation-details__title">
         {{ accommodation.name }}
       </h1>
-      <app-accommodation-photos [imageIds]="accommodation.imageIds"></app-accommodation-photos>
+      <app-accommodation-photos
+        [imageIds]="accommodation.imageIds"
+      ></app-accommodation-photos>
       <div class="accommodation-details__row flex-row justify-between">
         <app-accommodation-details
           [accommodation]="accommodation"
         ></app-accommodation-details>
-        
-        
-        <app-reservation-form *ngIf="
-        this.isUserLogged && this.userLogged?.role == 'Guest'" [accommodation]="accommodation" [accommodationID]="accommodationID"></app-reservation-form>
+
+        <app-reservation-form
+          *ngIf="this.isUserLogged && this.userLogged?.role == 'Guest'"
+          [accommodation]="accommodation"
+          [accommodationID]="accommodationID"
+        ></app-reservation-form>
       </div>
       <div
         class="accommodation-details__row flex-row"
@@ -36,6 +40,14 @@
           >Delete</app-button
         >
       </div>
+    </div>
+    <div class="accommodation-details__ratings">
+      <app-form-rate-accommodation
+        [accommodationID]="accommodationID"
+      ></app-form-rate-accommodation>
+      <app-show-rates-for-accommodation
+        [accommodationID]="accommodationID"
+      ></app-show-rates-for-accommodation>
     </div>
   </div>
 </div>

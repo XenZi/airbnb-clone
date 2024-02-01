@@ -91,11 +91,7 @@ services:
     restart: always
     container_name: "accommodations-service"
     hostname: "accommodations-service"
-    ports:
-      # <port_on_local>:<port_in_machine>
-      - "8080:8080"
 
-    #Will be accessible through os.Getenv("PORT")
     environment:
       - PORT=8080
       - JWT_SECRET=${JWT_SECRET}
@@ -304,6 +300,78 @@ services:
     networks:
       - network
 
+  esdb:
+    image: eventstore/eventstore:23.10.0-bookworm-slim
+    environment:
+      - EVENTSTORE_CLUSTER_SIZE=1
+      - EVENTSTORE_RUN_PROJECTIONS=All
+      - EVENTSTORE_START_STANDARD_PROJECTIONS=true
+      - EVENTSTORE_EXT_TCP_PORT=1113
+      - EVENTSTORE_HTTP_PORT=2113
+      - EVENTSTORE_INSECURE=true
+      - EVENTSTORE_ENABLE_EXTERNAL_TCP=true
+      - EVENTSTORE_ENABLE_ATOM_PUB_OVER_HTTP=true
+    ports:
+      - "1113:1113"
+      - "2113:2113"
+    volumes:
+      - type: volume
+        source: eventstore-volume-data
+        target: /var/lib/eventstore
+      - type: volume
+        source: eventstore-volume-logs
+        target: /var/log/eventstore
+    networks:
+      - network
+
+  metrics-command:
+    image: metrics-command
+    container_name: metrics-command
+    hostname: ${COMMAND_SERVICE_HOST}
+    build:
+      context: .
+      dockerfile: ./metrics-command/Dockerfile
+    restart: always
+    environment:
+      PORT: ${COMMAND_SERVICE_PORT}
+      QUERY_SERVICE_HOST: ${QUERY_SERVICE_HOST}
+      QUERY_SERVICE_PORT: ${QUERY_SERVICE_PORT}
+      ESDB_USER: ${ESDB_USER}
+      ESDB_PASS: ${ESDB_PASS}
+      ESDB_HOST: ${ESDB_HOST}
+      ESDB_PORT: ${ESDB_PORT}
+    depends_on:
+      - esdb
+    networks:
+      - network
+
+  metrics_query:
+    image: metrics_query
+    container_name: metrics_query
+    hostname: ${QUERY_SERVICE_HOST}
+    build:
+      context: .
+      dockerfile: ./metrics_query/Dockerfile
+    restart: always
+    environment:
+      MONGO_DB_URI: ${MONGO_DB_URI}
+      PORT: ${QUERY_SERVICE_PORT}
+      QUERY_SERVICE_HOST: ${QUERY_SERVICE_HOST}
+      QUERY_SERVICE_PORT: ${QUERY_SERVICE_PORT}
+      ESDB_USER: ${ESDB_USER}
+      ESDB_PASS: ${ESDB_PASS}
+      ESDB_HOST: ${ESDB_HOST}
+      ESDB_PORT: ${ESDB_PORT}
+      ESDB_GROUP: ${ESDB_GROUP}
+    depends_on:
+      accommodation-db:
+        condition: service_healthy
+      esdb:
+        condition: service_healthy
+    networks:
+      - network
+
+
   api-gateway:
     build:
       context: ./api-gateway/
@@ -393,3 +461,5 @@ volumes:
   redis_data:
   auth_logs:
     driver: local
+  eventstore-volume-data:
+  eventstore-volume-logs:
