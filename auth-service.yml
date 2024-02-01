@@ -27,7 +27,7 @@ spec:
       containers:
         - name: auth-service
           image: auth-service
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Never
           ports:
             - containerPort: 8080
           env:
@@ -42,7 +42,7 @@ spec:
             - name: MAIL_SERVICE_HOST
               value: "mail-service"
             - name: MAIL_SERVICE_PORT
-              value: "25"
+              value: "8080"
             - name: USER_SERVICE_HOST
               value: "user-service"
             - name: USER_SERVICE_PORT
@@ -50,7 +50,7 @@ spec:
             - name: NOTIFICATION_SERVICE_HOST
               value: "notification-service"
             - name: NOTIFICATION_SERVICE_PORT
-              value: "80"
+              value: "8080"
           volumeMounts:
             - mountPath: /app/logs
               name: auth-logs

@@ -27,7 +27,7 @@ spec:
       containers:
         - name: accommodations-service
           image: accommodations-service
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Never
           ports:
             - containerPort: 8080
           env:

@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/gorilla/mux"
+	log "github.com/sirupsen/logrus"
 
 	gorillaHandlers "github.com/gorilla/handlers"
 	"github.com/sony/gobreaker"
@@ -14,6 +15,7 @@ import (
 	"os/signal"
 	"time"
 	"user-service/client"
+	"user-service/config"
 	"user-service/handler"
 	"user-service/middleware"
 	"user-service/repository"
@@ -24,7 +26,7 @@ import (
 func main() {
 	timeoutContext, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
-	logger := log.New(os.Stdout, "[user-api] ", log.LstdFlags)
+	logger := config.NewLogger("./logs/log.log")
 
 	//env
 
@@ -161,7 +163,7 @@ func main() {
 
 	//Try to shut down gracefully
 	if server.Shutdown(timeoutContext) != nil {
-		logger.Fatal("Cannot gracefully shutdown...")
+		logger.Fatalf("Cannot gracefully shutdown...")
 	}
 	logger.Println("Server stopped")
 

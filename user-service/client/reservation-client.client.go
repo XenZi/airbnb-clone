@@ -9,6 +9,7 @@ import (
 	"log"
 	"net/http"
 	"time"
+	"user-service/domain"
 	"user-service/errors"
 )
 
@@ -86,6 +87,39 @@ func (rc ReservationClient) UserDeleteAllowed(ctx context.Context, id, role stri
 	return true, nil
 }
 
+func (rc ReservationClient) getCanelRate(ctx context.Context, id string) (*bool, *errors.ErrorStruct) {
+	cbResp, err := rc.circuitBreaker.Execute(func() (interface{}, error) {
+		req, err := http.NewRequestWithContext(ctx, http.MethodGet, rc.address+"/percentage-cancelation/"+"/"+id, http.NoBody)
+		if err != nil {
+			return nil, err
+		}
+		return rc.client.Do(req)
+	})
+	if err != nil {
+		return nil, errors.NewError("internal error", 500)
+	}
+	resp := cbResp.(*http.Response)
+	if resp.StatusCode >= 200 && resp.StatusCode < 400 {
+		baseResp := domain.BaseHttpResponse{}
+		err := json.NewDecoder(resp.Body).Decode(&baseResp)
+		if err != nil {
+			return nil, errors.NewError(err.Error(), 500)
+		}
+		log.Println("Base resp valid", baseResp)
+		rateData := baseResp.Data.(float32)
+		rate := checkCancelationRate(rateData)
+		return &rate, nil
+	}
+	baseResp := domain.BaseErrorHttpResponse{}
+	err = json.NewDecoder(resp.Body).Decode(&baseResp)
+	if err != nil {
+		return nil, errors.NewError(err.Error(), 500)
+	}
+	log.Println(baseResp)
+	log.Println(baseResp.Error)
+	return nil, errors.NewError(baseResp.Error, baseResp.Status)
+}
+
 // TODO requirements lowered for easier examples
 func (rc ReservationClient) CheckDistinguished(ctx context.Context, id string) (bool, *errors.ErrorStruct) {
 	reqCounter := 0
@@ -93,6 +127,7 @@ func (rc ReservationClient) CheckDistinguished(ctx context.Context, id string) (
 	if err != nil {
 		return false, err
 	}
+	cancelLT, err := rc.getCanelRate(ctx, id)
 	numOfReservations, err := checkNumberOfPastReservations(list)
 	if err != nil {
 		return false, err
@@ -106,9 +141,8 @@ func (rc ReservationClient) CheckDistinguished(ctx context.Context, id string) (
 	if durOfReservations > 10 {
 		reqCounter += 1
 	}
-	cancelRate := checkCancelationRate()
 	// Req 3
-	if cancelRate <= 0.33 {
+	if *cancelLT {
 		reqCounter += 1
 	}
 	if reqCounter > 2 {
@@ -146,8 +180,9 @@ func checkPastReservationDuration(list []Reservation) int {
 }
 
 // TODO cancelation rate with reservations
-func checkCancelationRate() float64 {
-	rate := 0.03
-	log.Println("CANCELATION RATE: ", rate)
-	return rate
+func checkCancelationRate(resp float32) bool {
+	if resp <= 0.33 {
+		return true
+	}
+	return false
 }

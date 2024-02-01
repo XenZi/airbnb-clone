@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"auth-service/config"
 	"context"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -13,10 +14,10 @@ import (
 
 type UserRepository struct {
 	cli    *mongo.Client
-	logger *log.Logger
+	logger *config.Logger
 }
 
-func NewUserRepository(cli *mongo.Client, logger *log.Logger) *UserRepository {
+func NewUserRepository(cli *mongo.Client, logger *config.Logger) *UserRepository {
 	return &UserRepository{
 		cli:    cli,
 		logger: logger,
@@ -26,14 +27,17 @@ func (ur UserRepository) CreatUser(user domain.User) (*domain.User, *errors.Erro
 	userCollection := ur.cli.Database("user-service").Collection("users")
 	insertedUser, err := userCollection.InsertOne(context.TODO(), user)
 	if err != nil {
-		ur.logger.Println(err.Error())
 		err, status := errors.HandleInsertError(err, user)
 		if status == -1 {
 			status = 500
 		}
+		ur.logger.Error("Error while inserting new user", log.Fields{
+			"module": "database",
+			"error":  err.Error(),
+		})
 		return nil, errors.NewError(err.Error(), status)
 	}
-	ur.logger.Println("Inserted ID is %v", insertedUser)
+	ur.logger.Infof("Successfully inserted user with email: " + user.Email)
 	user.ID = insertedUser.InsertedID.(primitive.ObjectID)
 	return &user, nil
 }
