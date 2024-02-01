@@ -83,6 +83,16 @@ func (rr *ReservationRepo) CreateTables() {
 	if err != nil {
 		rr.logger.Println(err)
 	}
+	err = rr.session.Query(
+		fmt.Sprintf(`CREATE TABLE IF NOT EXISTS %s
+			(id UUID, accommodation_id text,  location text, price int, continent text, country text, date_range set<text>,
+			 PRIMARY KEY((price),id))
+			WITH CLUSTERING ORDER BY(id ASC)`, "avl_by_price")).Exec()
+
+	if err != nil {
+		rr.logger.Println(err)
+	}
+
 	err = rr.session.Query(fmt.Sprintf(`CREATE TABLE IF NOT EXISTS %s (
 		id UUID,
 		user_id text,
@@ -183,11 +193,12 @@ func (rr *ReservationRepo) DropTables() {
 	}
 
 	dropTable("reservations")
-	//	dropTable("free_accommodation")
+	dropTable("free_accommodation")
 	dropTable("reservation_by_user")
 	dropTable("reservation_by_host")
 	dropTable("reservation_by_accommodation")
 	dropTable("deleted_reservations")
+	dropTable("avl_by_price")
 
 }
 
@@ -259,15 +270,19 @@ func (rr *ReservationRepo) InsertAvailability(reservation *domain.FreeReservatio
 	}
 
 	for _, drwp := range reservation.DateRange {
+		batch := rr.session.NewBatch(gocql.LoggedBatch)
 		ID, _ := gocql.RandomUUID()
-		query := rr.session.Query(`
+		batch.Query(`
 				INSERT INTO free_accommodation (id, accommodation_id, location, price, continent, country, date_range)
 				VALUES(?, ?, ?, ?, ?, ?, ?)
 			`, ID, reservation.AccommodationID, reservation.Location, drwp.Price, continent, country, drwp.DateRange)
+		batch.Query(`
+				INSERT INTO avl_by_price (id, accommodation_id, location, price, continent, country, date_range)
+				VALUES(?, ?, ?, ?, ?, ?, ?)
+			`, ID, reservation.AccommodationID, reservation.Location, drwp.Price, continent, country, drwp.DateRange)
 
-		if err := query.Exec(); err != nil {
-			rr.logger.Println(err)
-			return nil, errors.NewReservationError(500, err.Error())
+		if err := rr.session.ExecuteBatch(batch); err != nil {
+			return nil, err
 		}
 
 	}
@@ -566,5 +581,21 @@ func (rr *ReservationRepo) GetReservationsByHostWithEndDate(hostID, userID strin
 	}
 
 	return reservations, nil
+
+}
+
+func (rr *ReservationRepo) DeleteAvl(accommodationID, id, country string, price int) (*domain.FreeReservation, error) {
+
+	batch := rr.session.NewBatch(gocql.LoggedBatch)
+
+	batch.Query(`DELETE FROM free_accommodation WHERE accommodation_id = ? AND country = ? AND id = ?`, accommodationID, country, id)
+	batch.Query(`DELETE FROM avl_by_price WHERE price = ? AND id = ?`, price, id)
+
+	if err := rr.session.ExecuteBatch(batch); err != nil {
+		rr.logger.Println(err)
+		return nil, errors.NewReservationError(500, "Unable to cancel the reservation")
+	}
+
+	return nil, nil
 
 }

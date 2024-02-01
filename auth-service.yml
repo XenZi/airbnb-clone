@@ -1,0 +1,59 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: auth-service
+spec:
+  selector:
+    app: auth-service
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: 8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: auth-service
+  template:
+    metadata:
+      labels:
+        app: auth-service
+    spec:
+      containers:
+        - name: auth-service
+          image: auth-service
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+          env:
+            - name: PORT
+              value: "8080"
+            - name: JWT_SECRET
+              value: "sadjkasdjhid32jd13ikd13"
+            - name: MONGO_DB_URI
+              value: "mongodb://root:pass@auth-db:27017"
+            - name: SECRET_KEY
+              value: "sadjkasdjkjksadljldksakjdlasjklsdalkj"
+            - name: MAIL_SERVICE_HOST
+              value: "mail-service"
+            - name: MAIL_SERVICE_PORT
+              value: "25"
+            - name: USER_SERVICE_HOST
+              value: "user-service"
+            - name: USER_SERVICE_PORT
+              value: "8080"
+            - name: NOTIFICATION_SERVICE_HOST
+              value: "notification-service"
+            - name: NOTIFICATION_SERVICE_PORT
+              value: "80"
+          volumeMounts:
+            - mountPath: /app/logs
+              name: auth-logs
+      volumes:
+        - name: auth-logs
+          emptyDir: {}
