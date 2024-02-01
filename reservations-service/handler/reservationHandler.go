@@ -142,7 +142,7 @@ func (rh ReservationHandler) ReservationsInDateRangeHandler(w http.ResponseWrite
 		return
 	}
 
-	reservations, erro := rh.ReservationService.ReservationsInDateRange(request.AccommodationIDs, request.DateRange)
+	reservations, erro := rh.ReservationService.ProcessDateRange(request.AccommodationIDs, request.DateRange)
 	log.Println(reservations)
 	if erro != nil {
 		utils.WriteErrorResp(erro.Error(), 500, "api/reservations/accommodations", w)
