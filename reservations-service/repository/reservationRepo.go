@@ -622,3 +622,37 @@ func (rr *ReservationRepo) GetAccommodationIDsByMaxPrice(maxPrice int) ([]string
 	}
 	return accommodationIDs, nil
 }
+
+func (rr *ReservationRepo) AvailabilityNotInDateRange(accommodationIDs []string, dateRange []string) ([]string, *errors.ReservationError) {
+	uniqueAccommodationIDs := make(map[string]struct{})
+
+	for _, accommodationID := range accommodationIDs {
+		query := `SELECT accommodation_id FROM free_accommodation WHERE accommodation_id = ? AND date_range CONTAINS ?`
+
+		isInDateRange := false
+
+		for _, date := range dateRange {
+			iter := rr.session.Query(query, accommodationID, date).Iter()
+
+			var result string
+			if iter.Scan(&result) {
+				isInDateRange = true
+			}
+
+			if err := iter.Close(); err != nil {
+				rr.logger.Println(err)
+				return nil, errors.NewReservationError(500, "Unable to retrieve availability, database error")
+			}
+		}
+		if !isInDateRange {
+			uniqueAccommodationIDs[accommodationID] = struct{}{}
+		}
+	}
+
+	result := make([]string, 0, len(uniqueAccommodationIDs))
+	for key := range uniqueAccommodationIDs {
+		result = append(result, key)
+	}
+
+	return result, nil
+}

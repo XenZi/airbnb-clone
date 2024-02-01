@@ -79,13 +79,35 @@ func (s *ReservationService) GetReservationsByHost(hostID string) ([]domain.Rese
 	return reservations, nil
 }
 
-func (s *ReservationService) ReservationsInDateRange(accommodationIDs []string, dateRange []string) ([]string, *errors.ReservationError) {
-	reservations, err := s.repo.ReservationsInDateRange(accommodationIDs, dateRange)
+func (s *ReservationService) ProcessDateRange(accommodationIDs []string, dateRange []string) ([]string, *errors.ReservationError) {
+	uniqueAccommodations := make(map[string]struct{})
+
+	reservedAccommodations, err := s.repo.ReservationsInDateRange(accommodationIDs, dateRange)
 	if err != nil {
 		return nil, err
 	}
-	return reservations, nil
+
+	for _, accommodation := range reservedAccommodations {
+		uniqueAccommodations[accommodation] = struct{}{}
+	}
+
+	availableAccommodations, err := s.repo.AvailabilityNotInDateRange(accommodationIDs, dateRange)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, accommodation := range availableAccommodations {
+		uniqueAccommodations[accommodation] = struct{}{}
+	}
+
+	result := make([]string, 0, len(uniqueAccommodations))
+	for key := range uniqueAccommodations {
+		result = append(result, key)
+	}
+
+	return result, nil
 }
+
 func (s *ReservationService) GetAvailableDates(accommodationID string, dateRange []string) ([]domain.FreeReservation, *errors.ReservationError) {
 	reservations, err := s.repo.AvailableDates(accommodationID, dateRange)
 	if err != nil {
