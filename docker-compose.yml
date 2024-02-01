@@ -433,9 +433,9 @@ services:
           "CMD-SHELL",
           "echo RETURN 1 | cypher-shell -a bolt://neo4j:7687 -u neo4j -p nekasifrabrateu || exit 1",
         ]
-      interval: 20s
-      timeout: 20s
-      retries: 20
+      interval: 15s
+      timeout: 15s
+      retries: 30
     environment:
       - NEO4J_AUTH=neo4j/nekasifrabrateu
     volumes:

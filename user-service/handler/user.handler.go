@@ -76,6 +76,7 @@ func (u UserHandler) GetAllHandler(rw http.ResponseWriter, h *http.Request) {
 func (u UserHandler) GetUserById(rw http.ResponseWriter, h *http.Request) {
 	vars := mux.Vars(h)
 	id := vars["id"]
+	log.Println("Id koji preuzimam iz urla je,", id)
 	user, hostUser, err := u.UserService.GetUserById(id)
 	if err != nil {
 		utils.WriteErrorResponse(err.GetErrorMessage(), err.GetErrorStatus(), "api/get-user", rw)

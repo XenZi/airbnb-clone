@@ -56,15 +56,17 @@ func (uc UserClient) GetUserById(ctx context.Context, id string) (*HostUser, *er
 
 	resp := cbResp.(*http.Response)
 	if resp.StatusCode >= 200 && resp.StatusCode < 400 {
-		// Decode the response body into HostUser struct
-		var user HostUser
-		err := json.NewDecoder(resp.Body).Decode(&user)
+
+		baseResp := domain.BaseHttpResponse{}
+		err := json.NewDecoder(resp.Body).Decode(&baseResp)
 		if err != nil {
 			return nil, errors.NewError(err.Error(), 500)
 		}
+		log.Println("BASE RESP JE", baseResp)
+		userFromResp := baseResp.Data.(HostUser)
 
-		log.Println("User je", &user)
-		return &user, nil
+		log.Println("User je", userFromResp)
+		return &userFromResp, nil
 	}
 
 	baseResp := domain.BaseErrorHttpResponse{}
