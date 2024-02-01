@@ -78,7 +78,6 @@ func (rc ReservationsClient) SendCreatedReservationsAvailabilities(ctx context.C
 	log.Println(baseResp.Error)
 	return errors.NewError(baseResp.Error, baseResp.Status)
 
-	return errors.NewError("Nothing to parse", 500)
 }
 
 func (rc ReservationsClient) CheckAvailabilityForAccommodations(ctx context.Context, accommodationIDs []string, dateRange []string) ([]string, *errors.ErrorStruct) {

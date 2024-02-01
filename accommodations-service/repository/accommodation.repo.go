@@ -229,10 +229,10 @@ func (ar *AccommodationRepo) DeleteAccommodationsByUserId(id string) *errors.Err
 	return nil
 }
 
-func (ar *AccommodationRepo) SearchAccommodations(city, country string, numOfVisitors int, minPrice int, maxPrice int, conveniences []string) ([]do.Accommodation, *errors.ErrorStruct) {
+func (ar *AccommodationRepo) SearchAccommodations(city, country string, numOfVisitors int, maxPrice int, conveniences []string) ([]do.Accommodation, *errors.ErrorStruct) {
 	accommodationCollection := ar.cli.Database("accommodations-service").Collection("accommodations")
 	filter := bson.M{}
-	log.Println("minimalnaCijena", minPrice)
+
 	log.Println("maximalnaCijena", maxPrice)
 	log.Println("convies", conveniences)
 	// Build the filter based on the provided parameters

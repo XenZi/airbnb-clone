@@ -103,6 +103,8 @@ services:
       - MONGO_DB_URI=mongodb://root:pass@accommodation-db:27017
       - RESERVATIONS_SERVICE_HOST=${RESERVATIONS_SERVICE_HOST}
       - RESERVATIONS_SERVICE_PORT=${RESERVATIONS_SERVICE_PORT}
+      - USER_SERVICE_HOST=${USER_SERVICE_HOST}
+      - USER_SERVICE_PORT=${USER_SERVICE_PORT}
       - HDFS_URI=namenode:9000
       - REDIS_HOST=${REDIS_HOST}
       - REDIS_PORT=${REDIS_PORT}
@@ -363,9 +365,9 @@ services:
           "CMD-SHELL",
           "echo RETURN 1 | cypher-shell -a bolt://neo4j:7687 -u neo4j -p nekasifrabrateu || exit 1",
         ]
-      interval: 5s
-      timeout: 5s
-      retries: 10
+      interval: 20s
+      timeout: 20s
+      retries: 20
     environment:
       - NEO4J_AUTH=neo4j/nekasifrabrateu
     volumes:

@@ -18,15 +18,17 @@ type AccommodationService struct {
 	accommodationRepository *repository.AccommodationRepo
 	validator               *utils.Validator
 	reservationsClient      *client.ReservationsClient
+	userClient              *client.UserClient
 	fileStorage             *repository.FileStorage
 	cache                   *repository.ImageCache
 }
 
-func NewAccommodationService(accommodationRepo *repository.AccommodationRepo, validator *utils.Validator, reservationsClient *client.ReservationsClient, fileStorage *repository.FileStorage, cache *repository.ImageCache) *AccommodationService {
+func NewAccommodationService(accommodationRepo *repository.AccommodationRepo, validator *utils.Validator, reservationsClient *client.ReservationsClient, userClient *client.UserClient, fileStorage *repository.FileStorage, cache *repository.ImageCache) *AccommodationService {
 	return &AccommodationService{
 		accommodationRepository: accommodationRepo,
 		validator:               validator,
 		reservationsClient:      reservationsClient,
+		userClient:              userClient,
 		fileStorage:             fileStorage,
 		cache:                   cache,
 	}
@@ -269,38 +271,112 @@ func (as *AccommodationService) PutAccommodationRating(accommodationID string, a
 	return nil
 }
 
-func (as *AccommodationService) SearchAccommodations(city, country string, numOfVisitors int, startDate string, endDate string, minPrice int, maxPrice int, conveniences []string, isDistinguished string, ctx context.Context) ([]domain.Accommodation, *errors.ErrorStruct) {
+func (as *AccommodationService) SearchAccommodations(city, country string, numOfVisitors int, startDate string, endDate string, maxPrice int, conveniences []string, isDistinguishedString string, ctx context.Context) ([]domain.Accommodation, *errors.ErrorStruct) {
 	log.Println("USLO U SERVIS")
-	accommodations, err := as.accommodationRepository.SearchAccommodations(city, country, numOfVisitors, minPrice, maxPrice, conveniences)
+	isDistinguished := false
+	if isDistinguishedString == "true" {
+		isDistinguished = true
+	}
+
+	log.Println("Start date", startDate)
+	log.Println("EndDate", endDate)
+	log.Println("Max Price", maxPrice)
+	log.Println("isDistinguished", isDistinguished)
+
+	accommodations, err := as.accommodationRepository.SearchAccommodations(city, country, numOfVisitors, maxPrice, conveniences)
 	if err != nil {
 		// Handle the error returned by the repository
 		return nil, errors.NewError("Failed to find accommodations", 500) // Modify according to your error handling approach
 	}
 	var accommodationIDs []string
+
 	for _, acc := range accommodations {
 		accommodationIDs = append(accommodationIDs, acc.Id.Hex())
+
 	}
 	log.Println(accommodationIDs)
-	if startDate == "" || endDate == "" {
+	if startDate == "" && endDate == "" && isDistinguished == false && maxPrice == 0 {
 		return accommodations, nil
 	}
-	dateRange, err := generateDateRange(startDate, endDate)
-	if err != nil {
-		// Handle the error returned by the repository
-		return nil, errors.NewError("Failed to generate dateRange", 500) // Modify according to your error handling approach
-	}
-	log.Println("dateRange je", dateRange)
 
-	reservedIDs, err := as.reservationsClient.CheckAvailabilityForAccommodations(ctx, accommodationIDs, dateRange)
-	if err != nil {
-		return nil, errors.NewError("Failed to get reserved ids ", 500)
-	}
-	log.Println("Reservisani idevi", reservedIDs)
-	log.Println("Sve nadjene akomodacije", accommodations)
-	filteredAccommodations := removeAccommodations(accommodations, reservedIDs)
-	log.Println("filtrirane akomodacije", filteredAccommodations)
+	if startDate != "" || endDate != "" && isDistinguished == false && maxPrice == 0 {
 
-	return filteredAccommodations, nil
+		dateRange, err := generateDateRange(startDate, endDate)
+		if err != nil {
+			// Handle the error returned by the repository
+			return nil, errors.NewError("Failed to generate dateRange", 500) // Modify according to your error handling approach
+		}
+		log.Println("dateRange je", dateRange)
+
+		reservedIDs, err := as.reservationsClient.CheckAvailabilityForAccommodations(ctx, accommodationIDs, dateRange)
+		if err != nil {
+			return nil, errors.NewError("Failed to get reserved ids ", 500)
+		}
+		log.Println("Reservisani idevi", reservedIDs)
+		log.Println("Sve nadjene akomodacije", accommodations)
+		filteredAccommodations := removeAccommodations(accommodations, reservedIDs)
+		return filteredAccommodations, nil
+	}
+
+	if startDate != "" && endDate != "" && isDistinguished == true && maxPrice == 0 {
+
+		dateRange, err := generateDateRange(startDate, endDate)
+		if err != nil {
+			// Handle the error returned by the repository
+			return nil, errors.NewError("Failed to generate dateRange", 500) // Modify according to your error handling approach
+		}
+
+		reservedIDs, err := as.reservationsClient.CheckAvailabilityForAccommodations(ctx, accommodationIDs, dateRange)
+		if err != nil {
+			return nil, errors.NewError("Failed to get reserved ids ", 500)
+		}
+		log.Println("Reservisani idevi", reservedIDs)
+		log.Println("Sve nadjene akomodacije", accommodations)
+		filteredAccommodations := removeAccommodations(accommodations, reservedIDs)
+
+		var distFiltered []domain.Accommodation
+
+		for _, acc := range filteredAccommodations {
+			user, _ := as.userClient.GetUserById(ctx, acc.UserId)
+			log.Println("User je", user)
+
+			if user.Distinguished == true {
+
+				distFiltered = append(distFiltered, acc)
+			}
+		}
+		log.Println("Akomodacije sa distinguished likovima su", distFiltered)
+		return distFiltered, nil
+
+	}
+
+	if startDate == "" && endDate == "" && isDistinguished == true && maxPrice == 0 {
+		log.Println("USLO JE GDJE TREBA")
+
+		var distFiltered []domain.Accommodation
+		log.Println("Sve akomodacije", accommodations)
+
+		for _, acc := range accommodations {
+			log.Println("UserId:", acc.UserId)
+			user, err := as.userClient.GetUserById(ctx, acc.UserId)
+			log.Println("User je", user)
+			if err != nil {
+				log.Println("Error getting user:", err)
+				// Handle the error if needed
+				continue
+			}
+
+			if user != nil && user.Distinguished == true {
+				distFiltered = append(distFiltered, acc)
+			}
+		}
+
+		log.Println("Akomodacije sa distinguished likovima su", distFiltered)
+		return distFiltered, nil
+	}
+
+	return nil, errors.NewError("Failed to return anything", 500)
+
 }
 
 func removeAccommodations(accommodations []domain.Accommodation, accommodationIDs []string) []domain.Accommodation {

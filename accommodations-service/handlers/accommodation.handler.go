@@ -246,18 +246,14 @@ func (a *AccommodationsHandler) SearchAccommodations(w http.ResponseWriter, r *h
 
 	startDate := r.URL.Query().Get("startDate")
 	endDate := r.URL.Query().Get("endDate")
+	log.Println(startDate, endDate)
 
-	minPriceString := r.URL.Query().Get("minPrice")
 	maxPriceString := r.URL.Query().Get("maxPrice")
 
-	if minPriceString == "" {
-		minPriceString = "0"
-	}
 	if maxPriceString == "" {
-		maxPriceString = "10000"
+		maxPriceString = "0"
 	}
 
-	minPrice, err := strconv.Atoi(minPriceString)
 	maxPrice, err := strconv.Atoi(maxPriceString)
 
 	conveniencesCsv := r.URL.Query().Get("conveniences")
@@ -267,13 +263,14 @@ func (a *AccommodationsHandler) SearchAccommodations(w http.ResponseWriter, r *h
 		conveniences = strings.Split(conveniencesCsv, ",")
 	}
 
-	isDistinguished := r.URL.Query().Get("isDistinguished")
+	isDistinguishedString := r.URL.Query().Get("isDistinguished")
+	log.Println("Is distinguished string", isDistinguishedString)
 
 	// Handle empty dateRange as needed
 
 	ctx, cancel := context.WithTimeout(r.Context(), time.Second*5)
 	defer cancel()
-	accommodations, errS := a.AccommodationService.SearchAccommodations(city, country, numOfVisitors, startDate, endDate, minPrice, maxPrice, conveniences, isDistinguished, ctx)
+	accommodations, errS := a.AccommodationService.SearchAccommodations(city, country, numOfVisitors, startDate, endDate, maxPrice, conveniences, isDistinguishedString, ctx)
 
 	if errS != nil {
 		utils.WriteErrorResp(errS.GetErrorMessage(), http.StatusInternalServerError, "api/accommodations/BILOSTA", w)
