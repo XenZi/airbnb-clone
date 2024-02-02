@@ -27,7 +27,9 @@ func NewUserRepository(cli *mongo.Client, logger *config.Logger, tracer trace.Tr
 	}
 }
 
-func (u UserRepository) SaveUser(user domains.User) (*domains.User, *errors.ErrorStruct) {
+func (u UserRepository) SaveUser(ctx context.Context, user domains.User) (*domains.User, *errors.ErrorStruct) {
+	ctx, span := u.tracer.Start(ctx, "UserService.SaveUser")
+	defer span.End()
 	userCollection := u.cli.Database("auth").Collection("user")
 	insertedUser, err := userCollection.InsertOne(context.TODO(), user)
 	if err != nil {

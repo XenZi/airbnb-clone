@@ -17,6 +17,8 @@ import (
 	"time"
 
 	log "github.com/sirupsen/logrus"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/propagation"
 
 	gorillaHandlers "github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
@@ -88,7 +90,13 @@ func main() {
 	notificationClient := client.NewNotificationClient(notificationServiceHost, notificationServicePort, customNotificationServiceClient, notificationServiceCircuitBreaker)
 	// services
 	tracerConfig := tracing.GetConfig()
-	tracing, err := tracing.NewTracerManager(tracerConfig.JaegerAddress)
+	tracerProvider, err := tracing.NewTracerProvider("auth-service", tracerConfig.JaegerAddress)
+	if err != nil {
+		log.Fatal("JaegerTraceProvider failed to Initialize", err)
+	}
+	tracer := tracerProvider.Tracer("auth-service")
+
+	otel.SetTextMapPropagator(propagation.TraceContext{})
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -98,15 +106,16 @@ func main() {
 	}
 	validator := utils.NewValidator()
 	userRepo := repository.NewUserRepository(
-		mongoService.GetCli(), logger, tracing.Tracer())
+		mongoService.GetCli(), logger, tracer)
 	passwordService := services.NewPasswordService()
 
 	keyByte := []byte(jwtSecretKey)
 	jwtService := services.NewJWTService(keyByte)
 	encryptionService := &services.EncryptionService{SecretKey: secretKey}
-	userService := services.NewUserService(userRepo, passwordService, jwtService, validator, encryptionService, mailClient, userClient, notificationClient, tracing.Tracer())
+	userService := services.NewUserService(userRepo, passwordService, jwtService, validator, encryptionService, mailClient, userClient, notificationClient, tracer)
 	authHandler := handler.AuthHandler{
 		UserService: userService,
+		Tracer:      tracer,
 	}
 	accessControl := security.NewAccessControl()
 	err = accessControl.LoadAccessConfig("./security/rbac.json")

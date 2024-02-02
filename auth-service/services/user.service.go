@@ -47,6 +47,8 @@ func NewUserService(userRepo *repository.UserRepository,
 	}
 }
 func (u *UserService) CreateUser(ctx context.Context, registerUser domains.RegisterUser) (*domains.UserDTO, *errors.ErrorStruct) {
+	ctx, span := u.tracer.Start(ctx, "UserService.CreateUser")
+	defer span.End()
 	u.validator.ValidateRegisterUser(&registerUser)
 	validatorErrors := u.validator.GetErrors()
 	if len(validatorErrors) > 0 {
@@ -71,7 +73,7 @@ func (u *UserService) CreateUser(ctx context.Context, registerUser domains.Regis
 		return nil, errors.NewError(err.Error(), 500)
 	}
 	user.Password = hashedPassword
-	newUser, foundErr := u.userRepository.SaveUser(user)
+	newUser, foundErr := u.userRepository.SaveUser(ctx, user)
 	if foundErr != nil {
 		return nil, foundErr
 	}

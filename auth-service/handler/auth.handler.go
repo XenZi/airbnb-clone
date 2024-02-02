@@ -38,14 +38,16 @@ func (a AuthHandler) LoginHandler(rw http.ResponseWriter, h *http.Request) {
 }
 
 func (a AuthHandler) RegisterHandler(r http.ResponseWriter, h *http.Request) {
+	ctx, cancel := context.WithTimeout(h.Context(), time.Second*3)
+	defer cancel()
+	ctx, span := a.Tracer.Start(ctx, "AuthHandler.Register")
+	defer span.End()
 	decoder := json.NewDecoder(h.Body)
 	decoder.DisallowUnknownFields()
 	var registerData domains.RegisterUser
 	if err := decoder.Decode(&registerData); err != nil {
 		utils.WriteErrorResp("Internal server error", 500, "api/login", r)
 	}
-	ctx, cancel := context.WithTimeout(h.Context(), time.Second*3)
-	defer cancel()
 	userData, err := a.UserService.CreateUser(ctx, registerData)
 	log.Println("E$RROR IN HANDL:ER", err)
 	if err != nil {
