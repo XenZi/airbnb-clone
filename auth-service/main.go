@@ -8,6 +8,7 @@ import (
 	"auth-service/repository"
 	"auth-service/security"
 	"auth-service/services"
+	"auth-service/tracing"
 	"auth-service/utils"
 	"context"
 	"net/http"
@@ -86,19 +87,24 @@ func main() {
 
 	notificationClient := client.NewNotificationClient(notificationServiceHost, notificationServicePort, customNotificationServiceClient, notificationServiceCircuitBreaker)
 	// services
+	tracerConfig := tracing.GetConfig()
+	tracing, err := tracing.NewTracerManager(tracerConfig.JaegerAddress)
+	if err != nil {
+		log.Fatal(err)
+	}
 	mongoService, err := services.New(timeoutContext, logger)
 	if err != nil {
 		log.Fatal(err)
 	}
 	validator := utils.NewValidator()
 	userRepo := repository.NewUserRepository(
-		mongoService.GetCli(), logger)
+		mongoService.GetCli(), logger, tracing.Tracer())
 	passwordService := services.NewPasswordService()
 
 	keyByte := []byte(jwtSecretKey)
 	jwtService := services.NewJWTService(keyByte)
 	encryptionService := &services.EncryptionService{SecretKey: secretKey}
-	userService := services.NewUserService(userRepo, passwordService, jwtService, validator, encryptionService, mailClient, userClient, notificationClient)
+	userService := services.NewUserService(userRepo, passwordService, jwtService, validator, encryptionService, mailClient, userClient, notificationClient, tracing.Tracer())
 	authHandler := handler.AuthHandler{
 		UserService: userService,
 	}

@@ -11,13 +11,17 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
+	"go.opentelemetry.io/otel/trace"
 )
 
 type AuthHandler struct {
 	UserService *services.UserService
+	Tracer      trace.Tracer
 }
 
 func (a AuthHandler) LoginHandler(rw http.ResponseWriter, h *http.Request) {
+	ctx, span := a.Tracer.Start(h.Context(), "AuthHandler.Login")
+	defer span.End()
 	decoder := json.NewDecoder(h.Body)
 	decoder.DisallowUnknownFields()
 	var loginData domains.LoginUser
@@ -25,7 +29,7 @@ func (a AuthHandler) LoginHandler(rw http.ResponseWriter, h *http.Request) {
 		utils.WriteErrorResp(err.Error(), 500, "api/login", rw)
 		return
 	}
-	jwtToken, err := a.UserService.LoginUser(loginData)
+	jwtToken, err := a.UserService.LoginUser(ctx, loginData)
 	if err != nil {
 		utils.WriteErrorResp(err.GetErrorMessage(), err.GetErrorStatus(), "api/login", rw)
 		return
@@ -40,10 +44,10 @@ func (a AuthHandler) RegisterHandler(r http.ResponseWriter, h *http.Request) {
 	if err := decoder.Decode(&registerData); err != nil {
 		utils.WriteErrorResp("Internal server error", 500, "api/login", r)
 	}
-	ctx, cancel := context.WithTimeout(h.Context(), time.Second * 3)
+	ctx, cancel := context.WithTimeout(h.Context(), time.Second*3)
 	defer cancel()
 	userData, err := a.UserService.CreateUser(ctx, registerData)
-	log.Println("E$RROR IN HANDL:ER", err);
+	log.Println("E$RROR IN HANDL:ER", err)
 	if err != nil {
 		utils.WriteErrorResp(err.GetErrorMessage(), err.GetErrorStatus(), "api/register", r)
 		return
@@ -60,7 +64,7 @@ func (a AuthHandler) ConfirmAccount(r http.ResponseWriter, h *http.Request) {
 	}
 	user, err := a.UserService.ConfirmUserAccount(token)
 	if err != nil {
-		utils.WriteErrorResp(err.GetErrorMessage(), err.GetErrorStatus(), "api/confirm-account",r)
+		utils.WriteErrorResp(err.GetErrorMessage(), err.GetErrorStatus(), "api/confirm-account", r)
 		return
 	}
 	utils.WriteResp(user, 200, r)
@@ -82,7 +86,7 @@ func (a AuthHandler) RequestResetPassword(r http.ResponseWriter, h *http.Request
 	utils.WriteResp(res, 200, r)
 }
 
-func (a AuthHandler) ResetPassword(r http.ResponseWriter, h  *http.Request) {
+func (a AuthHandler) ResetPassword(r http.ResponseWriter, h *http.Request) {
 	vars := mux.Vars(h)
 	token := vars["token"]
 	if token == "" {
@@ -97,7 +101,7 @@ func (a AuthHandler) ResetPassword(r http.ResponseWriter, h  *http.Request) {
 		return
 	}
 	user, err := a.UserService.ResetPassword(requestData, token)
-	if err != nil { 
+	if err != nil {
 		utils.WriteErrorResp(err.GetErrorMessage(), err.GetErrorStatus(), "api/reset-password", r)
 		return
 	}
@@ -130,7 +134,7 @@ func (a AuthHandler) UpdateCredentials(r http.ResponseWriter, h *http.Request) {
 		return
 	}
 	userID := h.Context().Value("userID").(string)
-	ctx, cancel := context.WithTimeout(h.Context(), time.Second * 5)
+	ctx, cancel := context.WithTimeout(h.Context(), time.Second*5)
 	defer cancel()
 	res, err := a.UserService.UpdateCredentials(ctx, userID, requestData)
 	if err != nil {
