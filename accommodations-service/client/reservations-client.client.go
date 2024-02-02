@@ -155,3 +155,70 @@ func (rc ReservationsClient) CheckAvailabilityForAccommodations(ctx context.Cont
 	}
 
 }
+
+func (rc ReservationsClient) GetAccommodationsBelowPrice(ctx context.Context, maxPrice int) ([]string, *errors.ErrorStruct) {
+	log.Println("Entering GetAccommodationsBelowPrice")
+
+	// Build the request URL with the max price
+	url := fmt.Sprintf("%s/price/myPrice/%d", rc.address, maxPrice)
+
+	cbResp, err := rc.circuitBreaker.Execute(func() (interface{}, error) {
+		req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+		if err != nil {
+			log.Println(err)
+			return nil, err
+		}
+		req.Header.Set("Content-Type", "application/json")
+
+		return rc.client.Do(req)
+	})
+
+	if err != nil {
+		return nil, errors.NewError("Internal server error", http.StatusInternalServerError)
+	}
+
+	response := cbResp.(*http.Response)
+	log.Println("Response received:", response)
+
+	if response.StatusCode == http.StatusOK {
+		resp := domain.BaseHttpResponse{}
+		err := json.NewDecoder(response.Body).Decode(&resp)
+		if err != nil {
+			return nil, errors.NewError("Error decoding JSON", http.StatusInternalServerError)
+		}
+
+		if resp.Data == nil {
+			var stringSlice []string
+			// Use stringSlice or return it as needed
+			return stringSlice, nil
+		}
+
+		log.Println(resp.Data)
+		dataSlice, ok := resp.Data.([]interface{})
+		if !ok {
+			fmt.Println("Data is not a []interface{}")
+			return nil, errors.NewError("Error slicing", http.StatusInternalServerError)
+		}
+
+		stringSlice := make([]string, len(dataSlice))
+		for i, item := range dataSlice {
+			if str, isString := item.(string); isString {
+				stringSlice[i] = str
+			} else {
+				fmt.Printf("Element at index %d is not a string\n", i)
+			}
+		}
+
+		log.Println("Accommodations below price:", stringSlice)
+		return stringSlice, nil
+	} else {
+		resp := domain.BaseErrorHttpResponse{}
+		err := json.NewDecoder(response.Body).Decode(&resp)
+		if err != nil {
+			return nil, errors.NewError("Error decoding JSON", http.StatusInternalServerError)
+		}
+
+		log.Println(resp)
+		return nil, errors.NewError(resp.Error, resp.Status)
+	}
+}

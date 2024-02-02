@@ -299,7 +299,7 @@ func (as *AccommodationService) SearchAccommodations(city, country string, numOf
 		return accommodations, nil
 	}
 
-	if startDate != "" || endDate != "" && isDistinguished == false && maxPrice == 0 {
+	if startDate != "" && endDate != "" && isDistinguished == false && maxPrice == 0 {
 
 		dateRange, err := generateDateRange(startDate, endDate)
 		if err != nil {
@@ -375,8 +375,111 @@ func (as *AccommodationService) SearchAccommodations(city, country string, numOf
 		return distFiltered, nil
 	}
 
+	if startDate == "" && endDate == "" && isDistinguished == false && maxPrice != 0 {
+		accBelowPrice, err := as.reservationsClient.GetAccommodationsBelowPrice(ctx, maxPrice)
+		if err != nil {
+			// Handle the error returned by the repository
+			return nil, errors.NewError("Failed to get accommodations from reservations service", 500) // Modify according to your error handling approach
+		}
+		filteredAccommodationsWPrice := FilterAccommodationsByID(accBelowPrice, accommodations)
+		return filteredAccommodationsWPrice, nil
+	}
+
+	if startDate != "" && endDate != "" && isDistinguished == true && maxPrice != 0 {
+
+		dateRange, err := generateDateRange(startDate, endDate)
+		if err != nil {
+			// Handle the error returned by the repository
+			return nil, errors.NewError("Failed to generate dateRange", 500) // Modify according to your error handling approach
+		}
+		log.Println("dateRange je", dateRange)
+
+		reservedIDs, err := as.reservationsClient.CheckAvailabilityForAccommodations(ctx, accommodationIDs, dateRange)
+		if err != nil {
+			return nil, errors.NewError("Failed to get reserved ids ", 500)
+		}
+		log.Println("Reservisani idevi", reservedIDs)
+		log.Println("Sve nadjene akomodacije", accommodations)
+		filteredAccommodations := removeAccommodations(accommodations, reservedIDs)
+
+		var distFiltered []domain.Accommodation
+
+		for _, acc := range filteredAccommodations {
+			log.Println("UserId:", acc.UserId)
+			user, err := as.userClient.GetUserById(ctx, acc.UserId)
+			log.Println("User je", user)
+			if err != nil {
+				log.Println("Error getting user:", err)
+				// Handle the error if needed
+				continue
+			}
+
+			if user != nil && user.Distinguished == true {
+				distFiltered = append(distFiltered, acc)
+			}
+		}
+
+		accBelowPrice, err := as.reservationsClient.GetAccommodationsBelowPrice(ctx, maxPrice)
+
+		if err != nil {
+			// Handle the error returned by the repository
+			return nil, errors.NewError("Failed to get accommodations from reservations service", 500) // Modify according to your error handling approach
+		}
+		filteredAccommodationsWPrice := FilterAccommodationsByID(accBelowPrice, distFiltered)
+		return filteredAccommodationsWPrice, nil
+
+	}
+
+	if startDate == "" && endDate == "" && isDistinguished == true && maxPrice != 0 {
+		log.Println("UKUCAO SI DIST TRUE, MAX PRICE NIJE 0")
+
+		var distFiltered []domain.Accommodation
+		log.Println("Sve akomodacije", accommodations)
+
+		for _, acc := range accommodations {
+			log.Println("UserId:", acc.UserId)
+			user, err := as.userClient.GetUserById(ctx, acc.UserId)
+			log.Println("User je", user)
+			if err != nil {
+				log.Println("Error getting user:", err)
+				// Handle the error if needed
+				continue
+			}
+
+			if user != nil && user.Distinguished == true {
+				distFiltered = append(distFiltered, acc)
+			}
+		}
+
+		accBelowPrice, err := as.reservationsClient.GetAccommodationsBelowPrice(ctx, maxPrice)
+		if err != nil {
+			// Handle the error returned by the repository
+			return nil, errors.NewError("Failed to get accommodations from reservations service", 500) // Modify according to your error handling approach
+		}
+		filteredAccommodationsWPrice := FilterAccommodationsByID(accBelowPrice, distFiltered)
+		return filteredAccommodationsWPrice, nil
+
+	}
+
 	return nil, errors.NewError("Failed to return anything", 500)
 
+}
+
+func FilterAccommodationsByID(ids []string, accommodations []domain.Accommodation) []domain.Accommodation {
+	filteredAccommodations := make([]domain.Accommodation, 0)
+
+	idSet := make(map[string]bool)
+	for _, id := range ids {
+		idSet[id] = true
+	}
+
+	for _, acc := range accommodations {
+		if idSet[acc.Id.Hex()] {
+			filteredAccommodations = append(filteredAccommodations, acc)
+		}
+	}
+
+	return filteredAccommodations
 }
 
 func removeAccommodations(accommodations []domain.Accommodation, accommodationIDs []string) []domain.Accommodation {
