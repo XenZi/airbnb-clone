@@ -17,9 +17,13 @@ import (
 
 	//opentracing "github.com/opentracing/opentracing-go"
 
+	tracing "command-line-arguments/home/janko33/Documents/airbnb-clone/auth-service/tracing/config.tracing.go"
+
 	gorillaHandlers "github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/sony/gobreaker"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/propagation"
 )
 
 func main() {
@@ -61,6 +65,18 @@ func main() {
 	validator := utils.NewValidator()
 	notificationsClient := client.NewNotificationClient(notificationServiceHost, notificationServicePort, customNotificationServiceClient, notificationServiceCircuitBreaker)
 
+	tracerConfig := tracing.GetConfig()
+	tracerProvider, err := tracing.NewTracerProvider("reservations-service", tracerConfig.JaegerAddress)
+	if err != nil {
+		log.Fatal("JaegerTraceProvider failed to Initialize", err)
+	}
+	tracer := tracerProvider.Tracer("reservations-service")
+
+	otel.SetTextMapPropagator(propagation.TraceContext{})
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	store, err := repository.New(storeLogger)
 	if err != nil {
 		logger.Fatal(err)
@@ -71,9 +87,10 @@ func main() {
 	if err != nil {
 		return
 	}
-	reservationService := service.NewReservationService(reservationRepo, validator, notificationsClient)
+	reservationService := service.NewReservationService(reservationRepo, validator, notificationsClient, tracer)
 	reservationsHandler := handler.ReservationHandler{
 		ReservationService: reservationService,
+		tracer:             tracer,
 	}
 	/*
 		tracer, closer := tracing.Init("reservations-service")

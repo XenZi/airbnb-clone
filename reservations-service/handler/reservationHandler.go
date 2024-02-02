@@ -12,21 +12,24 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
+	"go.opentelemetry.io/otel/trace"
 )
 
 type KeyProduct struct{}
 
 type ReservationHandler struct {
-	logger *log.Logger
-
+	logger             *log.Logger
 	ReservationService *service.ReservationService
+	Tracer             trace.Tracer
 }
 
-func NewReservationsHandler(l *log.Logger, rs *service.ReservationService) *ReservationHandler {
-	return &ReservationHandler{l, rs}
+func NewReservationsHandler(l *log.Logger, rs *service.ReservationService, tr trace.Tracer) *ReservationHandler {
+	return &ReservationHandler{l, rs, tr}
 }
 
 func (r *ReservationHandler) CreateReservation(rw http.ResponseWriter, h *http.Request) {
+	ctx, span := r.Tracer.Start(h.Context(), "ReservationHandler.CreateReservation")
+	defer span.End()
 	decoder := json.NewDecoder(h.Body)
 	decoder.DisallowUnknownFields()
 	var res domain.Reservation

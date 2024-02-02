@@ -213,6 +213,7 @@ services:
       # If we don't wait for it to fully initialize we will get exceptions and will not be able to connect!
       - NOTIFICATION_SERVICE_HOST=${NOTIFICATION_SERVICE_HOST}
       - NOTIFICATION_SERVICE_PORT=${NOTIFICATION_SERVICE_PORT}
+      - JAEGER_ADDRESS=${JAEGER_ADDRESS}
     depends_on:
       reservations-db:
         condition: service_healthy

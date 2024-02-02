@@ -8,21 +8,26 @@ import (
 	"reservation-service/errors"
 	"reservation-service/repository"
 	"reservation-service/utils"
+
+	"go.opentelemetry.io/otel/trace"
 )
 
 type ReservationService struct {
 	repo         *repository.ReservationRepo
 	validator    *utils.Validator
 	notification *client.NotificationClient
+	tracer       trace.Tracer
 }
 
-func NewReservationService(repo *repository.ReservationRepo, validator *utils.Validator, notification *client.NotificationClient) *ReservationService {
-	return &ReservationService{repo: repo, validator: validator, notification: notification}
+func NewReservationService(repo *repository.ReservationRepo, validator *utils.Validator, notification *client.NotificationClient, tracer trace.Tracer) *ReservationService {
+	return &ReservationService{repo: repo, validator: validator, notification: notification, tracer: tracer}
 }
 
 // service/reservationService.go
 
 func (r ReservationService) CreateReservation(reservation domain.Reservation, ctx context.Context) (*domain.Reservation, *errors.ReservationError) {
+	ctx, span := r.tracer.Start(ctx, "ReservationService.CreateReservation")
+	defer span.End()
 	r.validator.ValidateReservation(&reservation)
 	validationErrors := r.validator.GetErrors()
 
