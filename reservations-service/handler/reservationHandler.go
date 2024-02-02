@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"context"
 	"encoding/json"
 	"log"
 	"net/http"
@@ -9,7 +8,6 @@ import (
 	"reservation-service/service"
 	"reservation-service/utils"
 	"strconv"
-	"time"
 
 	"github.com/gorilla/mux"
 	"go.opentelemetry.io/otel/trace"
@@ -37,9 +35,7 @@ func (r *ReservationHandler) CreateReservation(rw http.ResponseWriter, h *http.R
 		utils.WriteErrorResp(err.Error(), 500, "api/reservations", rw)
 		return
 	}
-	ctx, cancel := context.WithTimeout(h.Context(), time.Second*5)
-	defer cancel()
-	newRes, err := r.ReservationService.CreateReservation(res, ctx)
+	newRes, err := r.ReservationService.CreateReservation(ctx, res)
 	if err != nil {
 		utils.WriteErrorResp(err.Message, err.Status, "api/reservations", rw)
 		return
@@ -47,6 +43,8 @@ func (r *ReservationHandler) CreateReservation(rw http.ResponseWriter, h *http.R
 	utils.WriteResp(newRes, 201, rw)
 }
 func (r *ReservationHandler) CreateAvailability(rw http.ResponseWriter, h *http.Request) {
+	ctx, span := r.Tracer.Start(h.Context(), "ReservationHandler.CreateAvailability")
+	defer span.End()
 	decoder := json.NewDecoder(h.Body)
 	var avl domain.FreeReservation
 	if err := decoder.Decode(&avl); err != nil {
@@ -55,7 +53,7 @@ func (r *ReservationHandler) CreateAvailability(rw http.ResponseWriter, h *http.
 		return
 	}
 	log.Println("USLO U CREATE")
-	newAvl, err := r.ReservationService.CreateAvailability(avl)
+	newAvl, err := r.ReservationService.CreateAvailability(ctx, avl)
 	if err != nil {
 		log.Println("DRugI erROr")
 		utils.WriteErrorResp(err.Message, err.Status, "api/availability", rw)
@@ -65,10 +63,12 @@ func (r *ReservationHandler) CreateAvailability(rw http.ResponseWriter, h *http.
 
 }
 func (rh *ReservationHandler) GetReservationsByUser(rw http.ResponseWriter, r *http.Request) {
+	ctx, span := rh.Tracer.Start(r.Context(), "ReservationHandler.GetReservationsByUser")
+	defer span.End()
 	vars := mux.Vars(r)
 	userID := vars["userId"]
 
-	reservations, err := rh.ReservationService.GetReservationsByUser(userID)
+	reservations, err := rh.ReservationService.GetReservationsByUser(ctx, userID)
 	if err != nil {
 		utils.WriteErrorResp(err.Message, err.Status, "api/reservations/user/guest/{userId}", rw)
 		return
@@ -79,10 +79,12 @@ func (rh *ReservationHandler) GetReservationsByUser(rw http.ResponseWriter, r *h
 }
 
 func (rh *ReservationHandler) GetReservationsByHost(rw http.ResponseWriter, r *http.Request) {
+	ctx, span := rh.Tracer.Start(r.Context(), "ReservationHandler.GetReservationsByHost")
+	defer span.End()
 	vars := mux.Vars(r)
 	hostID := vars["hostId"]
 
-	reservations, err := rh.ReservationService.GetReservationsByUser(hostID)
+	reservations, err := rh.ReservationService.GetReservationsByUser(ctx, hostID)
 	if err != nil {
 		utils.WriteErrorResp(err.Message, err.Status, "api/reservations/user/{hostId}", rw)
 		return
@@ -93,10 +95,12 @@ func (rh *ReservationHandler) GetReservationsByHost(rw http.ResponseWriter, r *h
 }
 
 func (rh *ReservationHandler) GetAvailabilityForAccommodation(rw http.ResponseWriter, r *http.Request) {
+	ctx, span := rh.Tracer.Start(r.Context(), "ReservationHandler.GetAvailabilityForAccommodation")
+	defer span.End()
 	vars := mux.Vars(r)
 	accommodationID := vars["accommodationId"]
 
-	avl, err := rh.ReservationService.GetAvailabilityForAccommodation(accommodationID)
+	avl, err := rh.ReservationService.GetAvailabilityForAccommodation(ctx, accommodationID)
 	if err != nil {
 		utils.WriteErrorResp(err.Message, err.Status, "api/{accommodationId}/availability", rw)
 	}
@@ -121,6 +125,8 @@ func (rh *ReservationHandler) GetAvailabilityForAccommodation(rw http.ResponseWr
 	}
 */
 func (rh ReservationHandler) GetAvailableDates(rw http.ResponseWriter, r *http.Request) {
+	ctx, span := rh.Tracer.Start(r.Context(), "ReservationHandler.GetAvailableDates")
+	defer span.End()
 	var request domain.CheckAvailabilityRequest
 
 	err := json.NewDecoder(r.Body).Decode(&request)
@@ -128,7 +134,7 @@ func (rh ReservationHandler) GetAvailableDates(rw http.ResponseWriter, r *http.R
 		utils.WriteErrorResp(err.Error(), 500, "api/reservations/accommodation/dates", rw)
 		return
 	}
-	avl, erro := rh.ReservationService.GetAvailableDates(request.AccommodationID, request.DateRange)
+	avl, erro := rh.ReservationService.GetAvailableDates(ctx, request.AccommodationID, request.DateRange)
 	if erro != nil {
 		utils.WriteErrorResp(erro.Error(), 500, "api/reservations/accommodation/dates", rw)
 		return
@@ -137,6 +143,8 @@ func (rh ReservationHandler) GetAvailableDates(rw http.ResponseWriter, r *http.R
 
 }
 func (rh ReservationHandler) ReservationsInDateRangeHandler(w http.ResponseWriter, r *http.Request) {
+	ctx, span := rh.Tracer.Start(r.Context(), "ReservationHandler.ReservationsInDateRangeHandler")
+	defer span.End()
 	var request domain.ReservationsInDateRangeRequest
 
 	err := json.NewDecoder(r.Body).Decode(&request)
@@ -145,7 +153,7 @@ func (rh ReservationHandler) ReservationsInDateRangeHandler(w http.ResponseWrite
 		return
 	}
 
-	reservations, erro := rh.ReservationService.ProcessDateRange(request.AccommodationIDs, request.DateRange)
+	reservations, erro := rh.ReservationService.ProcessDateRange(ctx, request.AccommodationIDs, request.DateRange)
 	log.Println(reservations)
 	if erro != nil {
 		utils.WriteErrorResp(erro.Error(), 500, "api/reservations/accommodations", w)
@@ -155,6 +163,8 @@ func (rh ReservationHandler) ReservationsInDateRangeHandler(w http.ResponseWrite
 }
 
 func (rh *ReservationHandler) DeleteReservationById(rw http.ResponseWriter, r *http.Request) {
+	ctx, span := rh.Tracer.Start(r.Context(), "ReservationHandler.DeleteReservationById")
+	defer span.End()
 	vars := mux.Vars(r)
 	id := vars["id"]
 	country := vars["country"]
@@ -163,7 +173,7 @@ func (rh *ReservationHandler) DeleteReservationById(rw http.ResponseWriter, r *h
 	accommodationID := vars["accommodationID"]
 	endDate := vars["endDate"]
 
-	deletedReservation, err := rh.ReservationService.DeleteReservationById(country, id, userID, hostID, accommodationID, endDate)
+	deletedReservation, err := rh.ReservationService.DeleteReservationById(ctx, country, id, userID, hostID, accommodationID, endDate)
 	if err != nil {
 		utils.WriteErrorResp(err.Message, err.Status, "api/reservations/{country}/{id}/{userID}/{hostID}/{accommodationID}/{endDate}", rw)
 		return
@@ -174,9 +184,11 @@ func (rh *ReservationHandler) DeleteReservationById(rw http.ResponseWriter, r *h
 }
 
 func (rh *ReservationHandler) GetCancelationPercentage(rw http.ResponseWriter, r *http.Request) {
+	ctx, span := rh.Tracer.Start(r.Context(), "ReservationHandler.GetCancelationPercentage")
+	defer span.End()
 	vars := mux.Vars(r)
 	hostID := vars["hostID"]
-	percentage, err := rh.ReservationService.CalculatePercentageCanceled(hostID)
+	percentage, err := rh.ReservationService.CalculatePercentageCanceled(ctx, hostID)
 	if err != nil {
 		utils.WriteErrorResp(err.Message, err.Status, "/api/reservations/percentage-cancelation/{hostID}", rw)
 		return
@@ -185,11 +197,13 @@ func (rh *ReservationHandler) GetCancelationPercentage(rw http.ResponseWriter, r
 	json.NewEncoder(rw).Encode(percentage)
 }
 func (rh *ReservationHandler) GetReservationsByAccommodationWithEndDate(rw http.ResponseWriter, r *http.Request) {
+	ctx, span := rh.Tracer.Start(r.Context(), "ReservationHandler.GetReservationsByAccommodationWithEndDate")
+	defer span.End()
 	vars := mux.Vars(r)
 	accommodationID := vars["accommodationId"]
 	userID := vars["userId"]
 
-	reservations, err := rh.ReservationService.GetReservationsByAccommodationWithEndDate(accommodationID, userID)
+	reservations, err := rh.ReservationService.GetReservationsByAccommodationWithEndDate(ctx, accommodationID, userID)
 	if err != nil {
 		utils.WriteErrorResp(err.Message, err.Status, "api/reservations/{accommodationId}/{userId}", rw)
 		return
@@ -199,11 +213,13 @@ func (rh *ReservationHandler) GetReservationsByAccommodationWithEndDate(rw http.
 	utils.WriteResp(reservations, 200, rw)
 }
 func (rh *ReservationHandler) GetReservationsByHostWithEndDate(rw http.ResponseWriter, r *http.Request) {
+	ctx, span := rh.Tracer.Start(r.Context(), "ReservationHandler.GetReservationsByHostWithEndDate")
+	defer span.End()
 	vars := mux.Vars(r)
 	hostID := vars["hostId"]
 	userID := vars["userId"]
 
-	reservations, err := rh.ReservationService.GetReservationsByHostWithEndDate(hostID, userID)
+	reservations, err := rh.ReservationService.GetReservationsByHostWithEndDate(ctx, hostID, userID)
 	if err != nil {
 		utils.WriteErrorResp(err.Message, err.Status, "api/reservations/{hostId}/{userId}", rw)
 		return
@@ -214,6 +230,8 @@ func (rh *ReservationHandler) GetReservationsByHostWithEndDate(rw http.ResponseW
 }
 
 func (rh *ReservationHandler) UpdateAvailability(w http.ResponseWriter, r *http.Request) {
+	ctx, span := rh.Tracer.Start(r.Context(), "ReservationHandler.UpdateAvailability")
+	defer span.End()
 	vars := mux.Vars(r)
 	accommodationID := vars["accommodationId"]
 	id := vars["id"]
@@ -233,7 +251,7 @@ func (rh *ReservationHandler) UpdateAvailability(w http.ResponseWriter, r *http.
 		return
 	}
 
-	result, reservationErr := rh.ReservationService.UpdateAvailability(accommodationID, id, country, price, &updatedReservation)
+	result, reservationErr := rh.ReservationService.UpdateAvailability(ctx, accommodationID, id, country, price, &updatedReservation)
 	if reservationErr != nil {
 		http.Error(w, reservationErr.Message, 500)
 		return
@@ -244,6 +262,8 @@ func (rh *ReservationHandler) UpdateAvailability(w http.ResponseWriter, r *http.
 }
 
 func (rh *ReservationHandler) GetAccommodationIDsByMaxPrice(rw http.ResponseWriter, r *http.Request) {
+	ctx, span := rh.Tracer.Start(r.Context(), "ReservationHandler.GetAccommodationIDsByMaxPrice")
+	defer span.End()
 	vars := mux.Vars(r)
 	maxPriceStr := vars["maxPrice"]
 	maxPrice, err := strconv.Atoi(maxPriceStr)
@@ -252,7 +272,7 @@ func (rh *ReservationHandler) GetAccommodationIDsByMaxPrice(rw http.ResponseWrit
 		return
 	}
 	log.Println(maxPrice)
-	accommodations, erro := rh.ReservationService.GetAccommodationIDsByMaxPrice(maxPrice)
+	accommodations, erro := rh.ReservationService.GetAccommodationIDsByMaxPrice(ctx, maxPrice)
 	if erro != nil {
 		utils.WriteErrorResp(err.Error(), 500, "api/reservations/price/myprice/janko/mateja/aca/{maxPrice}", rw)
 		return

@@ -17,7 +17,7 @@ import (
 
 	//opentracing "github.com/opentracing/opentracing-go"
 
-	tracing "command-line-arguments/home/janko33/Documents/airbnb-clone/auth-service/tracing/config.tracing.go"
+	tracing "reservation-service/tracing"
 
 	gorillaHandlers "github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
@@ -77,20 +77,20 @@ func main() {
 		log.Fatal(err)
 	}
 
-	store, err := repository.New(storeLogger)
+	store, err := repository.New(storeLogger, tracer)
 	if err != nil {
 		logger.Fatal(err)
 	}
 	defer store.CloseSession()
 	store.CreateTables()
-	reservationRepo, err := repository.New(logger)
+	reservationRepo, err := repository.New(logger, tracer)
 	if err != nil {
 		return
 	}
 	reservationService := service.NewReservationService(reservationRepo, validator, notificationsClient, tracer)
 	reservationsHandler := handler.ReservationHandler{
 		ReservationService: reservationService,
-		tracer:             tracer,
+		Tracer:             tracer,
 	}
 	/*
 		tracer, closer := tracing.Init("reservations-service")
@@ -107,7 +107,7 @@ func main() {
 	router.HandleFunc("/user/host/{hostId}", reservationsHandler.GetReservationsByHost).Methods("GET")
 	//router.HandleFunc("/accommodations/{accommodationID}", reservationsHandler.GetReservationsByAccommodation).Methods("GET")
 	router.HandleFunc("/accommodation/dates", reservationsHandler.GetAvailableDates).Methods("GET")
-	router.HandleFunc("/{country}/{id}/{userId}/{hostId}/{accommodationId}", reservationsHandler.DeleteReservationById).Methods("DELETE")
+	router.HandleFunc("/{country}/{id}/{userID}/{hostID}/{accommodationID}/{endDate}", reservationsHandler.DeleteReservationById).Methods("PUT")
 	router.HandleFunc("/{accommodationId}/availability", reservationsHandler.GetAvailabilityForAccommodation).Methods("GET")
 	router.HandleFunc("/percentage-cancelation/{hostId}", reservationsHandler.GetCancelationPercentage).Methods("GET")
 	router.HandleFunc("/{accommodationId}/{userId}", reservationsHandler.GetReservationsByAccommodationWithEndDate).Methods("GET")
