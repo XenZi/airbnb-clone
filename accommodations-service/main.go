@@ -6,6 +6,7 @@ import (
 	"accommodations-service/repository"
 	"accommodations-service/security"
 	"accommodations-service/services"
+	"accommodations-service/tracing"
 	"accommodations-service/utils"
 	"context"
 	"log"
@@ -15,6 +16,8 @@ import (
 	"time"
 
 	"github.com/sony/gobreaker"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/propagation"
 
 	gorillaHandlers "github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
@@ -60,6 +63,18 @@ func main() {
 	validator := utils.NewValidator()
 	reservationsClient := client.NewReservationsClient(reservationsServiceHost, reservationsServicePort, customReservationsServiceClient, reservationsServiceCircuitBreaker)
 
+	tracerConfig := tracing.GetConfig()
+	tracerProvider, err := tracing.NewTracerProvider("accommodations-service", tracerConfig.JaegerAddress)
+	if err != nil {
+		log.Fatal("JaegerTraceProvider failed to Initialize", err)
+	}
+	tracer := tracerProvider.Tracer("accommodations-service")
+
+	otel.SetTextMapPropagator(propagation.TraceContext{})
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	mongoService, err := services.New(timeoutContext, logger)
 
 	if err != nil {
@@ -67,14 +82,15 @@ func main() {
 	}
 
 	accommodationRepo := repository.NewAccommodationRepository(
-		mongoService.GetCli(), logger)
-	fileStorage := repository.NewFileStorage(logger)
+		mongoService.GetCli(), logger, tracer)
+	fileStorage := repository.NewFileStorage(logger, tracer)
 	defer fileStorage.Close()
 	_ = fileStorage.CreateDirectories()
-	cache := repository.NewCache(loggerCach)
-	accommodationService := services.NewAccommodationService(accommodationRepo, validator, reservationsClient, fileStorage, cache)
+	cache := repository.NewCache(loggerCach, tracer)
+	accommodationService := services.NewAccommodationService(accommodationRepo, validator, reservationsClient, fileStorage, cache, tracer)
 	accommodationsHandler := handlers.AccommodationsHandler{
 		AccommodationService: accommodationService,
+		Tracer:               tracer,
 	}
 
 	accessControl := security.NewAccessControl()

@@ -103,6 +103,7 @@ services:
       - HDFS_URI=namenode:9000
       - REDIS_HOST=${REDIS_HOST}
       - REDIS_PORT=${REDIS_PORT}
+      - JAEGER_ADDRESS=${JAEGER_ADDRESS}
     networks:
       - network
     depends_on:
