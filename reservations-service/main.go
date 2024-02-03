@@ -17,9 +17,13 @@ import (
 
 	//opentracing "github.com/opentracing/opentracing-go"
 
+	tracing "reservation-service/tracing"
+
 	gorillaHandlers "github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/sony/gobreaker"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/propagation"
 )
 
 func main() {
@@ -61,19 +65,32 @@ func main() {
 	validator := utils.NewValidator()
 	notificationsClient := client.NewNotificationClient(notificationServiceHost, notificationServicePort, customNotificationServiceClient, notificationServiceCircuitBreaker)
 
-	store, err := repository.New(storeLogger)
+	tracerConfig := tracing.GetConfig()
+	tracerProvider, err := tracing.NewTracerProvider("reservations-service", tracerConfig.JaegerAddress)
+	if err != nil {
+		log.Fatal("JaegerTraceProvider failed to Initialize", err)
+	}
+	tracer := tracerProvider.Tracer("reservations-service")
+
+	otel.SetTextMapPropagator(propagation.TraceContext{})
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	store, err := repository.New(storeLogger, tracer)
 	if err != nil {
 		logger.Fatal(err)
 	}
 	defer store.CloseSession()
 	store.CreateTables()
-	reservationRepo, err := repository.New(logger)
+	reservationRepo, err := repository.New(logger, tracer)
 	if err != nil {
 		return
 	}
-	reservationService := service.NewReservationService(reservationRepo, validator, notificationsClient)
+	reservationService := service.NewReservationService(reservationRepo, validator, notificationsClient, tracer)
 	reservationsHandler := handler.ReservationHandler{
 		ReservationService: reservationService,
+		Tracer:             tracer,
 	}
 	/*
 		tracer, closer := tracing.Init("reservations-service")
@@ -90,7 +107,7 @@ func main() {
 	router.HandleFunc("/user/host/{hostId}", reservationsHandler.GetReservationsByHost).Methods("GET")
 	//router.HandleFunc("/accommodations/{accommodationID}", reservationsHandler.GetReservationsByAccommodation).Methods("GET")
 	router.HandleFunc("/accommodation/dates", reservationsHandler.GetAvailableDates).Methods("GET")
-	router.HandleFunc("/{country}/{id}/{userId}/{hostId}/{accommodationId}", reservationsHandler.DeleteReservationById).Methods("DELETE")
+	router.HandleFunc("/{country}/{id}/{userID}/{hostID}/{accommodationID}/{endDate}", reservationsHandler.DeleteReservationById).Methods("PUT")
 	router.HandleFunc("/{accommodationId}/availability", reservationsHandler.GetAvailabilityForAccommodation).Methods("GET")
 	router.HandleFunc("/percentage-cancelation/{hostId}", reservationsHandler.GetCancelationPercentage).Methods("GET")
 	router.HandleFunc("/{accommodationId}/{userId}", reservationsHandler.GetReservationsByAccommodationWithEndDate).Methods("GET")

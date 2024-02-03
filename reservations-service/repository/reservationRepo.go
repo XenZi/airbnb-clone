@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"os"
@@ -12,15 +13,17 @@ import (
 
 	"github.com/gocql/gocql"
 	"github.com/pariz/gountries"
+	"go.opentelemetry.io/otel/trace"
 )
 
 type ReservationRepo struct {
 	session *gocql.Session
 	logger  *log.Logger
+	tracer  trace.Tracer
 }
 
 // db config and creating keyspace
-func New(logger *log.Logger) (*ReservationRepo, error) {
+func New(logger *log.Logger, tracer trace.Tracer) (*ReservationRepo, error) {
 	db := os.Getenv("CASS_DB")
 
 	cluster := gocql.NewCluster(db)
@@ -54,6 +57,7 @@ func New(logger *log.Logger) (*ReservationRepo, error) {
 	return &ReservationRepo{
 		session: session,
 		logger:  logger,
+		tracer:  tracer,
 	}, nil
 }
 
@@ -202,7 +206,9 @@ func (rr *ReservationRepo) DropTables() {
 
 }
 
-func (rr *ReservationRepo) GetReservationsByUser(id string) ([]domain.Reservation, error) {
+func (rr *ReservationRepo) GetReservationsByUser(ctx context.Context, id string) ([]domain.Reservation, error) {
+	ctx, span := rr.tracer.Start(ctx, "ReservationRepo.GetReservationsByUser")
+	defer span.End()
 	scanner := rr.session.Query(`SELECT id,accommodation_id, user_id, start_date, end_date,username,accommodation_name,location,price,
 	num_of_days,date_range,is_active,country,host_id FROM reservation_by_user
 	 WHERE user_id = ?`,
@@ -230,7 +236,9 @@ func (rr *ReservationRepo) GetReservationsByUser(id string) ([]domain.Reservatio
 
 	return reservations, nil
 }
-func (rr *ReservationRepo) GetReservationsByHost(id string) ([]domain.Reservation, error) {
+func (rr *ReservationRepo) GetReservationsByHost(ctx context.Context, id string) ([]domain.Reservation, error) {
+	ctx, span := rr.tracer.Start(ctx, "ReservationRepo.GetReservationsByHost")
+	defer span.End()
 	scanner := rr.session.Query(`SELECT id,accommodation_id, user_id, start_date, end_date,username,accommodation_name,location,price,
 	num_of_days,date_range,is_active,country,host_id FROM reservation_by_host
 	 WHERE  host_id = ?`,
@@ -258,7 +266,9 @@ func (rr *ReservationRepo) GetReservationsByHost(id string) ([]domain.Reservatio
 
 	return reservations, nil
 }
-func (rr *ReservationRepo) InsertAvailability(reservation *domain.FreeReservation) (*domain.FreeReservation, error) {
+func (rr *ReservationRepo) InsertAvailability(ctx context.Context, reservation *domain.FreeReservation) (*domain.FreeReservation, error) {
+	ctx, span := rr.tracer.Start(ctx, "ReservationRepo.InsertAvailability")
+	defer span.End()
 	country, err := utils.GetCountry(reservation.Location)
 	if err != nil {
 		return nil, errors.NewReservationError(500, err.Error())
@@ -292,7 +302,9 @@ func (rr *ReservationRepo) InsertAvailability(reservation *domain.FreeReservatio
 	return reservation, nil
 }
 
-func (rr *ReservationRepo) AvailableDates(accommodationID string, dateRange []string) ([]domain.FreeReservation, *errors.ReservationError) {
+func (rr *ReservationRepo) AvailableDates(ctx context.Context, accommodationID string, dateRange []string) ([]domain.FreeReservation, *errors.ReservationError) {
+	ctx, span := rr.tracer.Start(ctx, "ReservationRepo.AvailableDates")
+	defer span.End()
 	var result []domain.FreeReservation
 	for _, date := range dateRange {
 		query := `
@@ -318,10 +330,10 @@ func (rr *ReservationRepo) AvailableDates(accommodationID string, dateRange []st
 	return result, nil
 }
 
-func (rr *ReservationRepo) InsertReservation(reservation *domain.Reservation) (*domain.Reservation, error) {
+func (rr *ReservationRepo) InsertReservation(ctx context.Context, reservation *domain.Reservation) (*domain.Reservation, error) {
+	ctx, span := rr.tracer.Start(ctx, "ReservationRepo.InsertReservation")
+	defer span.End()
 	Id, _ := gocql.RandomUUID()
-	// dateRangeString := strings.Join(reservation.DateRange, ",")
-	// dateRangeS
 	country, err := utils.GetCountry(reservation.Location)
 	if err != nil {
 		return nil, errors.NewReservationError(500, err.Error())
@@ -374,7 +386,9 @@ func (rr *ReservationRepo) InsertReservation(reservation *domain.Reservation) (*
 	return reservation, nil
 }
 
-func (rr *ReservationRepo) DeleteById(country string, id, userID, hostID, accommodationID, endDate string) (*domain.Reservation, *errors.ReservationError) {
+func (rr *ReservationRepo) DeleteById(ctx context.Context, country string, id, userID, hostID, accommodationID, endDate string) (*domain.Reservation, *errors.ReservationError) {
+	ctx, span := rr.tracer.Start(ctx, "ReservationRepo.DeleteById")
+	defer span.End()
 	countryData := gountries.New()
 
 	result, err := countryData.FindCountryByName(country)
@@ -398,7 +412,9 @@ func (rr *ReservationRepo) DeleteById(country string, id, userID, hostID, accomm
 	return nil, nil
 }
 
-func (rr *ReservationRepo) ReservationsInDateRange(accommodationIDs []string, dateRange []string) ([]string, *errors.ReservationError) {
+func (rr *ReservationRepo) ReservationsInDateRange(ctx context.Context, accommodationIDs []string, dateRange []string) ([]string, *errors.ReservationError) {
+	ctx, span := rr.tracer.Start(ctx, "ReservationRepo.ReservationsInDateRange")
+	defer span.End()
 	uniqueReservations := make(map[string]struct{})
 	for _, date := range dateRange {
 		for _, accommodationID := range accommodationIDs {
@@ -425,7 +441,9 @@ func (rr *ReservationRepo) ReservationsInDateRange(accommodationIDs []string, da
 	return result, nil
 }
 
-func (rr *ReservationRepo) IsAvailable(accommodationID string, dateRange []string) (bool, *errors.ReservationError) {
+func (rr *ReservationRepo) IsAvailable(ctx context.Context, accommodationID string, dateRange []string) (bool, *errors.ReservationError) {
+	ctx, span := rr.tracer.Start(ctx, "ReservationRepo.IsAvailable")
+	defer span.End()
 	for _, date := range dateRange {
 		query := `
 	SELECT id
@@ -450,7 +468,9 @@ func (rr *ReservationRepo) IsAvailable(accommodationID string, dateRange []strin
 	return false, nil
 }
 
-func (rr *ReservationRepo) CheckAvailabilityForAccommodation(accommodationID string) ([]domain.GetAvailabilityForAccommodation, *errors.ReservationError) {
+func (rr *ReservationRepo) CheckAvailabilityForAccommodation(ctx context.Context, accommodationID string) ([]domain.GetAvailabilityForAccommodation, *errors.ReservationError) {
+	ctx, span := rr.tracer.Start(ctx, "ReservationRepo.CheckAvailabilityForAccommodation")
+	defer span.End()
 	var result []domain.GetAvailabilityForAccommodation
 
 	query := `
@@ -477,7 +497,9 @@ func (rr *ReservationRepo) CheckAvailabilityForAccommodation(accommodationID str
 
 }
 
-func (rr *ReservationRepo) IsReserved(accommodationID string, dateRange []string) (bool, *errors.ReservationError) {
+func (rr *ReservationRepo) IsReserved(ctx context.Context, accommodationID string, dateRange []string) (bool, *errors.ReservationError) {
+	ctx, span := rr.tracer.Start(ctx, "ReservationRepo.IsReserved")
+	defer span.End()
 
 	for _, date := range dateRange {
 		query := `
@@ -501,7 +523,9 @@ func (rr *ReservationRepo) IsReserved(accommodationID string, dateRange []string
 	}
 	return false, nil
 }
-func (rr *ReservationRepo) GetNumberOfCanceledReservations(hostID string) (int, *errors.ReservationError) {
+func (rr *ReservationRepo) GetNumberOfCanceledReservations(ctx context.Context, hostID string) (int, *errors.ReservationError) {
+	ctx, span := rr.tracer.Start(ctx, "ReservationRepo.GetNumberOfCanceledReservations")
+	defer span.End()
 	query := `SELECT COUNT(*) FROM deleted_reservations WHERE host_id = ?`
 	iter := rr.session.Query(query, hostID).Iter()
 
@@ -512,7 +536,9 @@ func (rr *ReservationRepo) GetNumberOfCanceledReservations(hostID string) (int, 
 	return 0, errors.NewReservationError(500, "Failed to get the number of canceled reservations")
 }
 
-func (rr *ReservationRepo) GetTotalReservationsByHost(hostID string) (int, *errors.ReservationError) {
+func (rr *ReservationRepo) GetTotalReservationsByHost(ctx context.Context, hostID string) (int, *errors.ReservationError) {
+	ctx, span := rr.tracer.Start(ctx, "ReservationRepo.GetTotalReservationsByHost")
+	defer span.End()
 	query := `SELECT COUNT(*) FROM reservation_by_host WHERE host_id = ?`
 	iter := rr.session.Query(query, hostID).Iter()
 	var totalReservations int
@@ -522,7 +548,9 @@ func (rr *ReservationRepo) GetTotalReservationsByHost(hostID string) (int, *erro
 	return 0, errors.NewReservationError(500, "Failed to get the number of total reservations")
 
 }
-func (rr *ReservationRepo) GetReservationsByAccommodationWithEndDate(accommodationID, userID string) ([]domain.Reservation, error) {
+func (rr *ReservationRepo) GetReservationsByAccommodationWithEndDate(ctx context.Context, accommodationID, userID string) ([]domain.Reservation, error) {
+	ctx, span := rr.tracer.Start(ctx, "ReservationRepo.GetReservationsByAccommodationWithEndDate")
+	defer span.End()
 	currentDate := time.Now().Format("2006-01-02")
 	scanner := rr.session.Query(`SELECT id,accommodation_id, user_id, start_date, end_date,username,accommodation_name,location,price,
 	num_of_days,date_range,is_active,country,host_id FROM reservation_by_accommodation
@@ -553,7 +581,9 @@ func (rr *ReservationRepo) GetReservationsByAccommodationWithEndDate(accommodati
 
 }
 
-func (rr *ReservationRepo) GetReservationsByHostWithEndDate(hostID, userID string) ([]domain.Reservation, error) {
+func (rr *ReservationRepo) GetReservationsByHostWithEndDate(ctx context.Context, hostID, userID string) ([]domain.Reservation, error) {
+	ctx, span := rr.tracer.Start(ctx, "ReservationRepo.GetReservationsByHostWithEndDate")
+	defer span.End()
 	currentDate := time.Now().Format("2006-01-02")
 	scanner := rr.session.Query(`SELECT id,accommodation_id, user_id, start_date, end_date,username,accommodation_name,location,price,
 	num_of_days,date_range,is_active,country,host_id FROM reservation_by_host
@@ -584,7 +614,9 @@ func (rr *ReservationRepo) GetReservationsByHostWithEndDate(hostID, userID strin
 
 }
 
-func (rr *ReservationRepo) DeleteAvl(accommodationID, id, country string, price int) (*domain.FreeReservation, error) {
+func (rr *ReservationRepo) DeleteAvl(ctx context.Context, accommodationID, id, country string, price int) (*domain.FreeReservation, error) {
+	ctx, span := rr.tracer.Start(ctx, "ReservationRepo.DeleteAvl")
+	defer span.End()
 
 	batch := rr.session.NewBatch(gocql.LoggedBatch)
 
@@ -600,7 +632,9 @@ func (rr *ReservationRepo) DeleteAvl(accommodationID, id, country string, price 
 
 }
 
-func (rr *ReservationRepo) GetAccommodationIDsByMaxPrice(maxPrice int) ([]string, *errors.ReservationError) {
+func (rr *ReservationRepo) GetAccommodationIDsByMaxPrice(ctx context.Context, maxPrice int) ([]string, *errors.ReservationError) {
+	ctx, span := rr.tracer.Start(ctx, "ReservationRepo.GetAccommodationIDsByMaxPrice")
+	defer span.End()
 	scanner := rr.session.Query(`
         SELECT accommodation_id FROM avl_by_price WHERE is_active = ? AND price <= ?
     `, true, maxPrice).Iter().Scanner()
@@ -623,7 +657,9 @@ func (rr *ReservationRepo) GetAccommodationIDsByMaxPrice(maxPrice int) ([]string
 	return accommodationIDs, nil
 }
 
-func (rr *ReservationRepo) AvailabilityNotInDateRange(accommodationIDs []string, dateRange []string) ([]string, *errors.ReservationError) {
+func (rr *ReservationRepo) AvailabilityNotInDateRange(ctx context.Context, accommodationIDs []string, dateRange []string) ([]string, *errors.ReservationError) {
+	ctx, span := rr.tracer.Start(ctx, "ReservationRepo.AvailabilityNotInDateRange")
+	defer span.End()
 	uniqueAccommodationIDs := make(map[string]struct{})
 
 	for _, accommodationID := range accommodationIDs {

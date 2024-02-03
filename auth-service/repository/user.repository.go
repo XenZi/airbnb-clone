@@ -10,21 +10,26 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.opentelemetry.io/otel/trace"
 )
 
 type UserRepository struct {
 	cli    *mongo.Client
 	logger *config.Logger
+	tracer trace.Tracer
 }
 
-func NewUserRepository(cli *mongo.Client, logger *config.Logger) *UserRepository {
+func NewUserRepository(cli *mongo.Client, logger *config.Logger, tracer trace.Tracer) *UserRepository {
 	return &UserRepository{
 		cli:    cli,
 		logger: logger,
+		tracer: tracer,
 	}
 }
 
-func (u UserRepository) SaveUser(user domains.User) (*domains.User, *errors.ErrorStruct) {
+func (u UserRepository) SaveUser(ctx context.Context, user domains.User) (*domains.User, *errors.ErrorStruct) {
+	ctx, span := u.tracer.Start(ctx, "UserService.SaveUser")
+	defer span.End()
 	userCollection := u.cli.Database("auth").Collection("user")
 	insertedUser, err := userCollection.InsertOne(context.TODO(), user)
 	if err != nil {
@@ -43,7 +48,9 @@ func (u UserRepository) SaveUser(user domains.User) (*domains.User, *errors.Erro
 	return &user, nil
 }
 
-func (u UserRepository) FindUserByEmail(email string) (*domains.User, *errors.ErrorStruct) {
+func (u UserRepository) FindUserByEmail(ctx context.Context, email string) (*domains.User, *errors.ErrorStruct) {
+	ctx, span := u.tracer.Start(ctx, "UserRepository.FindUserByEmail")
+	defer span.End()
 	userCollection := u.cli.Database("auth").Collection("user")
 	var user domains.User
 	err := userCollection.FindOne(context.TODO(), bson.M{"email": email}).Decode(&user)

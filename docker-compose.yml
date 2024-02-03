@@ -22,6 +22,7 @@ services:
       - USER_SERVICE_PORT=${USER_SERVICE_PORT}
       - NOTIFICATION_SERVICE_HOST=${NOTIFICATION_SERVICE_HOST}
       - NOTIFICATION_SERVICE_PORT=${NOTIFICATION_SERVICE_PORT}
+      - JAEGER_ADDRESS=${JAEGER_ADDRESS}
     networks:
       - network
     volumes:
@@ -214,6 +215,7 @@ services:
       # If we don't wait for it to fully initialize we will get exceptions and will not be able to connect!
       - NOTIFICATION_SERVICE_HOST=${NOTIFICATION_SERVICE_HOST}
       - NOTIFICATION_SERVICE_PORT=${NOTIFICATION_SERVICE_PORT}
+      - JAEGER_ADDRESS=${JAEGER_ADDRESS}
     depends_on:
       reservations-db:
         condition: service_healthy
@@ -443,7 +445,23 @@ services:
     networks:
       - network
 
-networks:
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    ports:
+      - "6831:6831/udp"
+      - "16686:16686"
+    networks:
+      - network
+
+  collector:
+    image: otel/opentelemetry-collector:0.69.0
+    command: [ "--config=/etc/otel-collector-config.yaml" ]
+    volumes:
+      - ./api_gateway/otel-collector-config.yaml:/etc/otel-collector-config.yaml
+    networks:
+      - network
+      
+networks: 
   network:
     driver: bridge
 

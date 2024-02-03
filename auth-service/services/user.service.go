@@ -10,17 +10,19 @@ import (
 	"log"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.opentelemetry.io/otel/trace"
 )
 
 type UserService struct {
-	userRepository    *repository.UserRepository
-	passwordService   *PasswordService
-	jwtService        *JwtService
-	validator         *utils.Validator
-	encryptionService *EncryptionService
-	mailClient        client.MailClientInterface
-	userClient 		  *client.UserClient
+	userRepository     *repository.UserRepository
+	passwordService    *PasswordService
+	jwtService         *JwtService
+	validator          *utils.Validator
+	encryptionService  *EncryptionService
+	mailClient         client.MailClientInterface
+	userClient         *client.UserClient
 	notificationClient *client.NotificationClient
+	tracer             trace.Tracer
 }
 
 func NewUserService(userRepo *repository.UserRepository,
@@ -30,19 +32,23 @@ func NewUserService(userRepo *repository.UserRepository,
 	encryptionService *EncryptionService,
 	mailClient client.MailClientInterface,
 	userClient *client.UserClient,
-	notificationClient *client.NotificationClient) *UserService {
+	notificationClient *client.NotificationClient,
+	tracer trace.Tracer) *UserService {
 	return &UserService{
-		userRepository:    userRepo,
-		passwordService:   passwordService,
-		jwtService:        jwtService,
-		validator:         validator,
-		encryptionService: encryptionService,
-		mailClient:        mailClient,
-		userClient: userClient,
+		userRepository:     userRepo,
+		passwordService:    passwordService,
+		jwtService:         jwtService,
+		validator:          validator,
+		encryptionService:  encryptionService,
+		mailClient:         mailClient,
+		userClient:         userClient,
 		notificationClient: notificationClient,
+		tracer:             tracer,
 	}
 }
 func (u *UserService) CreateUser(ctx context.Context, registerUser domains.RegisterUser) (*domains.UserDTO, *errors.ErrorStruct) {
+	ctx, span := u.tracer.Start(ctx, "UserService.CreateUser")
+	defer span.End()
 	u.validator.ValidateRegisterUser(&registerUser)
 	validatorErrors := u.validator.GetErrors()
 	if len(validatorErrors) > 0 {
@@ -67,7 +73,7 @@ func (u *UserService) CreateUser(ctx context.Context, registerUser domains.Regis
 		return nil, errors.NewError(err.Error(), 500)
 	}
 	user.Password = hashedPassword
-	newUser, foundErr := u.userRepository.SaveUser(user)
+	newUser, foundErr := u.userRepository.SaveUser(ctx, user)
 	if foundErr != nil {
 		return nil, foundErr
 	}
@@ -102,8 +108,11 @@ func (u *UserService) CreateUser(ctx context.Context, registerUser domains.Regis
 	}, nil
 }
 
-func (u *UserService) LoginUser(loginData domains.LoginUser) (*domains.SuccessfullyLoggedUser, *errors.ErrorStruct) {
-	user, err := u.userRepository.FindUserByEmail(loginData.Email)
+func (u *UserService) LoginUser(ctx context.Context, loginData domains.LoginUser) (*domains.SuccessfullyLoggedUser, *errors.ErrorStruct) {
+	ctx, span := u.tracer.Start(ctx, "UserService.LoginUser")
+	defer span.End()
+
+	user, err := u.userRepository.FindUserByEmail(ctx, loginData.Email)
 	if err != nil {
 		return nil, err
 	}
@@ -152,7 +161,7 @@ func (u UserService) RequestResetPassword(email string) (*domains.BaseMessageRes
 	if email == "" {
 		return nil, errors.NewError("Email is empty or incorrect", 400)
 	}
-	user, err := u.userRepository.FindUserByEmail(email)
+	user, err := u.userRepository.FindUserByEmail(context.Background(), email)
 	if err != nil {
 		log.Println(err)
 		return nil, errors.NewError(err.GetErrorMessage(), err.GetErrorStatus())
@@ -235,22 +244,22 @@ func (u UserService) ChangePassword(data domains.ChangePassword, userID string) 
 }
 
 func (u UserService) UpdateCredentials(ctx context.Context, id string, updatedData domains.User) (*domains.BaseMessageResponse, *errors.ErrorStruct) {
-	if (updatedData.Email == "" || updatedData.Username == "") {
+	if updatedData.Email == "" || updatedData.Username == "" {
 		return nil, errors.NewError("Email or username are empty", 400)
-	} 
+	}
 	foundUser, _ := u.userRepository.FindUserById(id)
-	if (foundUser.Username == updatedData.Username && foundUser.Email == updatedData.Email) {
+	if foundUser.Username == updatedData.Username && foundUser.Email == updatedData.Email {
 		return &domains.BaseMessageResponse{
-			Message: "You have successfully updated your credentials", 
+			Message: "You have successfully updated your credentials",
 		}, nil
 	}
-	if (foundUser.Email != updatedData.Email) {
-		_, err := u.userRepository.FindUserByEmail(updatedData.Email)
+	if foundUser.Email != updatedData.Email {
+		_, err := u.userRepository.FindUserByEmail(context.Background(), updatedData.Email)
 		if err == nil {
-			return  nil, errors.NewError("User with same email already exists", 400)
+			return nil, errors.NewError("User with same email already exists", 400)
 		}
 	}
-	if (foundUser.Username != updatedData.Username) {
+	if foundUser.Username != updatedData.Username {
 		_, err := u.userRepository.FindUserByUsername(updatedData.Username)
 		if err == nil {
 			return nil, errors.NewError("User with same username already exists", 400)
@@ -261,7 +270,7 @@ func (u UserService) UpdateCredentials(ctx context.Context, id string, updatedDa
 	}
 	objectID, newError := primitive.ObjectIDFromHex(id)
 	if newError != nil {
-		return nil, errors.NewError(newError.Error(),500)
+		return nil, errors.NewError(newError.Error(), 500)
 	}
 	updatedData.ID = objectID
 	errFromCredentialsUpdate := u.userClient.SendUpdateCredentials(ctx, updatedData)
