@@ -1,0 +1,51 @@
+.filter__container {
+    position: relative;
+  }
+  
+  .filter__button {
+    background-color: transparent;
+    border: 1px solid #eee;
+    padding: 15px;
+    border-radius: 20px;
+    cursor: pointer;
+    box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+    transition: all 0.3s ease-in;
+    &:hover {
+      box-shadow: rgba(0, 0, 0, 0.24) 0px 5px 10px;
+    }
+  }
+  
+  .filter__search-criteria {
+    padding: 0px 10px;
+    border-right: 1px solid #eee;
+    &:last-of-type {
+      border-right: none;
+    }
+  
+    &:first-of-type {
+      padding-left: 0px;
+    }
+  }
+  
+  .filter__search-icon {
+    padding: 5px 5px;
+    background-color: #ff5977;
+    color: #fff;
+    border-radius: 50%;
+  }
+  
+  .filter__lower {
+    background-color: #fff;
+    box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+    position: absolute;
+    top: calc(100% + 10px);
+    left: 0%;
+    transform: translateX(-30%);
+    height: 100px;
+    width: 1000px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 5;
+  }
+  

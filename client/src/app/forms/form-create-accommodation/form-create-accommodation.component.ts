@@ -70,12 +70,14 @@ export class FormCreateAccommodationComponent {
       price: ['', [Validators.required, Validators.min(0)]],
     });
   }
+
   buildConveniences(): FormArray {
     const arr = this.convenienceList.map(() => {
       return this.fb.control(false);
     });
     return this.fb.array(arr);
   }
+  
   getCountriesData(): void {
     this.accommodationsService.getCountries()
       .subscribe((data: any[]) => {

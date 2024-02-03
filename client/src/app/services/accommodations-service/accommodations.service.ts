@@ -207,13 +207,16 @@ export class AccommodationsService {
     country: string,
     numOfVisitors: string,
     startDate: string,
-    endDate: string
+    endDate: string,
+    maxPrice:string,
+    conveniences:string[],
+    distinguished:string
   ): Observable<any> {
     
     
     console.log('pocetni datum je', startDate);
     return this.http.get<any>(
-      `${apiURL}/accommodations/search?city=${city}&country=${country}&numOfVisitors=${numOfVisitors}&startDate=${startDate}&endDate=${endDate}`
+      `${apiURL}/accommodations/search?city=${city}&country=${country}&numOfVisitors=${numOfVisitors}&startDate=${startDate}&endDate=${endDate}&maxPrice=${maxPrice}&conveniences=${conveniences}&distinguished=${distinguished}`
     );
     
   }

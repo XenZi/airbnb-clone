@@ -1,6 +1,17 @@
 <app-header></app-header>
+
 <div class="base-page">
+  
   <div class="wrapper">
+    <div class="filter">
+    <app-filter
+    [cityCopy]="cityCopy"
+    [countryCopy]="countryCopy"
+    [numOfVisitorsCopy]="numOfVisitorsCopy"
+    [startDateCopy]="startDateCopy"
+    [endDateCopy]="endDateCopy"
+    ></app-filter>
+  </div>
     <div class="base-page__container">
       <app-accommodation-card
         *ngFor="let accommodation of accommodations"

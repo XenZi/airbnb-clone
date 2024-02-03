@@ -51,6 +51,8 @@ import { StarRatingComponent } from './components/star-rating/star-rating.compon
 import { ShowRatesForAccommodationComponent } from './components/show-rates-for-accommodation/show-rates-for-accommodation.component';
 import { ShowRatesForUserComponent } from './components/show-rates-for-user/show-rates-for-user.component';
 import { FormCreateRatingForUserComponent } from './forms/form-create-rating-for-user/form-create-rating-for-user.component';
+import { FilterComponent } from './components/filter/filter.component';
+import { FormFilterComponent } from './forms/form-filter/form-filter.component';
 @NgModule({
   declarations: [
     AppComponent,
@@ -95,6 +97,8 @@ import { FormCreateRatingForUserComponent } from './forms/form-create-rating-for
     ShowRatesForAccommodationComponent,
     ShowRatesForUserComponent,
     FormCreateRatingForUserComponent,
+    FilterComponent,
+    FormFilterComponent,
   ],
   imports: [
     BrowserModule,

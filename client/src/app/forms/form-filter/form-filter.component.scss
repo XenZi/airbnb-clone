@@ -1,0 +1,42 @@
+.form-filter {
+    padding: 20px;
+    width: 100%;
+  }
+  
+  
+  .form-filter__container {
+    display: flex;
+    margin-bottom: 15px;
+  }
+  
+  .form-filter__box {
+    margin-right: 5px;
+  }
+  
+  .form-filter__label {
+    font-size: 12px;
+    display: block;
+    margin-bottom: 5px;
+  }
+  
+  .form-filter__input {
+    padding: 5px;
+    border-radius: 10px;
+    background-color: #fff;
+    border: 1px solid #eee;
+  }
+  
+  .form-filter__button {
+    padding: 5px;
+    background-color: #ff5977;
+    border: none;
+    cursor: pointer;
+    height: 50px;
+    align-self: flex-end;
+    margin-left: 5px;
+    border-radius: 10px;
+  }
+  .form-filter__icon {
+    color: #fff;
+  }
+  

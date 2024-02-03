@@ -1,0 +1,31 @@
+<form class="filter form-filter" [formGroup]="filterForm" (submit)="onSubmit($event)">
+    <div class="filter form-filter__container">
+      <div class="filter form-filter__box">
+        <label class="filter form-filter__label">Max Price</label>
+        <input type="number" class="filter form-filter__input" placeholder="Enter max price" formControlName="maxPrice" />
+      </div>
+  
+      <div class="filter form-filter__box" formArrayName="conveniences">
+        <label class="filter form-filter__label">Conveniences</label>
+        <div class="form__checkboxes">
+          <div *ngFor="let convenience of convenienceFormArray.controls; let i = index">
+            <label>
+              <input type="checkbox" [formControlName]="i" />
+              {{ convenienceList[i] }}
+            </label>
+          </div>
+        </div>
+      </div>
+      
+  
+      <div class="filter form-filter__box">
+        <label class="filter form-filter__label">Distinguished</label>
+        <input type="checkbox" formControlName="distinguished" />
+      </div>
+  
+      <button class="filter form-filter__button" type="submit">
+        <i class="fas fa-filter"></i>
+      </button>
+    </div>
+  </form>
+  

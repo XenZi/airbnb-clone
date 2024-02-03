@@ -1,0 +1,20 @@
+<div class="filter">
+    <div class="filter__container">
+      <button class="filter__button" (click)="onFilterClick()">
+        
+        
+        <i class="fas fa-filter"></i>
+
+      </button>
+      <div class="filter__lower" *ngIf="isClicked">
+        <app-form-filter
+        [cityCopy]="cityCopy"
+        [countryCopy]="countryCopy"
+        [numOfVisitorsCopy]="numOfVisitorsCopy"
+        [startDateCopy]="startDateCopy"
+        [endDateCopy]="endDateCopy"
+        ></app-form-filter>
+      </div>
+    </div>
+  </div>
+  
