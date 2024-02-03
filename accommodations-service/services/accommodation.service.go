@@ -344,3 +344,13 @@ func generateDateRange(startDateStr, endDateStr string) ([]string, *errors.Error
 
 	return dates, nil
 }
+
+func (as AccommodationService) ApproveAccommodation(id string) error {
+	log.Println(id)
+	return nil
+}
+
+func (as AccommodationService) DenyAccommodation(id string) error {
+	log.Println(id)
+	return nil
+}

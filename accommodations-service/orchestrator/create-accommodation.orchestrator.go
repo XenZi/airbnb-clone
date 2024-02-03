@@ -30,6 +30,7 @@ func (cao *CreateAccommodationOrchestrator) Start(accommodation *domain.SendCrea
 	}
 	return cao.commandPublisher.Publish(event)
 }
+
 func (cao *CreateAccommodationOrchestrator) handle(reply *events.SagaReply) {
 	command := events.SagaCommand{Payload: reply.Payload}
 	command.Type = cao.nextCommandType(reply.Type)
@@ -40,8 +41,6 @@ func (cao *CreateAccommodationOrchestrator) handle(reply *events.SagaReply) {
 
 func (cao *CreateAccommodationOrchestrator) nextCommandType(reply events.SagaReplyType) events.SagaCommandType {
 	switch reply {
-	case events.AccommodationCreated:
-		return events.CreateAvailability
 	case events.AvailabilityCreated:
 		return events.UpdateAccommodation
 	case events.AvailabilityNotCreated:
@@ -49,4 +48,5 @@ func (cao *CreateAccommodationOrchestrator) nextCommandType(reply events.SagaRep
 	default:
 		return events.UnknownCommand
 	}
+
 }

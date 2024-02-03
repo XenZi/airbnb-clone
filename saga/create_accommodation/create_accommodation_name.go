@@ -5,6 +5,8 @@ type SagaCommandType int8
 const (
 	CreateAccommodation SagaCommandType = iota
 	CreateAvailability
+	ApproveAccommodation
+	DenyAccommodation
 	UpdateAccommodation
 	RollbackAccommodation
 	UnknownCommand
