@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"example/saga/messaging/nats"
 	"log"
 	"net/http"
 	"os"
@@ -87,7 +88,32 @@ func main() {
 	if err != nil {
 		return
 	}
+	publisher, err := nats.NewNATSPublisher(
+		os.Getenv("NATS_HOST"),
+		os.Getenv("NATS_PORT"),
+		os.Getenv("NATS_USER"),
+		os.Getenv("NATS_PASS"),
+		os.Getenv("CREATE_ACCOMMODATION_REPLY_SUBJECT"),
+	)
+	if err != nil {
+		log.Fatal(err)
+	}
+	commandSubscriber, err := nats.NewNATSSubscriber(
+		os.Getenv("NATS_HOST"),
+		os.Getenv("NATS_PORT"),
+		os.Getenv("NATS_USER"),
+		os.Getenv("NATS_PASS"),
+		os.Getenv("CREATE_ACCOMMODATION_COMMAND_SUBJECT"),
+		"reservations-service")
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	reservationService := service.NewReservationService(reservationRepo, validator, notificationsClient, tracer)
+	_, err = handler.NewCreateAvailabilityCommandHandler(reservationService, publisher, commandSubscriber)
+	if err != nil {
+		log.Fatal(err)
+	}
 	reservationsHandler := handler.ReservationHandler{
 		ReservationService: reservationService,
 		Tracer:             tracer,

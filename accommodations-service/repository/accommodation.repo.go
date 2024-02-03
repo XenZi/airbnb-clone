@@ -133,6 +133,7 @@ func (ar *AccommodationRepo) GetAllAccommodations() ([]*do.Accommodation, *error
 }
 
 func (ar *AccommodationRepo) UpdateAccommodationById(accommodation do.Accommodation) (*do.Accommodation, *errors.ErrorStruct) {
+	log.Println(accommodation.Status)
 	accommodationCollection := ar.cli.Database("accommodations-service").Collection("accommodations")
 
 	filter := bson.D{{Key: "_id", Value: accommodation.Id}}
@@ -292,4 +293,24 @@ func (ar *AccommodationRepo) SearchAccommodations(city, country string, numOfVis
 	log.Println(accommodations)
 
 	return accommodations, nil
+}
+
+func (ar *AccommodationRepo) PutAccommodationStatus(accommodationID string, status string) *errors.ErrorStruct {
+	accommodationCollection := ar.cli.Database("accommodations-service").Collection("accommodations")
+	id, _ := primitive.ObjectIDFromHex(accommodationID)
+	filter := bson.D{{Key: "_id", Value: id}}
+	update := bson.D{
+		{Key: "$set", Value: bson.D{
+			{Key: "status", Value: status},
+		}},
+	}
+
+	// Perform the update operation
+	_, err := accommodationCollection.UpdateOne(context.TODO(), filter, update)
+	if err != nil {
+		ar.logger.Println(err)
+		return errors.NewError("Unable to update rating, database error", 500)
+	}
+
+	return nil
 }

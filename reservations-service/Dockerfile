@@ -10,6 +10,7 @@ WORKDIR /app
 # Copy go mod and sum files
 COPY ./reservations-service/go.mod ./reservations-service/go.sum ./
 
+COPY ./saga ../saga
 
 # Download all dependencies. Dependencies will be cached if the go.mod and go.sum files are not changed
 RUN go mod download

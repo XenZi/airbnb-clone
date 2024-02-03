@@ -1,6 +1,8 @@
 module accommodations-service
 
-go 1.21
+go 1.21.6
+
+require example/saga v1.0.0
 
 require (
 	github.com/colinmarc/hdfs/v2 v2.4.0
@@ -27,6 +29,9 @@ require (
 	github.com/jcmturner/rpc/v2 v2.0.3 // indirect
 	github.com/klauspost/compress v1.17.4 // indirect
 	github.com/montanaflynn/stats v0.7.1 // indirect
+	github.com/nats-io/nats.go v1.32.0 // indirect
+	github.com/nats-io/nkeys v0.4.7 // indirect
+	github.com/nats-io/nuid v1.0.1 // indirect
 	github.com/onsi/ginkgo v1.16.5 // indirect
 	github.com/onsi/gomega v1.30.0 // indirect
 	github.com/xdg-go/pbkdf2 v1.0.0 // indirect
@@ -36,6 +41,9 @@ require (
 	golang.org/x/crypto v0.18.0 // indirect
 	golang.org/x/net v0.20.0 // indirect
 	golang.org/x/sync v0.6.0 // indirect
+	golang.org/x/sys v0.16.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
 	google.golang.org/protobuf v1.32.0 // indirect
 )
+
+replace example/saga => ../saga

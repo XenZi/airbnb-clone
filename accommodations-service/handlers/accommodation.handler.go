@@ -84,14 +84,12 @@ func (a *AccommodationsHandler) CreateAccommodationById(rw http.ResponseWriter, 
 
 	ctx, cancel := context.WithTimeout(h.Context(), time.Second*5)
 	defer cancel()
-	accommodation, err4 := a.AccommodationService.CreateAccommodation(accomm, image, ctx)
+	_, err4 := a.AccommodationService.CreateAccommodation(accomm, image, ctx)
 	if err4 != nil {
 		utils.WriteErrorResp(err4.GetErrorMessage(), 500, "ovo je druis", rw)
 		return
 	}
-	rw.Header().Set("Content-Type", "application/json")
-	rw.WriteHeader(http.StatusOK)
-	utils.WriteResp(accommodation, 201, rw)
+	utils.WriteResp(accomm, 201, rw)
 }
 
 func (a *AccommodationsHandler) GetImage(rw http.ResponseWriter, r *http.Request) {

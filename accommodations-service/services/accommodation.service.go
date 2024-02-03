@@ -4,14 +4,17 @@ import (
 	"accommodations-service/client"
 	"accommodations-service/domain"
 	"accommodations-service/errors"
+	"accommodations-service/orchestrator"
 	"accommodations-service/repository"
 	"accommodations-service/utils"
 	"context"
-	"github.com/google/uuid"
-	"go.mongodb.org/mongo-driver/bson/primitive"
+	events "example/saga/create_accommodation"
 	"log"
 	"mime/multipart"
 	"time"
+
+	"github.com/google/uuid"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type AccommodationService struct {
@@ -21,9 +24,10 @@ type AccommodationService struct {
 	userClient              *client.UserClient
 	fileStorage             *repository.FileStorage
 	cache                   *repository.ImageCache
+	orchestrator            *orchestrator.CreateAccommodationOrchestrator
 }
 
-func NewAccommodationService(accommodationRepo *repository.AccommodationRepo, validator *utils.Validator, reservationsClient *client.ReservationsClient, userClient *client.UserClient, fileStorage *repository.FileStorage, cache *repository.ImageCache) *AccommodationService {
+func NewAccommodationService(accommodationRepo *repository.AccommodationRepo, validator *utils.Validator, reservationsClient *client.ReservationsClient, userClient *client.UserClient, fileStorage *repository.FileStorage, cache *repository.ImageCache, orchestrator *orchestrator.CreateAccommodationOrchestrator) *AccommodationService {
 	return &AccommodationService{
 		accommodationRepository: accommodationRepo,
 		validator:               validator,
@@ -31,6 +35,7 @@ func NewAccommodationService(accommodationRepo *repository.AccommodationRepo, va
 		userClient:              userClient,
 		fileStorage:             fileStorage,
 		cache:                   cache,
+		orchestrator:            orchestrator,
 	}
 }
 
@@ -66,24 +71,39 @@ func (as *AccommodationService) CreateAccommodation(accommodation domain.CreateA
 	as.fileStorage.WriteFile(image, uuidStr)
 	as.cache.Post(image, uuidStr)
 	accomm.ImageIds = imageIds
-	accomm.Status = domain.Pending
-
+	accomm.Status = "Pending"
 	newAccommodation, foundErr := as.accommodationRepository.SaveAccommodation(accomm)
 	if foundErr != nil {
 		return nil, foundErr
 	}
 	id := newAccommodation.Id.Hex()
 
-	err := as.reservationsClient.SendCreatedReservationsAvailabilities(ctx, id, accommodation)
+	//err := as.reservationsClient.SendCreatedReservationsAvailabilities(ctx, id, accommodation)
+	reqData := domain.SendCreateAccommodationAvailability{
+		AccommodationID: id,
+		Location:        accommodation.Location,
+		DateRange:       accommodation.AvailableAccommodationDates,
+	}
+	var eventsDateRangeCasted []events.AvailableAccommodationDates
+	for _, value := range reqData.DateRange {
+		val := events.AvailableAccommodationDates{
+			AccommodationId: value.AccommodationId,
+			Location:        value.Location,
+			DateRange:       value.DateRange,
+			Price:           value.Price,
+		}
+		eventsDateRangeCasted = append(eventsDateRangeCasted, val)
+	}
+
+	reqDataCasted := events.SendCreateAccommodationAvailability{
+		AccommodationID: reqData.AccommodationID,
+		Location:        reqData.Location,
+		DateRange:       eventsDateRangeCasted,
+	}
+	err := as.orchestrator.Start(&reqDataCasted)
 	if err != nil {
 		as.DeleteAccommodation(id)
 		return nil, errors.NewError("Service is not responding correcrtly", 500)
-	} else {
-		accomId := newAccommodation.Id.Hex()
-		accomm.Status = domain.Created
-
-		log.Println("Uslo je u update", accomm.Status)
-		as.accommodationRepository.UpdateAccommodationStatus(accomm, accomId)
 	}
 
 	return &domain.AccommodationDTO{
@@ -527,4 +547,25 @@ func generateDateRange(startDateStr, endDateStr string) ([]string, *errors.Error
 	}
 
 	return dates, nil
+}
+
+func (as AccommodationService) ApproveAccommodation(id string) *errors.ErrorStruct {
+	log.Println("USLO DA POTVRDI AKOMODACIJU")
+	acomm, err := as.GetAccommodationById(id)
+	if err != nil {
+		return err
+	}
+	acomm.Status = "Approved"
+	err = as.accommodationRepository.PutAccommodationStatus(id, "Approved")
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+	return nil
+}
+
+func (as AccommodationService) DenyAccommodation(id string) error {
+	log.Println("DENY ACCOMMODATION")
+	as.DeleteAccommodation(id)
+	return nil
 }
