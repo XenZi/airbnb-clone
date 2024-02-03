@@ -67,6 +67,11 @@ export class FormSearchComponent {
       },
     });
 
+    setTimeout(function() {
+      window.location.reload();
+  }, 100);
+
+
   }
 
   formatingStartDate():string{

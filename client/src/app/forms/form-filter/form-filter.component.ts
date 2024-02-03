@@ -67,10 +67,14 @@ export class FormFilterComponent {
           maxPrice:this.filterForm.value.maxPrice as string,
           conveniences:this.fromBooleanToConveniences(),
           distinguished:this.filterForm.value.distinguished as string
-
+          
         },
+        
       });
-      // window.location.reload();
+      setTimeout(function() {
+        window.location.reload();
+    }, 100);
+      
   
     }
   
