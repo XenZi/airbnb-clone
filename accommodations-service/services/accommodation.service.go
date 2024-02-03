@@ -4,6 +4,7 @@ import (
 	"accommodations-service/client"
 	"accommodations-service/domain"
 	"accommodations-service/errors"
+	"accommodations-service/orchestrator"
 	"accommodations-service/repository"
 	"accommodations-service/utils"
 	"context"
@@ -20,15 +21,17 @@ type AccommodationService struct {
 	reservationsClient      *client.ReservationsClient
 	fileStorage             *repository.FileStorage
 	cache                   *repository.ImageCache
+	orchestrator            *orchestrator.CreateAccommodationOrchestrator
 }
 
-func NewAccommodationService(accommodationRepo *repository.AccommodationRepo, validator *utils.Validator, reservationsClient *client.ReservationsClient, fileStorage *repository.FileStorage, cache *repository.ImageCache) *AccommodationService {
+func NewAccommodationService(accommodationRepo *repository.AccommodationRepo, validator *utils.Validator, reservationsClient *client.ReservationsClient, fileStorage *repository.FileStorage, cache *repository.ImageCache, orchestrator *orchestrator.CreateAccommodationOrchestrator) *AccommodationService {
 	return &AccommodationService{
 		accommodationRepository: accommodationRepo,
 		validator:               validator,
 		reservationsClient:      reservationsClient,
 		fileStorage:             fileStorage,
 		cache:                   cache,
+		orchestrator:            orchestrator,
 	}
 }
 
@@ -70,7 +73,13 @@ func (as *AccommodationService) CreateAccommodation(accommodation domain.CreateA
 	}
 	id := newAccommodation.Id.Hex()
 
-	err := as.reservationsClient.SendCreatedReservationsAvailabilities(ctx, id, accommodation)
+	//err := as.reservationsClient.SendCreatedReservationsAvailabilities(ctx, id, accommodation)
+	reqData := domain.SendCreateAccommodationAvailability{
+		AccommodationID: id,
+		Location:        accommodation.Location,
+		DateRange:       accommodation.AvailableAccommodationDates,
+	}
+	err := as.orchestrator.Start(&reqData)
 	if err != nil {
 		as.DeleteAccommodation(id)
 		return nil, errors.NewError("Service is not responding correcrtly", 500)

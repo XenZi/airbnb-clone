@@ -58,3 +58,9 @@ type AccommodationDTO struct {
 	ImageIds         []string `json:"imageIds"`
 	Rating           float32  `json:"rating"`
 }
+
+type SendCreateAccommodationAvailability struct {
+	AccommodationID string                        `json:"accommodationId"`
+	Location        string                        `json:"location"`
+	DateRange       []AvailableAccommodationDates `json:"dateRange"`
+}

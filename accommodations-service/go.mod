@@ -2,6 +2,7 @@ module accommodations-service
 
 go 1.21
 
+require example/saga v1.0.0
 require (
 	github.com/colinmarc/hdfs/v2 v2.4.0
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
@@ -38,3 +39,5 @@ require (
 	golang.org/x/text v0.14.0 // indirect
 	google.golang.org/protobuf v1.32.0 // indirect
 )
+
+replace example/saga => ../saga

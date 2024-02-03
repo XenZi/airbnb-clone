@@ -38,7 +38,8 @@ func (rc ReservationsClient) SendCreatedReservationsAvailabilities(ctx context.C
 	reqData := SendCreateAccommodationAvailiabilty{
 		AccommodationID: id,
 		Location:        accommodation.Location,
-		DateRange:       accommodation.AvailableAccommodationDates}
+		DateRange:       accommodation.AvailableAccommodationDates,
+	}
 	jsonData, err := json.Marshal(reqData)
 	if err != nil {
 		return errors.NewError("Nothing to parse", 500)
