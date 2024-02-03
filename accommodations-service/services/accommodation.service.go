@@ -8,6 +8,7 @@ import (
 	"accommodations-service/repository"
 	"accommodations-service/utils"
 	"context"
+	events "example/saga/create_accommodation"
 	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"log"
@@ -79,7 +80,23 @@ func (as *AccommodationService) CreateAccommodation(accommodation domain.CreateA
 		Location:        accommodation.Location,
 		DateRange:       accommodation.AvailableAccommodationDates,
 	}
-	err := as.orchestrator.Start(&reqData)
+	var eventsDateRangeCasted []events.AvailableAccommodationDates
+	for _, value := range reqData.DateRange {
+		val := events.AvailableAccommodationDates{
+			AccommodationId: value.AccommodationId,
+			Location:        value.Location,
+			DateRange:       value.DateRange,
+			Price:           value.Price,
+		}
+		eventsDateRangeCasted = append(eventsDateRangeCasted, val)
+	}
+
+	reqDataCasted := events.SendCreateAccommodationAvailability{
+		AccommodationID: reqData.AccommodationID,
+		Location:        reqData.Location,
+		DateRange:       eventsDateRangeCasted,
+	}
+	err := as.orchestrator.Start(&reqDataCasted)
 	if err != nil {
 		as.DeleteAccommodation(id)
 		return nil, errors.NewError("Service is not responding correcrtly", 500)
@@ -346,11 +363,11 @@ func generateDateRange(startDateStr, endDateStr string) ([]string, *errors.Error
 }
 
 func (as AccommodationService) ApproveAccommodation(id string) error {
-	log.Println(id)
+	log.Println("APPROVE ACCOMMODATION PROSAO ", id)
 	return nil
 }
 
 func (as AccommodationService) DenyAccommodation(id string) error {
-	log.Println(id)
+	log.Println("DENY ACOMMODATION PROSAO", id)
 	return nil
 }
