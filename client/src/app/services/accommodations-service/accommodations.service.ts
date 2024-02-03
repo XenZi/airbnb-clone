@@ -210,13 +210,13 @@ export class AccommodationsService {
     endDate: string,
     maxPrice:string,
     conveniences:string[],
-    distinguished:string
+    isDistinguished:string
   ): Observable<any> {
     
     
-    console.log('pocetni datum je', startDate);
+    console.log('pocetni datum je', isDistinguished);
     return this.http.get<any>(
-      `${apiURL}/accommodations/search?city=${city}&country=${country}&numOfVisitors=${numOfVisitors}&startDate=${startDate}&endDate=${endDate}&maxPrice=${maxPrice}&conveniences=${conveniences}&distinguished=${distinguished}`
+      `${apiURL}/accommodations/search?city=${city}&country=${country}&numOfVisitors=${numOfVisitors}&startDate=${startDate}&endDate=${endDate}&maxPrice=${maxPrice}&conveniences=${conveniences}&isDistinguished=${isDistinguished}`
     );
     
   }

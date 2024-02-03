@@ -67,9 +67,9 @@ export class FormSearchComponent {
       },
     });
 
-    setTimeout(function() {
-      window.location.reload();
-  }, 100);
+      setTimeout(function() {
+        window.location.reload();
+    }, 100);
 
 
   }

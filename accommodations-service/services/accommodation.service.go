@@ -273,6 +273,7 @@ func (as *AccommodationService) PutAccommodationRating(accommodationID string, a
 
 func (as *AccommodationService) SearchAccommodations(city, country string, numOfVisitors int, startDate string, endDate string, maxPrice int, conveniences []string, isDistinguishedString string, ctx context.Context) ([]domain.Accommodation, *errors.ErrorStruct) {
 	log.Println("USLO U SERVIS")
+	log.Println("Is distiguished na pocetku", isDistinguishedString)
 	isDistinguished := false
 	if isDistinguishedString == "true" {
 		isDistinguished = true
