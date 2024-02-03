@@ -70,11 +70,23 @@ func main() {
 
 	accommodationRepo := repository.NewAccommodationRepository(
 		mongoService.GetCli(), logger)
-	publisher, err := nats.NewNATSPublisher(os.Getenv("NATS_HOST"), os.Getenv("NAST_PORT"), os.Getenv("NATS_USER"), os.Getenv("NATS_PASS"), os.Getenv("CREATE_ACCOMMODATION_COMMAND_SUBJECT"))
+	publisher, err := nats.NewNATSPublisher(
+		os.Getenv("NATS_HOST"),
+		os.Getenv("NATS_PORT"),
+		os.Getenv("NATS_USER"),
+		os.Getenv("NATS_PASS"),
+		os.Getenv("CREATE_ACCOMMODATION_COMMAND_SUBJECT"),
+	)
 	if err != nil {
 		log.Fatal(err)
 	}
-	replySubscriber, err := nats.NewNATSSubscriber(os.Getenv("NATS_HOST"), os.Getenv("NAST_PORT"), os.Getenv("NATS_USER"), os.Getenv("NATS_PASS"), os.Getenv("CREATE_ACCOMMODATION_COMMAND_SUBJECT"), "accommodations-service")
+	replySubscriber, err := nats.NewNATSSubscriber(
+		os.Getenv("NATS_HOST"),
+		os.Getenv("NATS_PORT"),
+		os.Getenv("NATS_USER"),
+		os.Getenv("NATS_PASS"),
+		os.Getenv("CREATE_ACCOMMODATION_REPLY_SUBJECT"),
+		"accommodations-service")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -87,7 +99,24 @@ func main() {
 	_ = fileStorage.CreateDirectories()
 	cache := repository.NewCache(loggerCach)
 	accommodationService := services.NewAccommodationService(accommodationRepo, validator, reservationsClient, fileStorage, cache, orch)
-	_, err = handlers.NewCreateAccommodationCommandHandler(accommodationService, publisher, replySubscriber)
+	publisher1, err := nats.NewNATSPublisher(
+		os.Getenv("NATS_HOST"),
+		os.Getenv("NATS_PORT"),
+		os.Getenv("NATS_USER"),
+		os.Getenv("NATS_PASS"),
+		os.Getenv("CREATE_ACCOMMODATION_REPLY_SUBJECT"),
+	)
+	if err != nil {
+		log.Fatal(err)
+	}
+	replySubscriber2, err := nats.NewNATSSubscriber(
+		os.Getenv("NATS_HOST"),
+		os.Getenv("NATS_PORT"),
+		os.Getenv("NATS_USER"),
+		os.Getenv("NATS_PASS"),
+		os.Getenv("CREATE_ACCOMMODATION_COMMAND_SUBJECT"),
+		"accommodations-service")
+	_, err = handlers.NewCreateAccommodationCommandHandler(accommodationService, publisher1, replySubscriber2)
 	if err != nil {
 		log.Println(err)
 	}
