@@ -110,6 +110,7 @@ func main() {
 	// router definitions
 
 	router := mux.NewRouter()
+	router.HandleFunc("/test", authHandler.KubernetesTest).Methods("GET")
 	router.HandleFunc("/login", authHandler.LoginHandler).Methods("POST")
 	router.HandleFunc("/register", authHandler.RegisterHandler).Methods("POST")
 	router.HandleFunc("/confirm-account/{token}", authHandler.ConfirmAccount).Methods("POST")
