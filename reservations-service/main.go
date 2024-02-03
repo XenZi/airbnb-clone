@@ -104,7 +104,7 @@ func main() {
 		os.Getenv("NATS_USER"),
 		os.Getenv("NATS_PASS"),
 		os.Getenv("CREATE_ACCOMMODATION_COMMAND_SUBJECT"),
-		"accommodations-service")
+		"reservations-service")
 	if err != nil {
 		log.Fatal(err)
 	}

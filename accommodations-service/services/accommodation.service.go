@@ -9,11 +9,12 @@ import (
 	"accommodations-service/utils"
 	"context"
 	events "example/saga/create_accommodation"
-	"github.com/google/uuid"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"log"
 	"mime/multipart"
 	"time"
+
+	"github.com/google/uuid"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type AccommodationService struct {
@@ -68,6 +69,7 @@ func (as *AccommodationService) CreateAccommodation(accommodation domain.CreateA
 	as.fileStorage.WriteFile(image, uuidStr)
 	as.cache.Post(image, uuidStr)
 	accomm.ImageIds = imageIds
+	accomm.Status = "Pending"
 	newAccommodation, foundErr := as.accommodationRepository.SaveAccommodation(accomm)
 	if foundErr != nil {
 		return nil, foundErr
@@ -362,12 +364,23 @@ func generateDateRange(startDateStr, endDateStr string) ([]string, *errors.Error
 	return dates, nil
 }
 
-func (as AccommodationService) ApproveAccommodation(id string) error {
-	log.Println("APPROVE ACCOMMODATION PROSAO ", id)
+func (as AccommodationService) ApproveAccommodation(id string) *errors.ErrorStruct {
+	log.Println("USLO DA POTVRDI AKOMODACIJU")
+	acomm, err := as.GetAccommodationById(id)
+	if err != nil {
+		return err
+	}
+	acomm.Status = "Approved"
+	err = as.accommodationRepository.PutAccommodationStatus(id, "Approved")
+	if err != nil {
+		log.Println(err)
+		return err
+	}
 	return nil
 }
 
 func (as AccommodationService) DenyAccommodation(id string) error {
-	log.Println("DENY ACOMMODATION PROSAO", id)
+	log.Println("DENY ACCOMMODATION")
+	as.DeleteAccommodation(id)
 	return nil
 }
