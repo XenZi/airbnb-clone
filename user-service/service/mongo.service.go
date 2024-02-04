@@ -1,7 +1,6 @@
 package service
 
 import (
-	"auth-service/config"
 	"context"
 	"fmt"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -9,6 +8,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/readpref"
 	"os"
 	"time"
+	"user-service/config"
 )
 
 type MongoService struct {
