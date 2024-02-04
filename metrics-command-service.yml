@@ -1,0 +1,51 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: metrics-command
+spec:
+  selector:
+    app: metrics-command
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: 8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: metrics-command
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: metrics-command
+  template:
+    metadata:
+      labels:
+        app: metrics-command
+    spec:
+      containers:
+        - name: metrics-command
+          image: metrics-command
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8080
+          env:
+            - name: PORT
+              value: "8080"
+            - name: ESDB_USER
+              value: "admin"
+            - name: ESDB_PASS
+              value: "changeit"
+            - name: ESDB_HOST
+              value: "esdb"
+            - name: ESDB_PORT
+              value: "2113"
+            - name: QUERY_SERVICE_HOST
+              value: "metrics_query"
+            - name: QUERY_SERVICE_PORT
+              value: "8080"
+            - name: ESDB_UI_PORT
+              value: "1113"
+            - name: ESDB_GROUP
+              value: "metrics_query"

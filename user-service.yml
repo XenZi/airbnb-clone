@@ -1,0 +1,51 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: user-service
+spec:
+  selector:
+    app: user-service
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: 8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: user-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: user-service
+  template:
+    metadata:
+      labels:
+        app: user-service
+    spec:
+      containers:
+        - name: user-service
+          image: user-service
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8080
+          env:
+            - name: PORT
+              value: "8080"
+            - name: JWT_SECRET
+              value: "JWT_SECRET"
+            - name: MONGO_DB_URI
+              value: "mongodb://root:pass@user-db:27017"
+            - name: RESERVATIONS_SERVICE_HOST
+              value: "reservations-service"
+            - name: RESERVATIONS_SERVICE_PORT
+              value: "8080"
+            - name: AUTH_SERVICE_HOST
+              value: "auth-service"
+            - name: AUTH_SERVICE_PORT
+              value: "8080"
+            - name: ACCOMMODATION_SERVICE_HOST
+              value: "accommodations-service"
+            - name: ACCOMMODATION_SERVICE_PORT
+              value: "8080"
