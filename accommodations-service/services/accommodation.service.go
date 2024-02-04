@@ -4,14 +4,18 @@ import (
 	"accommodations-service/client"
 	"accommodations-service/domain"
 	"accommodations-service/errors"
+	"accommodations-service/orchestrator"
 	"accommodations-service/repository"
 	"accommodations-service/utils"
 	"context"
-	"github.com/google/uuid"
-	"go.mongodb.org/mongo-driver/bson/primitive"
+	events "example/saga/create_accommodation"
 	"log"
 	"mime/multipart"
 	"time"
+
+	"github.com/google/uuid"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.opentelemetry.io/otel/trace"
 )
 
 type AccommodationService struct {
@@ -21,9 +25,11 @@ type AccommodationService struct {
 	userClient              *client.UserClient
 	fileStorage             *repository.FileStorage
 	cache                   *repository.ImageCache
+	orchestrator            *orchestrator.CreateAccommodationOrchestrator
+	tracer                  trace.Tracer
 }
 
-func NewAccommodationService(accommodationRepo *repository.AccommodationRepo, validator *utils.Validator, reservationsClient *client.ReservationsClient, userClient *client.UserClient, fileStorage *repository.FileStorage, cache *repository.ImageCache) *AccommodationService {
+func NewAccommodationService(accommodationRepo *repository.AccommodationRepo, validator *utils.Validator, reservationsClient *client.ReservationsClient, userClient *client.UserClient, fileStorage *repository.FileStorage, cache *repository.ImageCache, orchestrator *orchestrator.CreateAccommodationOrchestrator, tracer trace.Tracer) *AccommodationService {
 	return &AccommodationService{
 		accommodationRepository: accommodationRepo,
 		validator:               validator,
@@ -31,10 +37,14 @@ func NewAccommodationService(accommodationRepo *repository.AccommodationRepo, va
 		userClient:              userClient,
 		fileStorage:             fileStorage,
 		cache:                   cache,
+		orchestrator:            orchestrator,
+		tracer:                  tracer,
 	}
 }
 
 func (as *AccommodationService) CreateAccommodation(accommodation domain.CreateAccommodation, image multipart.File, ctx context.Context) (*domain.AccommodationDTO, *errors.ErrorStruct) {
+	ctx, span := as.tracer.Start(ctx, "AccommodationService.CreateAccommodation")
+	defer span.End()
 	var imageIds []string
 	accomm := domain.Accommodation{
 		Name:             accommodation.Name,
@@ -63,27 +73,42 @@ func (as *AccommodationService) CreateAccommodation(accommodation domain.CreateA
 	log.Println(accomm)
 	uuidStr := uuid.New().String()
 	imageIds = append(imageIds, uuidStr)
-	as.fileStorage.WriteFile(image, uuidStr)
-	as.cache.Post(image, uuidStr)
+	as.fileStorage.WriteFile(ctx, image, uuidStr)
+	as.cache.Post(ctx, image, uuidStr)
 	accomm.ImageIds = imageIds
-	accomm.Status = domain.Pending
-
-	newAccommodation, foundErr := as.accommodationRepository.SaveAccommodation(accomm)
+	accomm.Status = "Pending"
+	newAccommodation, foundErr := as.accommodationRepository.SaveAccommodation(ctx, accomm)
 	if foundErr != nil {
 		return nil, foundErr
 	}
 	id := newAccommodation.Id.Hex()
 
-	err := as.reservationsClient.SendCreatedReservationsAvailabilities(ctx, id, accommodation)
-	if err != nil {
-		as.DeleteAccommodation(id)
-		return nil, errors.NewError("Service is not responding correcrtly", 500)
-	} else {
-		accomId := newAccommodation.Id.Hex()
-		accomm.Status = domain.Created
+	//err := as.reservationsClient.SendCreatedReservationsAvailabilities(ctx, id, accommodation)
+	reqData := domain.SendCreateAccommodationAvailability{
+		AccommodationID: id,
+		Location:        accommodation.Location,
+		DateRange:       accommodation.AvailableAccommodationDates,
+	}
+	var eventsDateRangeCasted []events.AvailableAccommodationDates
+	for _, value := range reqData.DateRange {
+		val := events.AvailableAccommodationDates{
+			AccommodationId: value.AccommodationId,
+			Location:        value.Location,
+			DateRange:       value.DateRange,
+			Price:           value.Price,
+		}
+		eventsDateRangeCasted = append(eventsDateRangeCasted, val)
+	}
 
-		log.Println("Uslo je u update", accomm.Status)
-		as.accommodationRepository.UpdateAccommodationStatus(accomm, accomId)
+	reqDataCasted := events.SendCreateAccommodationAvailability{
+		AccommodationID: reqData.AccommodationID,
+		Location:        reqData.Location,
+		DateRange:       eventsDateRangeCasted,
+	}
+	err := as.orchestrator.Start(&reqDataCasted)
+	if err != nil {
+		as.DeleteAccommodation(ctx, id)
+		return nil, errors.NewError("Service is not responding correcrtly", 500)
 	}
 
 	return &domain.AccommodationDTO{
@@ -103,22 +128,28 @@ func (as *AccommodationService) CreateAccommodation(accommodation domain.CreateA
 	}, nil
 }
 
-func (as *AccommodationService) GetImage(id string) ([]byte, *errors.ErrorStruct) {
-	file, err := as.fileStorage.ReadFile(id)
+func (as *AccommodationService) GetImage(ctx context.Context, id string) ([]byte, *errors.ErrorStruct) {
+	ctx, span := as.tracer.Start(ctx, "AccommodationService.GetImage")
+	defer span.End()
+	file, err := as.fileStorage.ReadFile(ctx, id)
 	if err != nil {
 		return nil, errors.NewError("image read error", 500)
 	}
-	as.cache.Create(file, id)
+	as.cache.Create(ctx, file, id)
 	return file, nil
 }
 
-func (as *AccommodationService) GetCache(key string) ([]byte, error) {
-	data, err := as.cache.Get(key)
+func (as *AccommodationService) GetCache(ctx context.Context, key string) ([]byte, error) {
+	ctx, span := as.tracer.Start(ctx, "AccommodationService.GetCache")
+	defer span.End()
+	data, err := as.cache.Get(ctx, key)
 	return data, err
 }
 
-func (as *AccommodationService) GetAllAccommodations() ([]*domain.AccommodationDTO, *errors.ErrorStruct) {
-	accommodations, err := as.accommodationRepository.GetAllAccommodations()
+func (as *AccommodationService) GetAllAccommodations(ctx context.Context) ([]*domain.AccommodationDTO, *errors.ErrorStruct) {
+	ctx, span := as.tracer.Start(ctx, "AccommodationService.GetAllAccommodations")
+	defer span.End()
+	accommodations, err := as.accommodationRepository.GetAllAccommodations(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -148,8 +179,10 @@ func (as *AccommodationService) GetAllAccommodations() ([]*domain.AccommodationD
 
 	return domainAccommodations, nil
 }
-func (as *AccommodationService) GetAccommodationById(accommodationId string) (*domain.Accommodation, *errors.ErrorStruct) {
-	accomm, err := as.accommodationRepository.GetAccommodationById(accommodationId)
+func (as *AccommodationService) GetAccommodationById(ctx context.Context, accommodationId string) (*domain.Accommodation, *errors.ErrorStruct) {
+	ctx, span := as.tracer.Start(ctx, "AccommodationService.GetAccommodationById")
+	defer span.End()
+	accomm, err := as.accommodationRepository.GetAccommodationById(ctx, accommodationId)
 	if err != nil {
 		return nil, err
 	}
@@ -172,8 +205,10 @@ func (as *AccommodationService) GetAccommodationById(accommodationId string) (*d
 
 }
 
-func (as *AccommodationService) FindAccommodationByIds(ids []string) ([]*domain.AccommodationDTO, *errors.ErrorStruct) {
-	accomm, err := as.accommodationRepository.FindAccommodationByIds(ids)
+func (as *AccommodationService) FindAccommodationByIds(ctx context.Context, ids []string) ([]*domain.AccommodationDTO, *errors.ErrorStruct) {
+	ctx, span := as.tracer.Start(ctx, "AccommodationService.FindAccommodationByIds")
+	defer span.End()
+	accomm, err := as.accommodationRepository.FindAccommodationByIds(ctx, ids)
 	if err != nil {
 		return nil, err
 	}
@@ -203,7 +238,9 @@ func (as *AccommodationService) FindAccommodationByIds(ids []string) ([]*domain.
 
 }
 
-func (as *AccommodationService) UpdateAccommodation(updatedAccommodation domain.Accommodation) (*domain.Accommodation, *errors.ErrorStruct) {
+func (as *AccommodationService) UpdateAccommodation(ctx context.Context, updatedAccommodation domain.Accommodation) (*domain.Accommodation, *errors.ErrorStruct) {
+	ctx, span := as.tracer.Start(ctx, "AccommodationService.UpdateAccommodation")
+	defer span.End()
 	as.validator.ValidateAccommodation(&updatedAccommodation)
 	validatorErrors := as.validator.GetErrors()
 	if len(validatorErrors) > 0 {
@@ -215,7 +252,7 @@ func (as *AccommodationService) UpdateAccommodation(updatedAccommodation domain.
 	}
 
 	log.Println("Prije update")
-	_, updateErr := as.accommodationRepository.UpdateAccommodationById(updatedAccommodation)
+	_, updateErr := as.accommodationRepository.UpdateAccommodationById(ctx, updatedAccommodation)
 	if updateErr != nil {
 		return nil, errors.NewError("Unable to update", 500)
 	}
@@ -237,15 +274,17 @@ func (as *AccommodationService) UpdateAccommodation(updatedAccommodation domain.
 	}, nil
 }
 
-func (as *AccommodationService) DeleteAccommodation(accommodationID string) (*domain.Accommodation, *errors.ErrorStruct) {
+func (as *AccommodationService) DeleteAccommodation(ctx context.Context, accommodationID string) (*domain.Accommodation, *errors.ErrorStruct) {
+	ctx, span := as.tracer.Start(ctx, "AccommodationService.DeleteAccommodation")
+	defer span.End()
 	// Assuming validation checks are not necessary for deletion
 
-	existingAccommodation, foundErr := as.accommodationRepository.GetAccommodationById(accommodationID)
+	existingAccommodation, foundErr := as.accommodationRepository.GetAccommodationById(ctx, accommodationID)
 	if foundErr != nil {
 		return nil, foundErr
 	}
 
-	deleteErr := as.accommodationRepository.DeleteAccommodationById(accommodationID)
+	deleteErr := as.accommodationRepository.DeleteAccommodationById(ctx, accommodationID)
 	if deleteErr != nil {
 		return nil, deleteErr
 	}
@@ -253,18 +292,22 @@ func (as *AccommodationService) DeleteAccommodation(accommodationID string) (*do
 	return existingAccommodation, nil
 }
 
-func (as *AccommodationService) DeleteAccommodationsByUserId(userID string) *errors.ErrorStruct {
+func (as *AccommodationService) DeleteAccommodationsByUserId(ctx context.Context, userID string) *errors.ErrorStruct {
+	ctx, span := as.tracer.Start(ctx, "AccommodationService.DeleteAccommodationsByUserId")
+	defer span.End()
 
-	deleteErr := as.accommodationRepository.DeleteAccommodationsByUserId(userID)
+	deleteErr := as.accommodationRepository.DeleteAccommodationsByUserId(ctx, userID)
 	if deleteErr != nil {
 		return deleteErr
 	}
 
 	return nil
 }
-func (as *AccommodationService) PutAccommodationRating(accommodationID string, accommodation domain.Accommodation) *errors.ErrorStruct {
+func (as *AccommodationService) PutAccommodationRating(ctx context.Context, accommodationID string, accommodation domain.Accommodation) *errors.ErrorStruct {
+	ctx, span := as.tracer.Start(ctx, "AccommodationService.PutAccommodationRating")
+	defer span.End()
 
-	err := as.accommodationRepository.PutAccommodationRating(accommodationID, accommodation.Rating)
+	err := as.accommodationRepository.PutAccommodationRating(ctx, accommodationID, accommodation.Rating)
 	if err != nil {
 		return errors.NewError("Error calling repository service", 500)
 	}
@@ -272,6 +315,8 @@ func (as *AccommodationService) PutAccommodationRating(accommodationID string, a
 }
 
 func (as *AccommodationService) SearchAccommodations(city, country string, numOfVisitors int, startDate string, endDate string, maxPrice int, conveniences []string, isDistinguishedString string, ctx context.Context) ([]domain.Accommodation, *errors.ErrorStruct) {
+	ctx, span := as.tracer.Start(ctx, "AccommodationService.SearchAccommodations")
+	defer span.End()
 	log.Println("USLO U SERVIS")
 	log.Println("Is distiguished na pocetku", isDistinguishedString)
 	isDistinguished := false
@@ -284,7 +329,7 @@ func (as *AccommodationService) SearchAccommodations(city, country string, numOf
 	log.Println("Max Price", maxPrice)
 	log.Println("isDistinguished", isDistinguished)
 
-	accommodations, err := as.accommodationRepository.SearchAccommodations(city, country, numOfVisitors, maxPrice, conveniences)
+	accommodations, err := as.accommodationRepository.SearchAccommodations(ctx, city, country, numOfVisitors, maxPrice, conveniences)
 	if err != nil {
 		// Handle the error returned by the repository
 		return nil, errors.NewError("Failed to find accommodations", 500) // Modify according to your error handling approach
@@ -484,6 +529,7 @@ func FilterAccommodationsByID(ids []string, accommodations []domain.Accommodatio
 }
 
 func removeAccommodations(accommodations []domain.Accommodation, accommodationIDs []string) []domain.Accommodation {
+
 	var filteredAccommodations []domain.Accommodation
 
 	// Create a map for faster lookup of accommodationIDs
@@ -527,4 +573,29 @@ func generateDateRange(startDateStr, endDateStr string) ([]string, *errors.Error
 	}
 
 	return dates, nil
+}
+
+func (as AccommodationService) ApproveAccommodation(ctx context.Context, id string) *errors.ErrorStruct {
+	ctx, span := as.tracer.Start(ctx, "AccommodationService.ApproveAccommodation")
+	defer span.End()
+	log.Println("USLO DA POTVRDI AKOMODACIJU")
+	acomm, err := as.GetAccommodationById(ctx, id)
+	if err != nil {
+		return err
+	}
+	acomm.Status = "Approved"
+	err = as.accommodationRepository.PutAccommodationStatus(id, "Approved")
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+	return nil
+}
+
+func (as AccommodationService) DenyAccommodation(ctx context.Context, id string) error {
+	ctx, span := as.tracer.Start(ctx, "AccommodationService.DenyAccommodation")
+	defer span.End()
+	log.Println("DENY ACCOMMODATION")
+	as.DeleteAccommodation(ctx, id)
+	return nil
 }

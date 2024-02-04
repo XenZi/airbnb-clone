@@ -9,20 +9,26 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.opentelemetry.io/otel/trace"
 )
 
 type AccommodationRepo struct {
 	cli    *mongo.Client
 	logger *log.Logger
+	tracer trace.Tracer
 }
 
-func NewAccommodationRepository(cli *mongo.Client, logger *log.Logger) *AccommodationRepo {
+func NewAccommodationRepository(cli *mongo.Client, logger *log.Logger, tracer trace.Tracer) *AccommodationRepo {
+
 	return &AccommodationRepo{
 		cli:    cli,
 		logger: logger,
+		tracer: tracer,
 	}
 }
-func (ar *AccommodationRepo) SaveAccommodation(accommodation do.Accommodation) (*do.Accommodation, *errors.ErrorStruct) {
+func (ar *AccommodationRepo) SaveAccommodation(ctx context.Context, accommodation do.Accommodation) (*do.Accommodation, *errors.ErrorStruct) {
+	ctx, span := ar.tracer.Start(ctx, "AccommodationRepo.SaveAccommodation")
+	defer span.End()
 	accommodationCollection := ar.cli.Database("accommodations-service").Collection("accommodations")
 	accommodation.Rating = 0.0
 
@@ -37,7 +43,9 @@ func (ar *AccommodationRepo) SaveAccommodation(accommodation do.Accommodation) (
 	return &accommodation, nil
 }
 
-func (ar *AccommodationRepo) GetAccommodationById(id string) (*do.Accommodation, *errors.ErrorStruct) {
+func (ar *AccommodationRepo) GetAccommodationById(ctx context.Context, id string) (*do.Accommodation, *errors.ErrorStruct) {
+	ctx, span := ar.tracer.Start(ctx, "AccommodationRepo.GetAccommodationById")
+	defer span.End()
 	accommodationCollection := ar.cli.Database("accommodations-service").Collection("accommodations")
 	var accommodation *do.Accommodation
 	accommId, _ := primitive.ObjectIDFromHex(id)
@@ -50,7 +58,9 @@ func (ar *AccommodationRepo) GetAccommodationById(id string) (*do.Accommodation,
 	return accommodation, nil
 }
 
-func (ar *AccommodationRepo) FindAccommodationByIds(ids []string) ([]*do.Accommodation, *errors.ErrorStruct) {
+func (ar *AccommodationRepo) FindAccommodationByIds(ctx context.Context, ids []string) ([]*do.Accommodation, *errors.ErrorStruct) {
+	ctx, span := ar.tracer.Start(ctx, "AccommodationRepo.FindAccommodationByIds")
+	defer span.End()
 	accommodationCollection := ar.cli.Database("accommodations-service").Collection("accommodations")
 	log.Println("Idevi za get su ", ids)
 
@@ -94,7 +104,9 @@ func (ar *AccommodationRepo) FindAccommodationByIds(ids []string) ([]*do.Accommo
 	return accommodations, nil
 }
 
-func (ar *AccommodationRepo) GetAllAccommodations() ([]*do.Accommodation, *errors.ErrorStruct) {
+func (ar *AccommodationRepo) GetAllAccommodations(ctx context.Context) ([]*do.Accommodation, *errors.ErrorStruct) {
+	ctx, span := ar.tracer.Start(ctx, "AccommodationRepo.GetAllAccommodations")
+	defer span.End()
 	accommodationCollection := ar.cli.Database("accommodations-service").Collection("accommodations")
 	var accommodations []*do.Accommodation
 
@@ -132,7 +144,9 @@ func (ar *AccommodationRepo) GetAllAccommodations() ([]*do.Accommodation, *error
 	return accommodations, nil
 }
 
-func (ar *AccommodationRepo) UpdateAccommodationById(accommodation do.Accommodation) (*do.Accommodation, *errors.ErrorStruct) {
+func (ar *AccommodationRepo) UpdateAccommodationById(ctx context.Context, accommodation do.Accommodation) (*do.Accommodation, *errors.ErrorStruct) {
+	ctx, span := ar.tracer.Start(ctx, "AccommodationRepo.UpdateAccommodationById")
+	defer span.End()
 	accommodationCollection := ar.cli.Database("accommodations-service").Collection("accommodations")
 
 	filter := bson.D{{Key: "_id", Value: accommodation.Id}}
@@ -176,7 +190,9 @@ func (ar *AccommodationRepo) UpdateAccommodationStatus(accommodation do.Accommod
 
 	return &accommodation, nil
 }
-func (ar *AccommodationRepo) PutAccommodationRating(accommodationID string, rating float32) *errors.ErrorStruct {
+func (ar *AccommodationRepo) PutAccommodationRating(ctx context.Context, accommodationID string, rating float32) *errors.ErrorStruct {
+	ctx, span := ar.tracer.Start(ctx, "AccommodationRepo.PutAccommodationRating")
+	defer span.End()
 	accommodationCollection := ar.cli.Database("accommodations-service").Collection("accommodations")
 	id, _ := primitive.ObjectIDFromHex(accommodationID)
 	filter := bson.D{{Key: "_id", Value: id}}
@@ -196,7 +212,9 @@ func (ar *AccommodationRepo) PutAccommodationRating(accommodationID string, rati
 	return nil
 }
 
-func (ar *AccommodationRepo) DeleteAccommodationById(id string) *errors.ErrorStruct {
+func (ar *AccommodationRepo) DeleteAccommodationById(ctx context.Context, id string) *errors.ErrorStruct {
+	ctx, span := ar.tracer.Start(ctx, "AccommodationRepo.DeleteAccommodationById")
+	defer span.End()
 	accommodationCollection := ar.cli.Database("accommodations-service").Collection("accommodations")
 	accommId, _ := primitive.ObjectIDFromHex(id)
 	filter := bson.M{"_id": accommId}
@@ -210,7 +228,9 @@ func (ar *AccommodationRepo) DeleteAccommodationById(id string) *errors.ErrorStr
 	return nil
 }
 
-func (ar *AccommodationRepo) DeleteAccommodationsByUserId(id string) *errors.ErrorStruct {
+func (ar *AccommodationRepo) DeleteAccommodationsByUserId(ctx context.Context, id string) *errors.ErrorStruct {
+	ctx, span := ar.tracer.Start(ctx, "AccommodationRepo.DeleteAccommodationsByUserId")
+	defer span.End()
 	accommodationCollection := ar.cli.Database("accommodations-service").Collection("accommodations")
 	userId := id
 	filter := bson.M{"userId": userId} // Assuming userId is the field representing the user ID
@@ -229,7 +249,9 @@ func (ar *AccommodationRepo) DeleteAccommodationsByUserId(id string) *errors.Err
 	return nil
 }
 
-func (ar *AccommodationRepo) SearchAccommodations(city, country string, numOfVisitors int, maxPrice int, conveniences []string) ([]do.Accommodation, *errors.ErrorStruct) {
+func (ar *AccommodationRepo) SearchAccommodations(ctx context.Context, city, country string, numOfVisitors int, maxPrice int, conveniences []string) ([]do.Accommodation, *errors.ErrorStruct) {
+	ctx, span := ar.tracer.Start(ctx, "AccommodationRepo.SearchAccommodations")
+	defer span.End()
 	accommodationCollection := ar.cli.Database("accommodations-service").Collection("accommodations")
 	filter := bson.M{}
 
@@ -263,7 +285,7 @@ func (ar *AccommodationRepo) SearchAccommodations(city, country string, numOfVis
 
 	// Perform the search using the constructed filter
 	var accommodations []do.Accommodation // Replace Accommodation with your struct type
-	ctx := context.TODO()
+	ctx = context.TODO()
 
 	// Apply the filter and retrieve accommodations
 	cursor, err := accommodationCollection.Find(ctx, filter)
@@ -292,4 +314,24 @@ func (ar *AccommodationRepo) SearchAccommodations(city, country string, numOfVis
 	log.Println(accommodations)
 
 	return accommodations, nil
+}
+
+func (ar *AccommodationRepo) PutAccommodationStatus(accommodationID string, status string) *errors.ErrorStruct {
+	accommodationCollection := ar.cli.Database("accommodations-service").Collection("accommodations")
+	id, _ := primitive.ObjectIDFromHex(accommodationID)
+	filter := bson.D{{Key: "_id", Value: id}}
+	update := bson.D{
+		{Key: "$set", Value: bson.D{
+			{Key: "status", Value: status},
+		}},
+	}
+
+	// Perform the update operation
+	_, err := accommodationCollection.UpdateOne(context.TODO(), filter, update)
+	if err != nil {
+		ar.logger.Println(err)
+		return errors.NewError("Unable to update rating, database error", 500)
+	}
+
+	return nil
 }

@@ -1,12 +1,15 @@
 package repository
 
 import (
+	"context"
 	"fmt"
-	hdfs "github.com/colinmarc/hdfs/v2"
 	"io"
 	"log"
 	"mime/multipart"
 	"os"
+
+	hdfs "github.com/colinmarc/hdfs/v2"
+	"go.opentelemetry.io/otel/trace"
 )
 
 const (
@@ -17,9 +20,10 @@ const (
 type FileStorage struct {
 	client *hdfs.Client
 	logger *log.Logger
+	tracer trace.Tracer
 }
 
-func NewFileStorage(logger *log.Logger) *FileStorage {
+func NewFileStorage(logger *log.Logger, tracer trace.Tracer) *FileStorage {
 	hdfsUri := os.Getenv("HDFS_URI")
 	client, err := hdfs.New(hdfsUri)
 	if err != nil {
@@ -33,14 +37,17 @@ func NewFileStorage(logger *log.Logger) *FileStorage {
 	return &FileStorage{
 		client: client,
 		logger: logger,
+		tracer: tracer,
 	}
 }
 
 func (fs *FileStorage) Close() {
+
 	fs.client.Close()
 }
 
 func (fs *FileStorage) CreateDirectories() error {
+
 	err := fs.client.MkdirAll(hdfsWriteDir, 0644)
 	if err != nil {
 		fs.logger.Println(err)
@@ -49,7 +56,9 @@ func (fs *FileStorage) CreateDirectories() error {
 	return nil
 }
 
-func (fs *FileStorage) WalkDirectories() []string {
+func (fs *FileStorage) WalkDirectories(ctx context.Context) []string {
+	ctx, span := fs.tracer.Start(ctx, "FileStorage.WalkDirectories")
+	defer span.End()
 	var paths []string
 	callbackFunc := func(path string, info os.FileInfo, err error) error {
 		if err != nil {
@@ -70,7 +79,9 @@ func (fs *FileStorage) WalkDirectories() []string {
 	return paths
 }
 
-func (fs *FileStorage) WriteFile(fileContent multipart.File, fileName string) error {
+func (fs *FileStorage) WriteFile(ctx context.Context, fileContent multipart.File, fileName string) error {
+	ctx, span := fs.tracer.Start(ctx, "FileStorage.WriteFile")
+	defer span.End()
 	filePath := hdfsWriteDir + fileName
 	log.Println("HDFS PATH IS:", filePath)
 	file, err := fs.client.Create(filePath)
@@ -93,7 +104,9 @@ func (fs *FileStorage) WriteFile(fileContent multipart.File, fileName string) er
 	return nil
 }
 
-func (fs *FileStorage) ReadFile(fileName string) ([]byte, error) {
+func (fs *FileStorage) ReadFile(ctx context.Context, fileName string) ([]byte, error) {
+	ctx, span := fs.tracer.Start(ctx, "FileStorage.ReadFile")
+	defer span.End()
 	filePath := hdfsWriteDir + fileName
 	file, err := fs.client.Open(filePath)
 	if err != nil {

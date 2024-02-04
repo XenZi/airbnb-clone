@@ -11,4 +11,5 @@ use (
 	./recommendation-service
 	./reservations-service
 	./user-service
+	saga
 )

@@ -105,6 +105,13 @@ services:
       - HDFS_URI=namenode:9000
       - REDIS_HOST=${REDIS_HOST}
       - REDIS_PORT=${REDIS_PORT}
+      - NATS_HOST=${NATS_HOST}
+      - NATS_PORT=${NATS_PORT}
+      - NATS_USER=${NATS_USER}
+      - NATS_PASS=${NATS_PASS}
+      - CREATE_ACCOMMODATION_COMMAND_SUBJECT=${CREATE_ACCOMMODATION_COMMAND_SUBJECT}
+      - CREATE_ACCOMMODATION_REPLY_SUBJECT=${CREATE_ACCOMMODATION_REPLY_SUBJECT}
+      - JAEGER_ADDRESS=${JAEGER_ADDRESS}
     networks:
       - network
     depends_on:
@@ -216,6 +223,12 @@ services:
       - NOTIFICATION_SERVICE_HOST=${NOTIFICATION_SERVICE_HOST}
       - NOTIFICATION_SERVICE_PORT=${NOTIFICATION_SERVICE_PORT}
       - JAEGER_ADDRESS=${JAEGER_ADDRESS}
+      - NATS_HOST=${NATS_HOST}
+      - NATS_PORT=${NATS_PORT}
+      - NATS_USER=${NATS_USER}
+      - NATS_PASS=${NATS_PASS}
+      - CREATE_ACCOMMODATION_COMMAND_SUBJECT=${CREATE_ACCOMMODATION_COMMAND_SUBJECT}
+      - CREATE_ACCOMMODATION_REPLY_SUBJECT=${CREATE_ACCOMMODATION_REPLY_SUBJECT}
     depends_on:
       reservations-db:
         condition: service_healthy
@@ -389,6 +402,8 @@ services:
       - reservations-service
       - user-service
       - notifications-service
+    logging:
+      driver: none
     networks:
       - network
 
@@ -458,6 +473,13 @@ services:
     command: [ "--config=/etc/otel-collector-config.yaml" ]
     volumes:
       - ./api_gateway/otel-collector-config.yaml:/etc/otel-collector-config.yaml
+    networks:
+      - network
+
+  nats:
+    image: nats
+    container_name: nats
+    restart: on-failure
     networks:
       - network
       
