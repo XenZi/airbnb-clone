@@ -112,10 +112,11 @@ func main() {
 	keyByte := []byte(jwtSecretKey)
 	jwtService := services.NewJWTService(keyByte)
 	encryptionService := &services.EncryptionService{SecretKey: secretKey}
-	userService := services.NewUserService(userRepo, passwordService, jwtService, validator, encryptionService, mailClient, userClient, notificationClient, tracer)
+	userService := services.NewUserService(userRepo, passwordService, jwtService, validator, encryptionService, mailClient, userClient, notificationClient, tracer, logger)
 	authHandler := handler.AuthHandler{
 		UserService: userService,
 		Tracer:      tracer,
+		Logger:      logger,
 	}
 	accessControl := security.NewAccessControl()
 	err = accessControl.LoadAccessConfig("./security/rbac.json")
@@ -130,7 +131,7 @@ func main() {
 	router.HandleFunc("/confirm-account/{token}", authHandler.ConfirmAccount).Methods("POST")
 	router.HandleFunc("/request-reset-password", authHandler.RequestResetPassword).Methods("POST")
 	router.HandleFunc("/reset-password/{token}", authHandler.ResetPassword).Methods("POST")
-	router.HandleFunc("/change-password", middlewares.ValidateJWT(authHandler.ChangePassword)).Methods("POST")
+	router.HandleFunc("/change-password/{id}", middlewares.ValidateJWT(authHandler.ChangePassword)).Methods("POST")
 	router.HandleFunc("/update-credentials", middlewares.ValidateJWT(authHandler.UpdateCredentials)).Methods("POST")
 	router.HandleFunc("/{id}", authHandler.DeleteUser).Methods("DELETE")
 	router.HandleFunc("/all", middlewares.ValidateJWT(middlewares.RoleValidator(accessControl, authHandler.All))).Methods("GET")
