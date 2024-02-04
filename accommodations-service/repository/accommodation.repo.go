@@ -107,7 +107,7 @@ func (ar *AccommodationRepo) GetAllAccommodations() ([]*do.Accommodation, *error
 	defer func(cursor *mongo.Cursor, ctx context.Context) {
 		err := cursor.Close(ctx)
 		if err != nil {
-
+			log.Println("Error")
 		}
 	}(cursor, context.TODO())
 
