@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"auth-service/config"
 	"auth-service/domains"
 	"auth-service/services"
 	"auth-service/utils"
@@ -17,6 +18,7 @@ import (
 type AuthHandler struct {
 	UserService *services.UserService
 	Tracer      trace.Tracer
+	Logger      *config.Logger
 }
 
 func (a AuthHandler) LoginHandler(rw http.ResponseWriter, h *http.Request) {

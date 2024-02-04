@@ -125,7 +125,7 @@ func main() {
 	defer fileStorage.Close()
 	_ = fileStorage.CreateDirectories()
 	cache := repository.NewCache(loggerCach)
-	accommodationService := services.NewAccommodationService(accommodationRepo, validator, reservationsClient, fileStorage, cache, orch)
+	accommodationService := services.NewAccommodationService(accommodationRepo, validator, reservationsClient, userClient, fileStorage, cache, orch)
 	publisher1, err := nats.NewNATSPublisher(
 		os.Getenv("NATS_HOST"),
 		os.Getenv("NATS_PORT"),
