@@ -30,6 +30,11 @@ spec:
           image: cassandra
           ports:
             - containerPort: 9042
+          resources:
+            limits:
+              memory: "1Gi"
+            requests:
+              memory: "5Gi"
       volumes:
         - name: cass-store
           persistentVolumeClaim:

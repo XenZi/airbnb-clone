@@ -43,9 +43,27 @@ spec:
               value: "reservations-service"
             - name: RESERVATIONS_SERVICE_PORT
               value: "8080"
+            - name: USER_SERVICE_HOST
+              value: "user-service"
+            - name: USER_SERVICE_PORT
+              value: "8080"
             - name: HDFS_URI
-              value: "namenode:9000"
+              value: "namenode:9870"
             - name: REDIS_HOST
               value: "acc-redis"
             - name: REDIS_PORT
               value: "6379"
+            - name: NATS_HOST
+              value: "nats"
+            - name: NATS_PORT
+              value: "4222"
+            - name: NATS_USER
+              value: "ruser"
+            - name: NATS_PASS
+              value: "T0pS3cr3t"
+            - name: CREATE_ACCOMMODATION_COMMAND_SUBJECT
+              value: "accommodation.create.command"
+            - name: CREATE_ACCOMMODATION_REPLY_SUBJECT
+              value: "accommodation.create.reply"
+            - name: JAEGER_ADDRESS
+              value: "http://jaeger:14268/api/traces"

@@ -39,3 +39,17 @@ spec:
               value: "notifications-service"
             - name: NOTIFICATION_SERVICE_PORT
               value: "8080"
+            - name: NATS_HOST
+              value: "nats"
+            - name: NATS_PORT
+              value: "4222"
+            - name: NATS_USER
+              value: "ruser"
+            - name: NATS_PASS
+              value: "T0pS3cr3t"
+            - name: CREATE_ACCOMMODATION_COMMAND_SUBJECT
+              value: "accommodation.create.command"
+            - name: CREATE_ACCOMMODATION_REPLY_SUBJECT
+              value: "accommodation.create.reply"
+            - name: JAEGER_ADDRESS
+              value: "http://jaeger:14268/api/traces"

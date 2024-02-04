@@ -133,7 +133,7 @@ func main() {
 
 	headersOk := gorillaHandlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"})
 	methodsOk := gorillaHandlers.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "OPTIONS", "DELETE"})
-	originsOk := gorillaHandlers.AllowedOrigins([]string{"http://localhost:4200", "http://localhost:58495"})
+	originsOk := gorillaHandlers.AllowedOrigins([]string{"http://localhost:4200"})
 
 	server := http.Server{
 		Addr:         ":" + port,
