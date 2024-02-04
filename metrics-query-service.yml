@@ -1,0 +1,53 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: metrics-query
+spec:
+  selector:
+    app: metrics-query
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: 8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: metrics-query
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: metrics-query
+  template:
+    metadata:
+      labels:
+        app: metrics-query
+    spec:
+      containers:
+        - name: metrics-query
+          image: metrics-query
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8080
+          env:
+            - name: PORT
+              value: "8080"
+            - name: ESDB_USER
+              value: "admin"
+            - name: ESDB_PASS
+              value: "changeit"
+            - name: ESDB_HOST
+              value: "esdb"
+            - name: ESDB_PORT
+              value: "2113"
+            - name: QUERY_SERVICE_HOST
+              value: "metrics_query"
+            - name: QUERY_SERVICE_PORT
+              value: "8080"
+            - name: ESDB_UI_PORT
+              value: "1113"
+            - name: ESDB_GROUP
+              value: "metrics_query"
+            - name: MONGO_DB_URI
+              value: "mongodb://root:pass@auth-db:27017"

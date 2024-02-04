@@ -7,8 +7,9 @@ spec:
     app: datanode1
   ports:
     - protocol: TCP
-      port: 9866
-      targetPort: 9866 # Assuming data transfer protocol uses this port
+      port: 9870
+      targetPort: 9870
+#      TODO potential port break
 ---
 apiVersion: apps/v1
 kind: Deployment

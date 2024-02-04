@@ -11,10 +11,74 @@ spec:
     - host: localhost
       http:
         paths:
+#done
           - path: /api/auth(/|$)(.*)
             pathType: ImplementationSpecific
             backend:
               service:
                 name: auth-service
+                port:
+                  number: 8080
+#done
+          - path: /api/metrics-command(/|$)(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: metrics-command
+                port:
+                  number: 8080
+#done
+          - path: /api/metrics-query(/|$)(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: metrics-query
+                port:
+                  number: 8080
+#done
+          - path: /api/mail(/|$)(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: mail-service
+                port:
+                  number: 8080
+#done
+          - path: /api/user(/|$)(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: user-service
+                port:
+                  number: 8080
+#done
+          - path: /api/notifications(/|$)(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: notifications-service
+                port:
+                  number: 8080
+          - path: /api/accommodations(/|$)(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: accommodations-service
+                port:
+                  number: 8080
+#done
+          - path: /api/recommendation(/|$)(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: recommendation-service
+                port:
+                  number: 8080
+#done
+          - path: /api/reservations(/|$)(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: accommodations-service
                 port:
                   number: 8080
