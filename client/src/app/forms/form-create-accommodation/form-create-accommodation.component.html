@@ -244,6 +244,23 @@
       </app-button>
     </div>
     <div class="form__group">
+      <label class="form__label">I want to be payed:</label>
+  
+      <div class="form__radio-group" *ngFor="let paying of payingRoles; index as i">
+        <input
+          type="radio"
+          id="{{ 'radio' + paying }}"
+          class="form__radio-input"
+          formControlName="paying"
+          [value]="paying"
+          [checked]="paying == 'Per Accommodation'"
+        />
+        <label for="{{ 'radio' + paying }}" class="form__radio-label">{{
+          paying
+        }}</label>
+      </div>
+    </div>
+    <div class="form__group">
       <label for="images" class="form__label">Upload Pictures</label>
       <input
         type="file"

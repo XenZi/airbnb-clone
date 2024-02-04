@@ -47,7 +47,8 @@ export class AccommodationsService {
     maxNumOfVisitors: string,
     availableAccommodationDates: DateAvailability[],
     location: string,
-    images:FormArray
+    images:FormArray,
+    paying:string
   ): FormData {
     let formData: FormData = new FormData();
     formData.append('userId', userId);
@@ -68,6 +69,7 @@ export class AccommodationsService {
         formData.append('images', file);
       });
     }
+    formData.append('paying', paying);
 
 
 
@@ -92,7 +94,8 @@ export class AccommodationsService {
     maxNumOfVisitors: string,
     availableAccommodationDates: DateAvailability[],
     location: string,
-    images:FormArray
+    images:FormArray,
+    paying:string,
   ): void {
     console.log(email)
     this.http
@@ -109,7 +112,8 @@ export class AccommodationsService {
         maxNumOfVisitors,
         availableAccommodationDates,
         location,
-        images
+        images,
+        paying
       ))
       .subscribe({
         next: (data) => {
@@ -131,8 +135,8 @@ export class AccommodationsService {
           );
         },
       });
-    // this.router.navigate(['/']);
-    // window.location.reload();
+    this.router.navigate(['/']);
+    window.location.reload();
   }
 
   public loadAccommodations(): Observable<any> {

@@ -1,13 +1,14 @@
 package handlers
 
 import (
+	"accommodations-service/config"
 	"accommodations-service/domain"
 	"accommodations-service/services"
 	"accommodations-service/utils"
 	"encoding/csv"
 	"encoding/json"
 	"fmt"
-	"log"
+	log "github.com/sirupsen/logrus"
 	"mime/multipart"
 	"net/http"
 	"strconv"
@@ -21,10 +22,17 @@ import (
 type AccommodationsHandler struct {
 	AccommodationService *services.AccommodationService
 	Tracer               trace.Tracer
+	logger               *config.Logger
+}
+
+func NewAccommodationHandler(logger *config.Logger) *AccommodationsHandler {
+	return &AccommodationsHandler{
+		logger: logger,
+	}
 }
 
 func (a *AccommodationsHandler) CreateAccommodationById(rw http.ResponseWriter, h *http.Request) {
-	//TODO tracing reapair
+	//TODO tracing repair
 	ctx, span := a.Tracer.Start(h.Context(), "AccommodationsHandler.CreateAccommodationById")
 	defer span.End()
 	//decoder.DisallowUnknownFields()
@@ -36,11 +44,19 @@ func (a *AccommodationsHandler) CreateAccommodationById(rw http.ResponseWriter, 
 	if isMultipart {
 		err := h.ParseMultipartForm(10 << 20)
 		if err != nil {
+			a.logger.Error("Error while parsing multipartForm", log.Fields{
+				"module": "handler",
+				"error":  err.Error(),
+			})
 			utils.WriteErrorResp(err.Error(), http.StatusBadRequest, "e puklo", rw)
 			return
 		}
 		file, _, err := h.FormFile("images")
 		if err != nil {
+			a.logger.Error("Error returning formfile", log.Fields{
+				"module": "handler",
+				"error":  err.Error(),
+			})
 			utils.WriteErrorResp(err.Error(), http.StatusBadRequest, "nista bajo", rw)
 			return
 		}
@@ -52,6 +68,10 @@ func (a *AccommodationsHandler) CreateAccommodationById(rw http.ResponseWriter, 
 	datesJson := h.FormValue("availableAccommodationDates")
 	err2 := json.Unmarshal([]byte(datesJson), &accDates)
 	if err2 != nil {
+		a.logger.Error("Error unmarshaling json", log.Fields{
+			"module": "handler",
+			"error":  err2.Error(),
+		})
 		utils.WriteErrorResp(err2.Error(), http.StatusBadRequest, "dates puca", rw)
 		return
 	}
@@ -62,6 +82,10 @@ func (a *AccommodationsHandler) CreateAccommodationById(rw http.ResponseWriter, 
 	reader := csv.NewReader(strings.NewReader(h.FormValue("conveniences")))
 	records, err := reader.ReadAll()
 	if err != nil {
+		a.logger.Error("Error reading records", log.Fields{
+			"module": "handler",
+			"error":  err.Error(),
+		})
 		fmt.Println("Error reading CSV:", err)
 		return
 	}
@@ -83,13 +107,19 @@ func (a *AccommodationsHandler) CreateAccommodationById(rw http.ResponseWriter, 
 		MaxNumOfVisitors:            maxVis,
 		AvailableAccommodationDates: accDates,
 		Location:                    h.FormValue("location"),
+		Paying:                      h.FormValue("paying"),
 	}
 
 	_, err4 := a.AccommodationService.CreateAccommodation(accomm, image, ctx)
 	if err4 != nil {
+		a.logger.Error("Error creating accomodation", log.Fields{
+			"module": "handler",
+			"error":  err.Error(),
+		})
 		utils.WriteErrorResp(err4.GetErrorMessage(), 500, "ovo je druis", rw)
 		return
 	}
+	a.logger.Infof("Successfully sent accommodation to accommodation service")
 	utils.WriteResp(accomm, 201, rw)
 }
 
@@ -100,7 +130,12 @@ func (a *AccommodationsHandler) GetImage(rw http.ResponseWriter, r *http.Request
 	imageId := vars["id"]
 	file, err := a.AccommodationService.GetImage(ctx, imageId)
 	if err != nil {
+		a.logger.Error("Error getting image", log.Fields{
+			"module": "handler",
+			"error":  err.GetErrorMessage(),
+		})
 		utils.WriteErrorResp(err.GetErrorMessage(), 500, "nemere slike otvarati", rw)
+		a.logger.Infof("Successfully got image")
 		return
 	}
 	rw.Header().Set("Content-Type", "image/jpeg")
@@ -114,9 +149,14 @@ func (a *AccommodationsHandler) GetAllAccommodations(rw http.ResponseWriter, r *
 	defer span.End()
 	accommodations, err := a.AccommodationService.GetAllAccommodations(ctx)
 	if err != nil {
+		a.logger.Error("Error getting accommodations", log.Fields{
+			"module": "handler",
+			"error":  err.GetErrorMessage(),
+		})
 		utils.WriteErrorResp(err.GetErrorMessage(), http.StatusInternalServerError, "api/accommodations", rw)
 		return
 	}
+	a.logger.Infof("Successfully got accommodations")
 	//Serialize accommodations to JSON and write response
 	rw.Header().Set("Content-Type", "application/json")
 	rw.WriteHeader(http.StatusOK)
@@ -131,6 +171,10 @@ func (a *AccommodationsHandler) GetAccommodationById(rw http.ResponseWriter, r *
 
 	accommodation, err := a.AccommodationService.GetAccommodationById(ctx, accommodationId)
 	if err != nil {
+		a.logger.Error("Error getting accommodation by id", log.Fields{
+			"module": "handler",
+			"error":  err.GetErrorMessage(),
+		})
 		utils.WriteErrorResp(err.GetErrorMessage(), http.StatusNotFound, "api/accommodations/"+accommodationId, rw)
 		return
 	}
@@ -139,6 +183,7 @@ func (a *AccommodationsHandler) GetAccommodationById(rw http.ResponseWriter, r *
 
 	rw.Header().Set("Content-Type", "application/json")
 	rw.WriteHeader(http.StatusOK)
+	a.logger.Infof("Successfully got accommodation by id" + accommodationId)
 
 	utils.WriteResp(accommodation, 201, rw)
 }

@@ -14,4 +14,5 @@ export interface Accommodation {
   maxNumOfVisitors: number;
   AvailableAccommodationDates: DateAvailability[];
   imageIds: string[];
+  paying:string;
 }

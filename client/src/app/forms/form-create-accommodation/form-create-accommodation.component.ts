@@ -23,6 +23,7 @@ import { Observable } from 'rxjs';
 })
 export class FormCreateAccommodationComponent {
   createAccommodationForm: FormGroup;
+  payingRoles: string[] = ['Per Accommodation', 'Per Guest'];
   convenienceList = [
     'WiFi',
     'Kitchen',
@@ -50,6 +51,7 @@ export class FormCreateAccommodationComponent {
       minNumOfVisitors: [''],
       dateAvailabilities: this.fb.array([this.initDateAvailability()]),
       pictures: this.fb.array([]),
+      paying: ['Per Accommodation', Validators.required],
     });
   }
   
@@ -162,6 +164,7 @@ export class FormCreateAccommodationComponent {
       });
       console.log(this.errors);
       
+      
       return;
       
     }
@@ -208,7 +211,7 @@ export class FormCreateAccommodationComponent {
 
 
 
-    
+    console.log("Placamo:" ,this.createAccommodationForm.value.paying as string)
     console.log(images?.value)
     console.log(this.dateAvailabilities.value)
     const availabilites=processDateAvailabilities(dateAvailabilitiesValue)
@@ -228,6 +231,7 @@ export class FormCreateAccommodationComponent {
       availabilites,
       this.createLocationCsv(),
       images?.value,
+      this.createAccommodationForm.value.paying as string,
     );
   }
 }

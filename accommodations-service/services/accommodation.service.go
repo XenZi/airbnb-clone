@@ -57,6 +57,7 @@ func (as *AccommodationService) CreateAccommodation(accommodation domain.CreateA
 		Conveniences:     accommodation.Conveniences,
 		MinNumOfVisitors: accommodation.MinNumOfVisitors,
 		MaxNumOfVisitors: accommodation.MaxNumOfVisitors,
+		Paying:           accommodation.Paying,
 	}
 	as.validator.ValidateAccommodation(&accomm)
 	//as.validator.ValidateAvailabilities(&accommodation)
@@ -125,6 +126,7 @@ func (as *AccommodationService) CreateAccommodation(accommodation domain.CreateA
 		MaxNumOfVisitors: accommodation.MaxNumOfVisitors,
 		ImageIds:         imageIds,
 		Status:           accommodation.Status,
+		Paying:           accommodation.Paying,
 	}, nil
 }
 
@@ -174,6 +176,7 @@ func (as *AccommodationService) GetAllAccommodations(ctx context.Context) ([]*do
 			ImageIds:         imageIds,
 			Rating:           accommodation.Rating,
 			Status:           accommodation.Status,
+			Paying:           accommodation.Paying,
 		})
 	}
 
@@ -201,6 +204,7 @@ func (as *AccommodationService) GetAccommodationById(ctx context.Context, accomm
 		MaxNumOfVisitors: accomm.MaxNumOfVisitors,
 		ImageIds:         accomm.ImageIds,
 		Status:           accomm.Status,
+		Paying:           accomm.Paying,
 	}, nil
 
 }
@@ -232,6 +236,7 @@ func (as *AccommodationService) FindAccommodationByIds(ctx context.Context, ids 
 			ImageIds:         imageIds,
 			Rating:           accommodation.Rating,
 			Status:           accommodation.Status,
+			Paying:           accommodation.Paying,
 		})
 	}
 	return domainAccommodations, nil
@@ -271,6 +276,7 @@ func (as *AccommodationService) UpdateAccommodation(ctx context.Context, updated
 		MinNumOfVisitors: updatedAccommodation.MinNumOfVisitors,
 		MaxNumOfVisitors: updatedAccommodation.MaxNumOfVisitors,
 		Status:           updatedAccommodation.Status,
+		Paying:           updatedAccommodation.Paying,
 	}, nil
 }
 

@@ -19,6 +19,7 @@ type Accommodation struct {
 	ImageIds         []string           `json:"imageIds"`
 	Rating           float32            `json:"rating" bson:"rating"`
 	Status           string             `json:"status" bson:"status"`
+	Paying           string             `json:"paying" bson:"paying"`
 }
 
 type CreateAccommodation struct {
@@ -36,6 +37,7 @@ type CreateAccommodation struct {
 	AvailableAccommodationDates []AvailableAccommodationDates `json:"availableAccommodationDates"`
 	Location                    string                        `json:"location" `
 	Status                      string                        `json:"status" bson:"status"`
+	Paying                      string                        `json:"paying" bson:"paying"`
 }
 
 type AvailableAccommodationDates struct {
@@ -60,6 +62,7 @@ type AccommodationDTO struct {
 	ImageIds         []string `json:"imageIds"`
 	Rating           float32  `json:"rating"`
 	Status           string   `json:"status" bson:"status"`
+	Paying           string   `json:"paying" bson:"paying"`
 }
 
 type SendCreateAccommodationAvailability struct {
