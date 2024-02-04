@@ -112,10 +112,11 @@ func main() {
 	keyByte := []byte(jwtSecretKey)
 	jwtService := services.NewJWTService(keyByte)
 	encryptionService := &services.EncryptionService{SecretKey: secretKey}
-	userService := services.NewUserService(userRepo, passwordService, jwtService, validator, encryptionService, mailClient, userClient, notificationClient, tracer)
+	userService := services.NewUserService(userRepo, passwordService, jwtService, validator, encryptionService, mailClient, userClient, notificationClient, tracer, logger)
 	authHandler := handler.AuthHandler{
 		UserService: userService,
 		Tracer:      tracer,
+		Logger:      logger,
 	}
 	accessControl := security.NewAccessControl()
 	err = accessControl.LoadAccessConfig("./security/rbac.json")
