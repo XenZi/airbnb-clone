@@ -66,7 +66,9 @@ func (u UserRepository) FindUserByEmail(ctx context.Context, email string) (*dom
 	return &user, nil
 }
 
-func (u UserRepository) FindUserById(id string) (*domains.User, *errors.ErrorStruct) {
+func (u UserRepository) FindUserById(ctx context.Context, id string) (*domains.User, *errors.ErrorStruct) {
+	ctx, span := u.tracer.Start(ctx, "UserService.FindUserByID")
+	defer span.End()
 	userCollection := u.cli.Database("auth").Collection("user")
 	objectID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
@@ -85,7 +87,9 @@ func (u UserRepository) FindUserById(id string) (*domains.User, *errors.ErrorStr
 	return &user, nil
 }
 
-func (u UserRepository) UpdateUserConfirmation(id string) (*domains.User, *errors.ErrorStruct) {
+func (u UserRepository) UpdateUserConfirmation(ctx context.Context, id string) (*domains.User, *errors.ErrorStruct) {
+	ctx, span := u.tracer.Start(ctx, "UserService.UpdateUserConfirmation")
+	defer span.End()
 	database := u.cli.Database("auth")
 	collection := database.Collection("user")
 	objectID, err := primitive.ObjectIDFromHex(id)
@@ -110,7 +114,7 @@ func (u UserRepository) UpdateUserConfirmation(id string) (*domains.User, *error
 		return nil, errors.NewError("User not found or your account is already confirmed", 404)
 	}
 
-	user, errFromUserFinding := u.FindUserById(id)
+	user, errFromUserFinding := u.FindUserById(ctx, id)
 	u.logger.LogInfo("user-service", fmt.Sprintf("Updated user ID %v for confirmation", id))
 
 	if err != nil {
@@ -120,7 +124,9 @@ func (u UserRepository) UpdateUserConfirmation(id string) (*domains.User, *error
 	return user, nil
 }
 
-func (u UserRepository) UpdateUserPassword(id string, newPassword string) (*domains.User, *errors.ErrorStruct) {
+func (u UserRepository) UpdateUserPassword(ctx context.Context, id string, newPassword string) (*domains.User, *errors.ErrorStruct) {
+	ctx, span := u.tracer.Start(ctx, "UserService.UpdateUserPassword")
+	defer span.End()
 	database := u.cli.Database("auth")
 	collection := database.Collection("user")
 	objectID, err := primitive.ObjectIDFromHex(id)
@@ -146,7 +152,7 @@ func (u UserRepository) UpdateUserPassword(id string, newPassword string) (*doma
 		return nil, errors.NewError("User not found or your account", 400)
 	}
 
-	user, errFromUserFinding := u.FindUserById(id)
+	user, errFromUserFinding := u.FindUserById(ctx, id)
 	if err != nil {
 		u.logger.LogError("auth-db", err.Error())
 		return nil, errFromUserFinding
@@ -156,7 +162,9 @@ func (u UserRepository) UpdateUserPassword(id string, newPassword string) (*doma
 	return user, nil
 }
 
-func (u UserRepository) UpdateUserCredentials(user domains.User) (*domains.User, *errors.ErrorStruct) {
+func (u UserRepository) UpdateUserCredentials(ctx context.Context, user domains.User) (*domains.User, *errors.ErrorStruct) {
+	ctx, span := u.tracer.Start(ctx, "UserService.UpdateUserCredentials")
+	defer span.End()
 	database := u.cli.Database("auth")
 	collection := database.Collection("user")
 	objectID, err := primitive.ObjectIDFromHex(user.ID.Hex())
@@ -183,7 +191,7 @@ func (u UserRepository) UpdateUserCredentials(user domains.User) (*domains.User,
 		return nil, errors.NewError("User not found or your account", 400)
 	}
 
-	foundUser, errFromUserFinding := u.FindUserById(user.ID.Hex())
+	foundUser, errFromUserFinding := u.FindUserById(ctx, user.ID.Hex())
 	if err != nil {
 		u.logger.LogError("auth-db", err.Error())
 		return nil, errFromUserFinding
@@ -192,7 +200,9 @@ func (u UserRepository) UpdateUserCredentials(user domains.User) (*domains.User,
 	return foundUser, nil
 }
 
-func (u UserRepository) FindUserByUsername(username string) (*domains.User, *errors.ErrorStruct) {
+func (u UserRepository) FindUserByUsername(ctx context.Context, username string) (*domains.User, *errors.ErrorStruct) {
+	ctx, span := u.tracer.Start(ctx, "UserService.FindUserByUsername")
+	defer span.End()
 	userCollection := u.cli.Database("auth").Collection("user")
 	var user domains.User
 	err := userCollection.FindOne(context.TODO(), bson.M{"username": username}).Decode(&user)
@@ -205,8 +215,10 @@ func (u UserRepository) FindUserByUsername(username string) (*domains.User, *err
 	return &user, nil
 }
 
-func (u UserRepository) DeleteUserById(id string) (*domains.User, *errors.ErrorStruct) {
-	user, err := u.FindUserById(id)
+func (u UserRepository) DeleteUserById(ctx context.Context, id string) (*domains.User, *errors.ErrorStruct) {
+	ctx, span := u.tracer.Start(ctx, "UserService.FindUserByUsername")
+	defer span.End()
+	user, err := u.FindUserById(ctx, id)
 	if err != nil {
 		u.logger.LogError("auth-db", err.GetErrorMessage())
 		return nil, err
