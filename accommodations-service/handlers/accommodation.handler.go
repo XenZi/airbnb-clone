@@ -4,7 +4,6 @@ import (
 	"accommodations-service/domain"
 	"accommodations-service/services"
 	"accommodations-service/utils"
-	"context"
 	"encoding/csv"
 	"encoding/json"
 	"fmt"
@@ -13,17 +12,21 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/gorilla/mux"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.opentelemetry.io/otel/trace"
 )
 
 type AccommodationsHandler struct {
 	AccommodationService *services.AccommodationService
+	Tracer               trace.Tracer
 }
 
 func (a *AccommodationsHandler) CreateAccommodationById(rw http.ResponseWriter, h *http.Request) {
+	//TODO tracing reapair
+	ctx, span := a.Tracer.Start(h.Context(), "AccommodationsHandler.CreateAccommodationById")
+	defer span.End()
 	//decoder.DisallowUnknownFields()
 	var image multipart.File
 
@@ -82,8 +85,6 @@ func (a *AccommodationsHandler) CreateAccommodationById(rw http.ResponseWriter, 
 		Location:                    h.FormValue("location"),
 	}
 
-	ctx, cancel := context.WithTimeout(h.Context(), time.Second*5)
-	defer cancel()
 	_, err4 := a.AccommodationService.CreateAccommodation(accomm, image, ctx)
 	if err4 != nil {
 		utils.WriteErrorResp(err4.GetErrorMessage(), 500, "ovo je druis", rw)
@@ -93,9 +94,11 @@ func (a *AccommodationsHandler) CreateAccommodationById(rw http.ResponseWriter, 
 }
 
 func (a *AccommodationsHandler) GetImage(rw http.ResponseWriter, r *http.Request) {
+	ctx, span := a.Tracer.Start(r.Context(), "AccommodationsHandler.GetImage")
+	defer span.End()
 	vars := mux.Vars(r)
 	imageId := vars["id"]
-	file, err := a.AccommodationService.GetImage(imageId)
+	file, err := a.AccommodationService.GetImage(ctx, imageId)
 	if err != nil {
 		utils.WriteErrorResp(err.GetErrorMessage(), 500, "nemere slike otvarati", rw)
 		return
@@ -107,7 +110,9 @@ func (a *AccommodationsHandler) GetImage(rw http.ResponseWriter, r *http.Request
 }
 
 func (a *AccommodationsHandler) GetAllAccommodations(rw http.ResponseWriter, r *http.Request) {
-	accommodations, err := a.AccommodationService.GetAllAccommodations()
+	ctx, span := a.Tracer.Start(r.Context(), "AccommodationsHandler.GetAllAccommodations")
+	defer span.End()
+	accommodations, err := a.AccommodationService.GetAllAccommodations(ctx)
 	if err != nil {
 		utils.WriteErrorResp(err.GetErrorMessage(), http.StatusInternalServerError, "api/accommodations", rw)
 		return
@@ -119,10 +124,12 @@ func (a *AccommodationsHandler) GetAllAccommodations(rw http.ResponseWriter, r *
 }
 
 func (a *AccommodationsHandler) GetAccommodationById(rw http.ResponseWriter, r *http.Request) {
+	ctx, span := a.Tracer.Start(r.Context(), "AccommodationsHandler.GetAccommodationById")
+	defer span.End()
 	vars := mux.Vars(r)
 	accommodationId := vars["id"]
 
-	accommodation, err := a.AccommodationService.GetAccommodationById(accommodationId)
+	accommodation, err := a.AccommodationService.GetAccommodationById(ctx, accommodationId)
 	if err != nil {
 		utils.WriteErrorResp(err.GetErrorMessage(), http.StatusNotFound, "api/accommodations/"+accommodationId, rw)
 		return
@@ -137,6 +144,8 @@ func (a *AccommodationsHandler) GetAccommodationById(rw http.ResponseWriter, r *
 }
 
 func (a *AccommodationsHandler) FindAccommodationsByIds(rw http.ResponseWriter, r *http.Request) {
+	ctx, span := a.Tracer.Start(r.Context(), "AccommodationsHandler.FindAccommodationsByIds")
+	defer span.End()
 	log.Println("Da li ulazi?")
 	decoder := json.NewDecoder(r.Body)
 
@@ -150,7 +159,7 @@ func (a *AccommodationsHandler) FindAccommodationsByIds(rw http.ResponseWriter, 
 		return
 	}
 	log.Println("Idevi su", ids.Ids)
-	accommodations, err := a.AccommodationService.FindAccommodationByIds(ids.Ids)
+	accommodations, err := a.AccommodationService.FindAccommodationByIds(ctx, ids.Ids)
 	if err != nil {
 		utils.WriteErrorResp(err.GetErrorMessage(), http.StatusNotFound, "api/accommodations/FindByIds", rw)
 		return
@@ -165,12 +174,14 @@ func (a *AccommodationsHandler) FindAccommodationsByIds(rw http.ResponseWriter, 
 }
 
 func (a *AccommodationsHandler) UpdateAccommodationById(rw http.ResponseWriter, r *http.Request) {
+	ctx, span := a.Tracer.Start(r.Context(), "AccommodationsHandler.UpdateAccommodationById")
+	defer span.End()
 	vars := mux.Vars(r)
 	accommodationId := vars["id"]
 	decoder := json.NewDecoder(r.Body)
 	decoder.DisallowUnknownFields()
 
-	_, err := a.AccommodationService.GetAccommodationById(accommodationId)
+	_, err := a.AccommodationService.GetAccommodationById(ctx, accommodationId)
 	if err != nil {
 		utils.WriteErrorResp(err.GetErrorMessage(), http.StatusInternalServerError, "api/accommodations/"+accommodationId, rw)
 		return
@@ -185,7 +196,7 @@ func (a *AccommodationsHandler) UpdateAccommodationById(rw http.ResponseWriter, 
 	id, _ := primitive.ObjectIDFromHex(accommodationId)
 	updatedAccommodation.Id = id
 
-	accommodation, err := a.AccommodationService.UpdateAccommodation(updatedAccommodation)
+	accommodation, err := a.AccommodationService.UpdateAccommodation(ctx, updatedAccommodation)
 	if err != nil {
 		utils.WriteErrorResp(err.GetErrorMessage(), http.StatusInternalServerError, "api/accommodations/"+accommodationId, rw)
 		return
@@ -198,10 +209,12 @@ func (a *AccommodationsHandler) UpdateAccommodationById(rw http.ResponseWriter, 
 }
 
 func (a *AccommodationsHandler) DeleteAccommodationById(rw http.ResponseWriter, r *http.Request) {
+	ctx, span := a.Tracer.Start(r.Context(), "AccommodationsHandler.DeleteAccommodationById")
+	defer span.End()
 	vars := mux.Vars(r)
 	accommodationId := vars["id"]
 
-	_, err := a.AccommodationService.DeleteAccommodation(accommodationId)
+	_, err := a.AccommodationService.DeleteAccommodation(ctx, accommodationId)
 	if err != nil {
 		utils.WriteErrorResp(err.GetErrorMessage(), http.StatusInternalServerError, "api/accommodations/"+accommodationId, rw)
 		return
@@ -212,11 +225,13 @@ func (a *AccommodationsHandler) DeleteAccommodationById(rw http.ResponseWriter, 
 }
 
 func (a *AccommodationsHandler) DeleteAccommodationsByUserId(rw http.ResponseWriter, r *http.Request) {
+	ctx, span := a.Tracer.Start(r.Context(), "AccommodationsHandler.DeleteAccommodationsByUserId")
+	defer span.End()
 	vars := mux.Vars(r)
 	userId := vars["id"]
 	log.Println("user id je:", userId)
 
-	err := a.AccommodationService.DeleteAccommodationsByUserId(userId)
+	err := a.AccommodationService.DeleteAccommodationsByUserId(ctx, userId)
 	if err != nil {
 		utils.WriteErrorResp(err.GetErrorMessage(), http.StatusInternalServerError, "api/accommodations/user"+userId, rw)
 		return
@@ -226,6 +241,8 @@ func (a *AccommodationsHandler) DeleteAccommodationsByUserId(rw http.ResponseWri
 }
 
 func (a *AccommodationsHandler) SearchAccommodations(w http.ResponseWriter, r *http.Request) {
+	ctx, span := a.Tracer.Start(r.Context(), "AccommodationsHandler.SearchAccommodations")
+	defer span.End()
 
 	city := r.URL.Query().Get("city")
 	log.Println("grad je", city)
@@ -266,12 +283,10 @@ func (a *AccommodationsHandler) SearchAccommodations(w http.ResponseWriter, r *h
 
 	// Handle empty dateRange as needed
 
-	ctx, cancel := context.WithTimeout(r.Context(), time.Second*5)
-	defer cancel()
 	accommodations, errS := a.AccommodationService.SearchAccommodations(city, country, numOfVisitors, startDate, endDate, maxPrice, conveniences, isDistinguishedString, ctx)
 
 	if errS != nil {
-		utils.WriteErrorResp(errS.GetErrorMessage(), http.StatusInternalServerError, "api/accommodations/BILOSTA", w)
+		utils.WriteErrorResp(errS.GetErrorMessage(), http.StatusInternalServerError, "api/accommodations/search", w)
 		log.Println("greska je,", errS.GetErrorMessage())
 		return
 	}
@@ -289,6 +304,8 @@ func (a *AccommodationsHandler) SearchAccommodations(w http.ResponseWriter, r *h
 }
 
 func (a *AccommodationsHandler) PutAccommodationRating(w http.ResponseWriter, r *http.Request) {
+	ctx, span := a.Tracer.Start(r.Context(), "AccommodationsHandler.PutAccommodationRating")
+	defer span.End()
 	vars := mux.Vars(r)
 	accommodationID := vars["id"]
 
@@ -303,7 +320,7 @@ func (a *AccommodationsHandler) PutAccommodationRating(w http.ResponseWriter, r 
 	}
 	log.Println(accommodation)
 	// Now, you can use the 'rating' variable in your logic
-	a.AccommodationService.PutAccommodationRating(accommodationID, accommodation)
+	a.AccommodationService.PutAccommodationRating(ctx, accommodationID, accommodation)
 
 	// Respond with a success message or any appropriate response
 	w.Header().Set("Content-Type", "application/json")
@@ -312,9 +329,11 @@ func (a *AccommodationsHandler) PutAccommodationRating(w http.ResponseWriter, r 
 
 func (a *AccommodationsHandler) MiddlewareCacheHit(next http.HandlerFunc) http.HandlerFunc {
 	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
+		ctx, span := a.Tracer.Start(r.Context(), "AccommodationsHandler.MiddlewareCacheHit")
+		defer span.End()
 		vars := mux.Vars(r)
 		id := vars["id"]
-		image, err := a.AccommodationService.GetCache(id)
+		image, err := a.AccommodationService.GetCache(ctx, id)
 		if err != nil {
 			next.ServeHTTP(rw, r)
 		} else {
