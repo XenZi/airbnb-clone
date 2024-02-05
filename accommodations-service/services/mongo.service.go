@@ -1,6 +1,7 @@
 package services
 
 import (
+	"accommodations-service/config"
 	"context"
 	"fmt"
 	"log"
@@ -14,10 +15,10 @@ import (
 
 type MongoService struct {
 	cli    *mongo.Client
-	logger *log.Logger
+	logger *config.Logger
 }
 
-func New(ctx context.Context, logger *log.Logger) (*MongoService, error) {
+func New(ctx context.Context, logger *config.Logger) (*MongoService, error) {
 
 	uri := os.Getenv("MONGO_DB_URI")
 	log.Println(uri)
@@ -25,7 +26,7 @@ func New(ctx context.Context, logger *log.Logger) (*MongoService, error) {
 	client, err := mongo.Connect(ctx, options.Client().ApplyURI(uri))
 
 	if err != nil {
-		logger.Fatal("Error while connecting to Accommodations-mongo", err)
+		logger.LogError("mongo-service", "error")
 		return nil, err
 	}
 

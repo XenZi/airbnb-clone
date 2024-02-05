@@ -22,6 +22,7 @@ RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o main .
 
 
 
+
 ######## Start a new stage from scratch #######
 FROM alpine:latest
 
@@ -35,5 +36,7 @@ COPY --from=builder /app/main .
 
 COPY ./accommodations-service/security/rbac.json ./security/
 
+RUN mkdir logs
+COPY ./accommodations-service/logs/log.log ./logs/
 # Command to run the executable
 CMD ["./main"]

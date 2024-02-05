@@ -1,6 +1,7 @@
 package client
 
 import (
+	"accommodations-service/config"
 	"accommodations-service/domain"
 	"accommodations-service/errors"
 	"context"
@@ -15,6 +16,7 @@ type UserClient struct {
 	address        string
 	client         *http.Client
 	circuitBreaker *gobreaker.CircuitBreaker
+	logger         *config.Logger
 }
 type HostUser struct {
 	ID            string  `bson:"_id,omitempty" json:"id"`
@@ -29,11 +31,12 @@ type HostUser struct {
 	Distinguished bool    `json:"distinguished"`
 }
 
-func NewUserClient(host, port string, client *http.Client, circuitBreaker *gobreaker.CircuitBreaker) *UserClient {
+func NewUserClient(host, port string, client *http.Client, circuitBreaker *gobreaker.CircuitBreaker, logger *config.Logger) *UserClient {
 	return &UserClient{
 		address:        fmt.Sprintf("http://%s:%s", host, port),
 		client:         http.DefaultClient,
 		circuitBreaker: circuitBreaker,
+		logger:         logger,
 	}
 }
 
@@ -41,13 +44,18 @@ func (uc UserClient) GetUserById(ctx context.Context, id string) (*HostUser, *er
 	cbResp, err := uc.circuitBreaker.Execute(func() (interface{}, error) {
 		req, err := http.NewRequestWithContext(ctx, http.MethodGet, uc.address+"/"+id, nil)
 		if err != nil {
+			uc.logger.LogError("accommodations-client", fmt.Sprintf("Unable to send request to user service"))
+			uc.logger.LogError("accommodation-client", fmt.Sprintf("Error:"+err.Error()))
 			log.Println(err)
 			return nil, err
 		}
+		uc.logger.LogInfo("accommodation-client", fmt.Sprintf("Successfully sent request to user service"))
 		return uc.client.Do(req)
 	})
 
 	if err != nil {
+		uc.logger.LogError("accommodations-client", fmt.Sprintf("Unable to send request to user service"))
+		uc.logger.LogError("accommodation-client", fmt.Sprintf("Error:"+err.Error()))
 		log.Println("ERR FROM GGG ", err)
 		return nil, errors.NewError("Nothing to parse", 500)
 	}
@@ -57,6 +65,8 @@ func (uc UserClient) GetUserById(ctx context.Context, id string) (*HostUser, *er
 		baseResp := domain.BaseHttpResponse{}
 		err := json.NewDecoder(resp.Body).Decode(&baseResp)
 		if err != nil {
+			uc.logger.LogError("accommodations-client", fmt.Sprintf("Unable to decode base response"))
+			uc.logger.LogError("accommodation-client", fmt.Sprintf("Error:"+err.Error()))
 			return nil, errors.NewError(err.Error(), 500)
 		}
 		log.Println("BASE RESP JE", baseResp)
@@ -76,10 +86,12 @@ func (uc UserClient) GetUserById(ctx context.Context, id string) (*HostUser, *er
 				Role:          userData["role"].(string),
 				Username:      userData["username"].(string),
 			}
-
+			uc.logger.LogInfo("accommodation-client", fmt.Sprintf("Successfully sent request to user service and retrieved data"))
 			log.Println("User je", user)
 			return &user, nil
 		} else {
+			uc.logger.LogError("accommodations-client", fmt.Sprintf("Unable to map data to the object"))
+			uc.logger.LogError("accommodation-client", fmt.Sprintf("Error:"+err.Error()))
 			return nil, errors.NewError("Invalid data type in response", 500)
 		}
 	}
@@ -87,6 +99,8 @@ func (uc UserClient) GetUserById(ctx context.Context, id string) (*HostUser, *er
 	baseResp := domain.BaseErrorHttpResponse{}
 	err = json.NewDecoder(resp.Body).Decode(&baseResp)
 	if err != nil {
+		uc.logger.LogError("accommodations-client", fmt.Sprintf("Unable to decode response body"))
+		uc.logger.LogError("accommodation-client", fmt.Sprintf("Error:"+err.Error()))
 		return nil, errors.NewError(err.Error(), 500)
 	}
 

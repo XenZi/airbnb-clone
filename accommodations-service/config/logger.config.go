@@ -1,11 +1,13 @@
 package config
 
 import (
+	"gopkg.in/natefinch/lumberjack.v2"
 	"io"
 	"os"
 
+	"github.com/gofrs/uuid"
+	"github.com/sirupsen/logrus"
 	log "github.com/sirupsen/logrus"
-	"gopkg.in/natefinch/lumberjack.v2"
 )
 
 type Logger struct {
@@ -76,4 +78,28 @@ func (l Logger) Fatalf(message string, args ...interface{}) {
 
 func (l Logger) Panicf(message string, args ...interface{}) {
 	l.Panicln(message)
+}
+
+func (l Logger) LogError(source string, message string) {
+	eventID, _ := uuid.NewV4()
+	l.Error(message, logrus.Fields{
+		"source":  source,
+		"eventID": eventID,
+	})
+}
+
+func (l Logger) LogInfo(source string, message string) {
+	eventID, _ := uuid.NewV4()
+	l.Info(message, logrus.Fields{
+		"source":  source,
+		"eventID": eventID,
+	})
+}
+
+func (l Logger) LogWarn(source string, message string) {
+	eventID, _ := uuid.NewV4()
+	l.Warn(message, logrus.Fields{
+		"source":  source,
+		"eventID": eventID,
+	})
 }

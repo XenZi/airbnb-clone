@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"accommodations-service/config"
 	"context"
 	"fmt"
 	"io"
@@ -19,11 +20,11 @@ const (
 
 type FileStorage struct {
 	client *hdfs.Client
-	logger *log.Logger
+	logger *config.Logger
 	tracer trace.Tracer
 }
 
-func NewFileStorage(logger *log.Logger, tracer trace.Tracer) *FileStorage {
+func NewFileStorage(logger *config.Logger, tracer trace.Tracer) *FileStorage {
 	hdfsUri := os.Getenv("HDFS_URI")
 	client, err := hdfs.New(hdfsUri)
 	if err != nil {

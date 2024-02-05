@@ -2,6 +2,7 @@ package main
 
 import (
 	"accommodations-service/client"
+	"accommodations-service/config"
 	"accommodations-service/handlers"
 	"accommodations-service/orchestrator"
 	"accommodations-service/repository"
@@ -32,7 +33,8 @@ func main() {
 	}
 	timeoutContext, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
-	logger := log.New(os.Stdout, "[accommodation-api] ", log.LstdFlags)
+	loggerW := config.NewLogger("./logs/log.log")
+
 	loggerCach := log.New(os.Stdout, "[cache]", log.LstdFlags)
 
 	//env
@@ -89,8 +91,8 @@ func main() {
 	)
 
 	validator := utils.NewValidator()
-	reservationsClient := client.NewReservationsClient(reservationsServiceHost, reservationsServicePort, customReservationsServiceClient, reservationsServiceCircuitBreaker)
-	userClient := client.NewUserClient(userServiceHost, userServicePort, customUserServiceClient, userServiceCircuitBreaker)
+	reservationsClient := client.NewReservationsClient(reservationsServiceHost, reservationsServicePort, customReservationsServiceClient, reservationsServiceCircuitBreaker, loggerW)
+	userClient := client.NewUserClient(userServiceHost, userServicePort, customUserServiceClient, userServiceCircuitBreaker, loggerW)
 
 	tracerConfig := tracing.GetConfig()
 	tracerProvider, err := tracing.NewTracerProvider("accommodations-service", tracerConfig.JaegerAddress)
@@ -104,14 +106,14 @@ func main() {
 		log.Fatal(err)
 	}
 
-	mongoService, err := services.New(timeoutContext, logger)
+	mongoService, err := services.New(timeoutContext, loggerW)
 
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	accommodationRepo := repository.NewAccommodationRepository(
-		mongoService.GetCli(), logger, tracer)
+		mongoService.GetCli(), loggerW, tracer)
 	publisher, err := nats.NewNATSPublisher(
 		os.Getenv("NATS_HOST"),
 		os.Getenv("NATS_PORT"),
@@ -136,11 +138,11 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	fileStorage := repository.NewFileStorage(logger, tracer)
+	fileStorage := repository.NewFileStorage(loggerW, tracer)
 	defer fileStorage.Close()
 	_ = fileStorage.CreateDirectories()
 	cache := repository.NewCache(loggerCach, tracer)
-	accommodationService := services.NewAccommodationService(accommodationRepo, validator, reservationsClient, userClient, fileStorage, cache, orch, tracer)
+	accommodationService := services.NewAccommodationService(accommodationRepo, validator, reservationsClient, userClient, fileStorage, cache, orch, tracer, loggerW)
 	publisher1, err := nats.NewNATSPublisher(
 		os.Getenv("NATS_HOST"),
 		os.Getenv("NATS_PORT"),
@@ -166,6 +168,7 @@ func main() {
 	accommodationsHandler := handlers.AccommodationsHandler{
 		AccommodationService: accommodationService,
 		Tracer:               tracer,
+		Logger:               loggerW,
 	}
 
 	accessControl := security.NewAccessControl()
@@ -209,12 +212,12 @@ func main() {
 		WriteTimeout: 1 * time.Second,
 	}
 
-	logger.Println("Server listening on port", port)
+	loggerW.Println("Server listening on port", port)
 	//Distribute all the connections to goroutines
 	go func() {
 		err := server.ListenAndServe()
 		if err != nil {
-			logger.Fatal(err)
+			loggerW.Fatalf(err.Error())
 		}
 	}()
 
@@ -223,12 +226,12 @@ func main() {
 	signal.Notify(sigCh, os.Kill)
 
 	sig := <-sigCh
-	logger.Println("Received terminate, graceful shutdown", sig)
+	loggerW.Println("Received terminate, graceful shutdown", sig)
 
 	//Try to shutdown gracefully
 	if server.Shutdown(timeoutContext) != nil {
-		logger.Fatal("Cannot gracefully shutdown...")
+		loggerW.Fatalf("Cannot gracefully shutdown...")
 	}
-	logger.Println("Server stopped")
+	loggerW.Println("Server stopped")
 
 }

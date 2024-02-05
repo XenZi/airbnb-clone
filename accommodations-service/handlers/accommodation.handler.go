@@ -22,12 +22,12 @@ import (
 type AccommodationsHandler struct {
 	AccommodationService *services.AccommodationService
 	Tracer               trace.Tracer
-	logger               *config.Logger
+	Logger               *config.Logger
 }
 
 func NewAccommodationHandler(logger *config.Logger) *AccommodationsHandler {
 	return &AccommodationsHandler{
-		logger: logger,
+		Logger: logger,
 	}
 }
 
@@ -44,7 +44,7 @@ func (a *AccommodationsHandler) CreateAccommodationById(rw http.ResponseWriter, 
 	if isMultipart {
 		err := h.ParseMultipartForm(10 << 20)
 		if err != nil {
-			a.logger.Error("Error while parsing multipartForm", log.Fields{
+			a.Logger.Error("Error while parsing multipartForm", log.Fields{
 				"module": "handler",
 				"error":  err.Error(),
 			})
@@ -53,7 +53,7 @@ func (a *AccommodationsHandler) CreateAccommodationById(rw http.ResponseWriter, 
 		}
 		file, _, err := h.FormFile("images")
 		if err != nil {
-			a.logger.Error("Error returning formfile", log.Fields{
+			a.Logger.Error("Error returning formfile", log.Fields{
 				"module": "handler",
 				"error":  err.Error(),
 			})
@@ -68,7 +68,7 @@ func (a *AccommodationsHandler) CreateAccommodationById(rw http.ResponseWriter, 
 	datesJson := h.FormValue("availableAccommodationDates")
 	err2 := json.Unmarshal([]byte(datesJson), &accDates)
 	if err2 != nil {
-		a.logger.Error("Error unmarshaling json", log.Fields{
+		a.Logger.Error("Error unmarshaling json", log.Fields{
 			"module": "handler",
 			"error":  err2.Error(),
 		})
@@ -82,7 +82,7 @@ func (a *AccommodationsHandler) CreateAccommodationById(rw http.ResponseWriter, 
 	reader := csv.NewReader(strings.NewReader(h.FormValue("conveniences")))
 	records, err := reader.ReadAll()
 	if err != nil {
-		a.logger.Error("Error reading records", log.Fields{
+		a.Logger.Error("Error reading records", log.Fields{
 			"module": "handler",
 			"error":  err.Error(),
 		})
@@ -112,14 +112,14 @@ func (a *AccommodationsHandler) CreateAccommodationById(rw http.ResponseWriter, 
 
 	_, err4 := a.AccommodationService.CreateAccommodation(accomm, image, ctx)
 	if err4 != nil {
-		a.logger.Error("Error creating accomodation", log.Fields{
+		a.Logger.Error("Error creating accomodation", log.Fields{
 			"module": "handler",
 			"error":  err.Error(),
 		})
 		utils.WriteErrorResp(err4.GetErrorMessage(), 500, "ovo je druis", rw)
 		return
 	}
-	a.logger.Infof("Successfully sent accommodation to accommodation service")
+	a.Logger.Infof("Successfully sent accommodation to accommodation service")
 	utils.WriteResp(accomm, 201, rw)
 }
 
@@ -130,12 +130,12 @@ func (a *AccommodationsHandler) GetImage(rw http.ResponseWriter, r *http.Request
 	imageId := vars["id"]
 	file, err := a.AccommodationService.GetImage(ctx, imageId)
 	if err != nil {
-		a.logger.Error("Error getting image", log.Fields{
+		a.Logger.Error("Error getting image", log.Fields{
 			"module": "handler",
 			"error":  err.GetErrorMessage(),
 		})
 		utils.WriteErrorResp(err.GetErrorMessage(), 500, "nemere slike otvarati", rw)
-		a.logger.Infof("Successfully got image")
+		a.Logger.Infof("Successfully got image")
 		return
 	}
 	rw.Header().Set("Content-Type", "image/jpeg")
@@ -149,14 +149,14 @@ func (a *AccommodationsHandler) GetAllAccommodations(rw http.ResponseWriter, r *
 	defer span.End()
 	accommodations, err := a.AccommodationService.GetAllAccommodations(ctx)
 	if err != nil {
-		a.logger.Error("Error getting accommodations", log.Fields{
+		a.Logger.Error("Error getting accommodations", log.Fields{
 			"module": "handler",
 			"error":  err.GetErrorMessage(),
 		})
 		utils.WriteErrorResp(err.GetErrorMessage(), http.StatusInternalServerError, "api/accommodations", rw)
 		return
 	}
-	a.logger.Infof("Successfully got accommodations")
+	a.Logger.Infof("Successfully got all accommodations")
 	//Serialize accommodations to JSON and write response
 	rw.Header().Set("Content-Type", "application/json")
 	rw.WriteHeader(http.StatusOK)
@@ -171,7 +171,7 @@ func (a *AccommodationsHandler) GetAccommodationById(rw http.ResponseWriter, r *
 
 	accommodation, err := a.AccommodationService.GetAccommodationById(ctx, accommodationId)
 	if err != nil {
-		a.logger.Error("Error getting accommodation by id", log.Fields{
+		a.Logger.Error("Error getting accommodation by id", log.Fields{
 			"module": "handler",
 			"error":  err.GetErrorMessage(),
 		})
@@ -183,7 +183,7 @@ func (a *AccommodationsHandler) GetAccommodationById(rw http.ResponseWriter, r *
 
 	rw.Header().Set("Content-Type", "application/json")
 	rw.WriteHeader(http.StatusOK)
-	a.logger.Infof("Successfully got accommodation by id" + accommodationId)
+	a.Logger.Infof("Successfully got accommodation by id" + accommodationId)
 
 	utils.WriteResp(accommodation, 201, rw)
 }
@@ -200,18 +200,26 @@ func (a *AccommodationsHandler) FindAccommodationsByIds(rw http.ResponseWriter, 
 	var ids IdStruct
 	decodeErr := decoder.Decode(&ids)
 	if decodeErr != nil {
+		a.Logger.Error("Error decoding ids", log.Fields{
+			"module": "handler",
+			"error":  decodeErr.Error(),
+		})
 		utils.WriteErrorResp(decodeErr.Error(), http.StatusInternalServerError, "api/accommodations/FindByIds", rw)
 		return
 	}
 	log.Println("Idevi su", ids.Ids)
 	accommodations, err := a.AccommodationService.FindAccommodationByIds(ctx, ids.Ids)
 	if err != nil {
+		a.Logger.Error("Error getting accommodation by list of ids", log.Fields{
+			"module": "handler",
+			"error":  err.GetErrorMessage(),
+		})
 		utils.WriteErrorResp(err.GetErrorMessage(), http.StatusNotFound, "api/accommodations/FindByIds", rw)
 		return
 	}
 
 	// Serialize accommodation to JSON and write response
-
+	a.Logger.Infof("Successfully got accommodation by list of ids")
 	rw.Header().Set("Content-Type", "application/json")
 	rw.WriteHeader(http.StatusOK)
 
@@ -228,6 +236,10 @@ func (a *AccommodationsHandler) UpdateAccommodationById(rw http.ResponseWriter, 
 
 	_, err := a.AccommodationService.GetAccommodationById(ctx, accommodationId)
 	if err != nil {
+		a.Logger.Error("Error getting accommodation by id in the update function", log.Fields{
+			"module": "handler",
+			"error":  err.GetErrorMessage(),
+		})
 		utils.WriteErrorResp(err.GetErrorMessage(), http.StatusInternalServerError, "api/accommodations/"+accommodationId, rw)
 		return
 	}
@@ -235,6 +247,10 @@ func (a *AccommodationsHandler) UpdateAccommodationById(rw http.ResponseWriter, 
 	var updatedAccommodation domain.Accommodation
 	decodeErr := decoder.Decode(&updatedAccommodation)
 	if decodeErr != nil {
+		a.Logger.Error("Error decoding accommodation in the update function", log.Fields{
+			"module": "handler",
+			"error":  err.GetErrorMessage(),
+		})
 		utils.WriteErrorResp(decodeErr.Error(), http.StatusInternalServerError, "api/accommodations/"+accommodationId, rw)
 		return
 	}
@@ -243,10 +259,14 @@ func (a *AccommodationsHandler) UpdateAccommodationById(rw http.ResponseWriter, 
 
 	accommodation, err := a.AccommodationService.UpdateAccommodation(ctx, updatedAccommodation)
 	if err != nil {
+		a.Logger.Error("Error getting response from accommodation service", log.Fields{
+			"module": "handler",
+			"error":  err.GetErrorMessage(),
+		})
 		utils.WriteErrorResp(err.GetErrorMessage(), http.StatusInternalServerError, "api/accommodations/"+accommodationId, rw)
 		return
 	}
-
+	a.Logger.Infof("Successfully updated accommodation with the id" + accommodationId)
 	rw.Header().Set("Content-Type", "application/json")
 	rw.WriteHeader(http.StatusOK)
 
@@ -261,10 +281,14 @@ func (a *AccommodationsHandler) DeleteAccommodationById(rw http.ResponseWriter, 
 
 	_, err := a.AccommodationService.DeleteAccommodation(ctx, accommodationId)
 	if err != nil {
+		a.Logger.Error("Error deleting accommodation with id:"+accommodationId, log.Fields{
+			"module": "handler",
+			"error":  err.GetErrorMessage(),
+		})
 		utils.WriteErrorResp(err.GetErrorMessage(), http.StatusInternalServerError, "api/accommodations/"+accommodationId, rw)
 		return
 	}
-
+	a.Logger.Infof("Successfully deleted accommodation with id:" + accommodationId)
 	rw.Header().Set("Content-Type", "application/json")
 	rw.WriteHeader(http.StatusNoContent) // HTTP 204 No Content for successful deletion
 }
@@ -278,10 +302,14 @@ func (a *AccommodationsHandler) DeleteAccommodationsByUserId(rw http.ResponseWri
 
 	err := a.AccommodationService.DeleteAccommodationsByUserId(ctx, userId)
 	if err != nil {
+		a.Logger.Error("Error deleting accommodation with user id:"+userId, log.Fields{
+			"module": "handler",
+			"error":  err.GetErrorMessage(),
+		})
 		utils.WriteErrorResp(err.GetErrorMessage(), http.StatusInternalServerError, "api/accommodations/user"+userId, rw)
 		return
 	}
-
+	a.Logger.Infof("Successfully deleted accommodation with user id:" + userId)
 	utils.WriteResp("successfully deleted accommodations", 201, rw)
 }
 
@@ -300,6 +328,10 @@ func (a *AccommodationsHandler) SearchAccommodations(w http.ResponseWriter, r *h
 	numOfVisitors, err := strconv.Atoi(visitors)
 
 	if err != nil {
+		a.Logger.Error("Error converting string into a number"+visitors, log.Fields{
+			"module": "handler",
+			"error":  err.Error(),
+		})
 		utils.WriteErrorResp(err.Error(), 500, "api/accommodations/search", w)
 		return
 	}
@@ -331,6 +363,10 @@ func (a *AccommodationsHandler) SearchAccommodations(w http.ResponseWriter, r *h
 	accommodations, errS := a.AccommodationService.SearchAccommodations(city, country, numOfVisitors, startDate, endDate, maxPrice, conveniences, isDistinguishedString, ctx)
 
 	if errS != nil {
+		a.Logger.Error("Error searching accommodations", log.Fields{
+			"module": "handler",
+			"error":  errS.GetErrorMessage(),
+		})
 		utils.WriteErrorResp(errS.GetErrorMessage(), http.StatusInternalServerError, "api/accommodations/search", w)
 		log.Println("greska je,", errS.GetErrorMessage())
 		return
@@ -339,10 +375,15 @@ func (a *AccommodationsHandler) SearchAccommodations(w http.ResponseWriter, r *h
 	// Encode the search results into JSON and send the response
 	//responseJSON, err := json.Marshal(accommodations)
 	if err != nil {
+		a.Logger.Error("Error marshaling JSON ", log.Fields{
+			"module": "handler",
+			"error":  err.Error(),
+		})
 		http.Error(w, "Failed to marshal JSON", http.StatusInternalServerError)
 		return
 	}
 
+	a.Logger.Infof("Successfully passed the search function in handler")
 	w.Header().Set("Content-Type", "application/json")
 	utils.WriteResp(accommodations, 201, w)
 
@@ -359,6 +400,10 @@ func (a *AccommodationsHandler) PutAccommodationRating(w http.ResponseWriter, r 
 	var accommodation domain.Accommodation
 	log.Println("SADSADDSADAS")
 	if err := decoder.Decode(&accommodation); err != nil {
+		a.Logger.Error("Error decoding acccommodatin with id:"+accommodationID, log.Fields{
+			"module": "handler",
+			"error":  err.Error(),
+		})
 		log.Println(err)
 		utils.WriteErrorResp("Internal server error", 500, "api/recommendation/rating/accommodation", w)
 		return
@@ -366,7 +411,7 @@ func (a *AccommodationsHandler) PutAccommodationRating(w http.ResponseWriter, r 
 	log.Println(accommodation)
 	// Now, you can use the 'rating' variable in your logic
 	a.AccommodationService.PutAccommodationRating(ctx, accommodationID, accommodation)
-
+	a.Logger.Infof("Successfully called PutAccommodationRating func for accommodation with id:" + accommodationID)
 	// Respond with a success message or any appropriate response
 	w.Header().Set("Content-Type", "application/json")
 	utils.WriteResp(accommodation, 201, w)
@@ -380,8 +425,13 @@ func (a *AccommodationsHandler) MiddlewareCacheHit(next http.HandlerFunc) http.H
 		id := vars["id"]
 		image, err := a.AccommodationService.GetCache(ctx, id)
 		if err != nil {
+			a.Logger.Error("Error getting cache", log.Fields{
+				"module": "handler",
+				"error":  err.Error(),
+			})
 			next.ServeHTTP(rw, r)
 		} else {
+			a.Logger.Infof("Successfull cache hit")
 			rw.Header().Set("Content-Type", "image/jpeg")
 			rw.WriteHeader(http.StatusOK)
 			rw.Write(image)

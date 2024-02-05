@@ -1,10 +1,12 @@
 package repository
 
 import (
+	"accommodations-service/config"
 	do "accommodations-service/domain"
 	"accommodations-service/errors"
 	"context"
-	"log"
+	"fmt"
+	log "github.com/sirupsen/logrus"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -14,11 +16,11 @@ import (
 
 type AccommodationRepo struct {
 	cli    *mongo.Client
-	logger *log.Logger
+	logger *config.Logger
 	tracer trace.Tracer
 }
 
-func NewAccommodationRepository(cli *mongo.Client, logger *log.Logger, tracer trace.Tracer) *AccommodationRepo {
+func NewAccommodationRepository(cli *mongo.Client, logger *config.Logger, tracer trace.Tracer) *AccommodationRepo {
 
 	return &AccommodationRepo{
 		cli:    cli,
@@ -34,11 +36,13 @@ func (ar *AccommodationRepo) SaveAccommodation(ctx context.Context, accommodatio
 
 	insertedAccommodation, err := accommodationCollection.InsertOne(context.TODO(), accommodation)
 	if err != nil {
-		ar.logger.Println(err.Error())
+		ar.logger.LogError("accommodations-repo", fmt.Sprintf("Failed to get accommodation by id in ApproveAccommodation func with id"))
+		ar.logger.LogError("accommodation-repo", fmt.Sprintf("Error:"+err.Error()))
 
 		return nil, errors.NewError(err.Error(), 500)
 	}
 	ar.logger.Println("Inserted ID is %v", insertedAccommodation)
+	ar.logger.LogInfo("accommodation-repo", fmt.Sprintf("Accommodation inserted successfully"))
 	accommodation.Id = insertedAccommodation.InsertedID.(primitive.ObjectID)
 	return &accommodation, nil
 }
@@ -51,10 +55,13 @@ func (ar *AccommodationRepo) GetAccommodationById(ctx context.Context, id string
 	accommId, _ := primitive.ObjectIDFromHex(id)
 	err := accommodationCollection.FindOne(context.TODO(), bson.M{"_id": accommId}).Decode(&accommodation)
 	if err != nil {
+		ar.logger.LogError("accommodations-repo", fmt.Sprintf("Failed to find one accommodation by id %s", accommId))
+		ar.logger.LogError("accommodation-repo", fmt.Sprintf("Error:"+err.Error()))
 		return nil, errors.NewError(
 			"Not able to retrieve data",
 			500)
 	}
+	ar.logger.LogInfo("accommodation-repo", fmt.Sprintf("Accommodation inserted successfully"))
 	return accommodation, nil
 }
 
@@ -69,6 +76,8 @@ func (ar *AccommodationRepo) FindAccommodationByIds(ctx context.Context, ids []s
 	for _, id := range ids {
 		objectID, err := primitive.ObjectIDFromHex(id)
 		if err != nil {
+			ar.logger.LogError("accommodations-repo", fmt.Sprintf("Failed to turn id into primitive object  %s", id))
+			ar.logger.LogError("accommodation-repo", fmt.Sprintf("Error:"+err.Error()))
 			return nil, errors.NewError(
 				"Not able to convert to primitive",
 				500) // Handle invalid ID error
@@ -82,6 +91,8 @@ func (ar *AccommodationRepo) FindAccommodationByIds(ctx context.Context, ids []s
 	// Find accommodations
 	cursor, err := accommodationCollection.Find(context.TODO(), filter)
 	if err != nil {
+		ar.logger.LogError("accommodations-repo", fmt.Sprintf("Failed to find one accommodation by id "))
+		ar.logger.LogError("accommodation-repo", fmt.Sprintf("Error:"+err.Error()))
 		return nil, errors.NewError(
 			"Not able to find data",
 			500)
@@ -94,12 +105,15 @@ func (ar *AccommodationRepo) FindAccommodationByIds(ctx context.Context, ids []s
 		var accommodation do.Accommodation
 		err := cursor.Decode(&accommodation)
 		if err != nil {
+			ar.logger.LogError("accommodations-repo", fmt.Sprintf("Unable to decode accommodations "))
+			ar.logger.LogError("accommodation-repo", fmt.Sprintf("Error:"+err.Error()))
 			return nil, errors.NewError(
 				"Not able to retrieve data",
 				500)
 		}
 		accommodations = append(accommodations, &accommodation)
 	}
+	ar.logger.LogInfo("accommodation-repo", fmt.Sprintf("Successfully found accommodations"))
 	log.Println("akomodacije su", accommodations)
 	return accommodations, nil
 }
@@ -112,6 +126,8 @@ func (ar *AccommodationRepo) GetAllAccommodations(ctx context.Context) ([]*do.Ac
 
 	cursor, err := accommodationCollection.Find(context.TODO(), bson.D{})
 	if err != nil {
+		ar.logger.LogError("accommodations-repo", fmt.Sprintf("Unable to find all accommodations"))
+		ar.logger.LogError("accommodation-repo", fmt.Sprintf("Error:"+err.Error()))
 		return nil, errors.NewError(
 			"Not able to retrieve data",
 			500)
@@ -119,6 +135,8 @@ func (ar *AccommodationRepo) GetAllAccommodations(ctx context.Context) ([]*do.Ac
 	defer func(cursor *mongo.Cursor, ctx context.Context) {
 		err := cursor.Close(ctx)
 		if err != nil {
+			ar.logger.LogError("accommodations-repo", fmt.Sprintf("Error closing cursor "))
+			ar.logger.LogError("accommodation-repo", fmt.Sprintf("Error:"+err.Error()))
 			log.Println("Error")
 		}
 	}(cursor, context.TODO())
@@ -128,6 +146,8 @@ func (ar *AccommodationRepo) GetAllAccommodations(ctx context.Context) ([]*do.Ac
 
 		if err := cursor.Decode(&accommodation); err != nil {
 			log.Println(accommodation)
+			ar.logger.LogError("accommodations-repo", fmt.Sprintf("Error decoding accommodation  "))
+			ar.logger.LogError("accommodation-repo", fmt.Sprintf("Error:"+err.Error()))
 			return nil, errors.NewError(
 				"Error decoding data",
 				500)
@@ -136,11 +156,13 @@ func (ar *AccommodationRepo) GetAllAccommodations(ctx context.Context) ([]*do.Ac
 	}
 
 	if err := cursor.Err(); err != nil {
+		ar.logger.LogError("accommodations-repo", fmt.Sprintf("Cursor error "))
+		ar.logger.LogError("accommodation-repo", fmt.Sprintf("Error:"+err.Error()))
 		return nil, errors.NewError(
 			"Cursor error",
 			500)
 	}
-
+	ar.logger.LogInfo("accommodation-repo", fmt.Sprintf("Successfully found accommodations"))
 	return accommodations, nil
 }
 
@@ -164,10 +186,12 @@ func (ar *AccommodationRepo) UpdateAccommodationById(ctx context.Context, accomm
 
 	_, err := accommodationCollection.UpdateOne(context.TODO(), filter, update)
 	if err != nil {
+		ar.logger.LogError("accommodations-repo", fmt.Sprintf("Unable to update accommodation with id %s", accommodation.Id))
+		ar.logger.LogError("accommodation-repo", fmt.Sprintf("Error:"+err.Error()))
 		ar.logger.Println(err)
 		return nil, errors.NewError("Unable to update, database error", 500)
 	}
-
+	ar.logger.LogInfo("accommodation-repo", fmt.Sprintf("Successfully updated accommodation"))
 	return &accommodation, nil
 }
 
@@ -184,10 +208,12 @@ func (ar *AccommodationRepo) UpdateAccommodationStatus(accommodation do.Accommod
 
 	_, err := accommodationCollection.UpdateOne(context.TODO(), filter, update)
 	if err != nil {
+		ar.logger.LogError("accommodations-repo", fmt.Sprintf("Unable to update accommodation status of accommodation with id %s", accommodation.Id))
+		ar.logger.LogError("accommodation-repo", fmt.Sprintf("Error:"+err.Error()))
 		ar.logger.Println(err)
 		return nil, errors.NewError("Unable to update, database error", 500)
 	}
-
+	ar.logger.LogInfo("accommodation-repo", fmt.Sprintf("Successfully updated accommodation status"))
 	return &accommodation, nil
 }
 func (ar *AccommodationRepo) PutAccommodationRating(ctx context.Context, accommodationID string, rating float32) *errors.ErrorStruct {
@@ -205,10 +231,12 @@ func (ar *AccommodationRepo) PutAccommodationRating(ctx context.Context, accommo
 	// Perform the update operation
 	_, err := accommodationCollection.UpdateOne(context.TODO(), filter, update)
 	if err != nil {
+		ar.logger.LogError("accommodations-repo", fmt.Sprintf("Unable to update accommodation rating of accommodation with id %s", accommodationID))
+		ar.logger.LogError("accommodation-repo", fmt.Sprintf("Error:"+err.Error()))
 		ar.logger.Println(err)
 		return errors.NewError("Unable to update rating, database error", 500)
 	}
-
+	ar.logger.LogInfo("accommodation-repo", fmt.Sprintf("Successfully updated accommodation rating"))
 	return nil
 }
 
@@ -221,10 +249,12 @@ func (ar *AccommodationRepo) DeleteAccommodationById(ctx context.Context, id str
 
 	_, err := accommodationCollection.DeleteOne(context.TODO(), filter)
 	if err != nil {
+		ar.logger.LogError("accommodations-repo", fmt.Sprintf("Unable to delete accommodation with id %s", id))
+		ar.logger.LogError("accommodation-repo", fmt.Sprintf("Error:"+err.Error()))
 		ar.logger.Println(err)
 		return errors.NewError("Unable to delete, database error", 500)
 	}
-
+	ar.logger.LogInfo("accommodation-repo", fmt.Sprintf("Successfully deleted accommodation with id %s", id))
 	return nil
 }
 
@@ -237,6 +267,8 @@ func (ar *AccommodationRepo) DeleteAccommodationsByUserId(ctx context.Context, i
 
 	result, err := accommodationCollection.DeleteMany(context.TODO(), filter)
 	if err != nil {
+		ar.logger.LogError("accommodations-repo", fmt.Sprintf("Unable to delete multiple accommodations"))
+		ar.logger.LogError("accommodation-repo", fmt.Sprintf("Error:"+err.Error()))
 		ar.logger.Println(err)
 		return errors.NewError("Unable to delete, database error", 500)
 	}
@@ -245,7 +277,7 @@ func (ar *AccommodationRepo) DeleteAccommodationsByUserId(ctx context.Context, i
 
 	deletedCount := result.DeletedCount
 	log.Println(deletedCount)
-
+	ar.logger.LogInfo("accommodation-repo", fmt.Sprintf("Successfully deleted accommodation with id %s", id))
 	return nil
 }
 
@@ -290,11 +322,15 @@ func (ar *AccommodationRepo) SearchAccommodations(ctx context.Context, city, cou
 	// Apply the filter and retrieve accommodations
 	cursor, err := accommodationCollection.Find(ctx, filter)
 	if err != nil {
+		ar.logger.LogError("accommodations-repo", fmt.Sprintf("Unable to find accommodations for searched components"))
+		ar.logger.LogError("accommodation-repo", fmt.Sprintf("Error:"+err.Error()))
 		return nil, errors.NewError("Unable to find accommodations, database error", 500)
 	}
 	defer func(cursor *mongo.Cursor, ctx context.Context) {
 		err := cursor.Close(ctx)
 		if err != nil {
+			ar.logger.LogError("accommodations-repo", fmt.Sprintf("Cursor closed"))
+			ar.logger.LogError("accommodation-repo", fmt.Sprintf("Error:"+err.Error()))
 
 		}
 	}(cursor, ctx)
@@ -303,16 +339,20 @@ func (ar *AccommodationRepo) SearchAccommodations(ctx context.Context, city, cou
 	for cursor.Next(ctx) {
 		var accommodation do.Accommodation // Replace Accommodation with your struct type
 		if err := cursor.Decode(&accommodation); err != nil {
+			ar.logger.LogError("accommodations-repo", fmt.Sprintf("Unable to decode accommodation"))
+			ar.logger.LogError("accommodation-repo", fmt.Sprintf("Error:"+err.Error()))
 			return nil, errors.NewError("Unable to decode accommodations,error", 500)
 		}
 		accommodations = append(accommodations, accommodation)
 	}
 
 	if err := cursor.Err(); err != nil {
+		ar.logger.LogError("accommodations-repo", fmt.Sprintf("Cursor error"))
+		ar.logger.LogError("accommodation-repo", fmt.Sprintf("Error:"+err.Error()))
 		return nil, errors.NewError("Unable to find accommodations, database error", 500)
 	}
 	log.Println(accommodations)
-
+	ar.logger.LogInfo("accommodation-repo", fmt.Sprintf("Successfully found accommodations filtered by search"))
 	return accommodations, nil
 }
 
@@ -329,9 +369,11 @@ func (ar *AccommodationRepo) PutAccommodationStatus(accommodationID string, stat
 	// Perform the update operation
 	_, err := accommodationCollection.UpdateOne(context.TODO(), filter, update)
 	if err != nil {
+		ar.logger.LogError("accommodations-repo", fmt.Sprintf("Unable to update accommodation status"))
+		ar.logger.LogError("accommodation-repo", fmt.Sprintf("Error:"+err.Error()))
 		ar.logger.Println(err)
 		return errors.NewError("Unable to update rating, database error", 500)
 	}
-
+	ar.logger.LogInfo("accommodation-repo", fmt.Sprintf("Successfully updated accommodation status"))
 	return nil
 }

@@ -2,6 +2,7 @@ package services
 
 import (
 	"accommodations-service/client"
+	"accommodations-service/config"
 	"accommodations-service/domain"
 	"accommodations-service/errors"
 	"accommodations-service/orchestrator"
@@ -9,6 +10,7 @@ import (
 	"accommodations-service/utils"
 	"context"
 	events "example/saga/create_accommodation"
+	"fmt"
 	"log"
 	"mime/multipart"
 	"time"
@@ -27,9 +29,10 @@ type AccommodationService struct {
 	cache                   *repository.ImageCache
 	orchestrator            *orchestrator.CreateAccommodationOrchestrator
 	tracer                  trace.Tracer
+	logger                  *config.Logger
 }
 
-func NewAccommodationService(accommodationRepo *repository.AccommodationRepo, validator *utils.Validator, reservationsClient *client.ReservationsClient, userClient *client.UserClient, fileStorage *repository.FileStorage, cache *repository.ImageCache, orchestrator *orchestrator.CreateAccommodationOrchestrator, tracer trace.Tracer) *AccommodationService {
+func NewAccommodationService(accommodationRepo *repository.AccommodationRepo, validator *utils.Validator, reservationsClient *client.ReservationsClient, userClient *client.UserClient, fileStorage *repository.FileStorage, cache *repository.ImageCache, orchestrator *orchestrator.CreateAccommodationOrchestrator, tracer trace.Tracer, logger *config.Logger) *AccommodationService {
 	return &AccommodationService{
 		accommodationRepository: accommodationRepo,
 		validator:               validator,
@@ -39,6 +42,7 @@ func NewAccommodationService(accommodationRepo *repository.AccommodationRepo, va
 		cache:                   cache,
 		orchestrator:            orchestrator,
 		tracer:                  tracer,
+		logger:                  logger,
 	}
 }
 
@@ -66,8 +70,10 @@ func (as *AccommodationService) CreateAccommodation(accommodation domain.CreateA
 		var constructedError string
 		for _, message := range validatorErrors {
 			constructedError += message + "\n"
+			as.logger.LogError("accommodation-service", fmt.Sprintf("Errors in validating accommodations:"+message))
 		}
 		as.validator.ClearErrors()
+		as.logger.LogError("accommodation-service", fmt.Sprintf("Bad password for user %v", constructedError))
 		return nil, errors.NewError(constructedError, 400)
 	}
 
@@ -80,8 +86,11 @@ func (as *AccommodationService) CreateAccommodation(accommodation domain.CreateA
 	accomm.Status = "Pending"
 	newAccommodation, foundErr := as.accommodationRepository.SaveAccommodation(ctx, accomm)
 	if foundErr != nil {
+		as.logger.LogError("accommodation-service", fmt.Sprintf("Error saving accommodation"))
+		as.logger.LogError("accommodation-service", fmt.Sprintf("Error:"+foundErr.GetErrorMessage()))
 		return nil, foundErr
 	}
+	as.logger.LogInfo("accommodation-service", "New accommodation created with id "+newAccommodation.Id.Hex())
 	id := newAccommodation.Id.Hex()
 
 	//err := as.reservationsClient.SendCreatedReservationsAvailabilities(ctx, id, accommodation)
@@ -108,8 +117,12 @@ func (as *AccommodationService) CreateAccommodation(accommodation domain.CreateA
 	}
 	err := as.orchestrator.Start(&reqDataCasted)
 	if err != nil {
+		as.logger.LogError("accommodation-service", fmt.Sprintf("Error in starting orchestrator"))
+		as.logger.LogError("accommodation-service", fmt.Sprintf("Error:"+err.Error()))
 		as.DeleteAccommodation(ctx, id)
-		return nil, errors.NewError("Service is not responding correcrtly", 500)
+		as.logger.LogInfo("accommodation-service", "Accommodation with id"+newAccommodation.Id.Hex()+"deleted")
+
+		return nil, errors.NewError("Service is not responding correctly", 500)
 	}
 
 	return &domain.AccommodationDTO{
@@ -135,9 +148,12 @@ func (as *AccommodationService) GetImage(ctx context.Context, id string) ([]byte
 	defer span.End()
 	file, err := as.fileStorage.ReadFile(ctx, id)
 	if err != nil {
+		as.logger.LogError("accommodations-service", fmt.Sprintf("Unable to get image from file storage"))
+		as.logger.LogError("accommodation-service", fmt.Sprintf("Error:"+err.Error()))
 		return nil, errors.NewError("image read error", 500)
 	}
 	as.cache.Create(ctx, file, id)
+	as.logger.LogInfo("accommodation-service", "Cache file with id"+id+"created")
 	return file, nil
 }
 
@@ -145,6 +161,7 @@ func (as *AccommodationService) GetCache(ctx context.Context, key string) ([]byt
 	ctx, span := as.tracer.Start(ctx, "AccommodationService.GetCache")
 	defer span.End()
 	data, err := as.cache.Get(ctx, key)
+	as.logger.LogInfo("accommodation-service", "Cache data retrieved successfully")
 	return data, err
 }
 
@@ -152,7 +169,10 @@ func (as *AccommodationService) GetAllAccommodations(ctx context.Context) ([]*do
 	ctx, span := as.tracer.Start(ctx, "AccommodationService.GetAllAccommodations")
 	defer span.End()
 	accommodations, err := as.accommodationRepository.GetAllAccommodations(ctx)
+
 	if err != nil {
+		as.logger.LogError("accommodations-service", fmt.Sprintf("Unable to get all accommodations"))
+		as.logger.LogError("accommodation-service", fmt.Sprintf("Error:"+err.GetErrorMessage()))
 		return nil, err
 	}
 
@@ -179,17 +199,21 @@ func (as *AccommodationService) GetAllAccommodations(ctx context.Context) ([]*do
 			Paying:           accommodation.Paying,
 		})
 	}
-
+	as.logger.LogInfo("accommodation-service", "Successfully retrieved all available accommodations")
 	return domainAccommodations, nil
 }
 func (as *AccommodationService) GetAccommodationById(ctx context.Context, accommodationId string) (*domain.Accommodation, *errors.ErrorStruct) {
 	ctx, span := as.tracer.Start(ctx, "AccommodationService.GetAccommodationById")
 	defer span.End()
 	accomm, err := as.accommodationRepository.GetAccommodationById(ctx, accommodationId)
+
 	if err != nil {
+		as.logger.LogError("accommodations-service", fmt.Sprintf("Unable to get accommodation with id %s", accommodationId))
+		as.logger.LogError("accommodation-service", fmt.Sprintf("Error:"+err.GetErrorMessage()))
 		return nil, err
 	}
 	id, _ := accomm.Id.MarshalJSON()
+	as.logger.LogInfo("accommodation-service", "Successfully retrieved accommodation with id"+accommodationId)
 	return &domain.Accommodation{
 		Id:               primitive.ObjectID(id),
 		Name:             accomm.Name,
@@ -214,6 +238,8 @@ func (as *AccommodationService) FindAccommodationByIds(ctx context.Context, ids 
 	defer span.End()
 	accomm, err := as.accommodationRepository.FindAccommodationByIds(ctx, ids)
 	if err != nil {
+		as.logger.LogError("accommodations-service", fmt.Sprintf("Unable to get accommodation with multiple ids"))
+		as.logger.LogError("accommodation-service", fmt.Sprintf("Error:"+err.GetErrorMessage()))
 		return nil, err
 	}
 	var domainAccommodations []*domain.AccommodationDTO
@@ -239,6 +265,7 @@ func (as *AccommodationService) FindAccommodationByIds(ctx context.Context, ids 
 			Paying:           accommodation.Paying,
 		})
 	}
+	as.logger.LogInfo("accommodation-service", "Successfully retrieved accommodations with multiple ids")
 	return domainAccommodations, nil
 
 }
@@ -253,16 +280,20 @@ func (as *AccommodationService) UpdateAccommodation(ctx context.Context, updated
 		for _, message := range validatorErrors {
 			constructedError += message + "\n"
 		}
+		as.logger.LogError("accommodations-service", fmt.Sprintf("Unable to validate updated accommodation"))
+		as.logger.LogError("accommodation-service", fmt.Sprintf("Error:"+constructedError))
 		return nil, errors.NewError(constructedError, 400)
 	}
 
 	log.Println("Prije update")
 	_, updateErr := as.accommodationRepository.UpdateAccommodationById(ctx, updatedAccommodation)
 	if updateErr != nil {
+		as.logger.LogError("accommodations-service", fmt.Sprintf("Unable updated accommodation"))
+		as.logger.LogError("accommodation-service", fmt.Sprintf("Error:"+updateErr.GetErrorMessage()))
 		return nil, errors.NewError("Unable to update", 500)
 	}
 	log.Println("Poslije update")
-
+	as.logger.LogInfo("accommodation-service", "Successfully updated accommodation")
 	return &domain.Accommodation{
 		Id:               updatedAccommodation.Id,
 		Name:             updatedAccommodation.Name,
@@ -287,14 +318,18 @@ func (as *AccommodationService) DeleteAccommodation(ctx context.Context, accommo
 
 	existingAccommodation, foundErr := as.accommodationRepository.GetAccommodationById(ctx, accommodationID)
 	if foundErr != nil {
+		as.logger.LogError("accommodations-service", fmt.Sprintf("Unable to get accommodation by id"+accommodationID))
+		as.logger.LogError("accommodation-service", fmt.Sprintf("Error:"+foundErr.GetErrorMessage()))
 		return nil, foundErr
 	}
 
 	deleteErr := as.accommodationRepository.DeleteAccommodationById(ctx, accommodationID)
 	if deleteErr != nil {
+		as.logger.LogError("accommodations-service", fmt.Sprintf("Unable to delete accommodation by id"+accommodationID))
+		as.logger.LogError("accommodation-service", fmt.Sprintf("Error:"+deleteErr.GetErrorMessage()))
 		return nil, deleteErr
 	}
-
+	as.logger.LogInfo("accommodation-service", "Successfully deleted accommodation with id"+accommodationID)
 	return existingAccommodation, nil
 }
 
@@ -304,8 +339,12 @@ func (as *AccommodationService) DeleteAccommodationsByUserId(ctx context.Context
 
 	deleteErr := as.accommodationRepository.DeleteAccommodationsByUserId(ctx, userID)
 	if deleteErr != nil {
+		as.logger.LogError("accommodations-service", fmt.Sprintf("Unable to delete accommodation by user id:"+userID))
+		as.logger.LogError("accommodation-service", fmt.Sprintf("Error:"+deleteErr.GetErrorMessage()))
 		return deleteErr
 	}
+
+	as.logger.LogInfo("accommodation-service", "Successfully deleted accommodation with user id"+userID)
 
 	return nil
 }
@@ -315,8 +354,11 @@ func (as *AccommodationService) PutAccommodationRating(ctx context.Context, acco
 
 	err := as.accommodationRepository.PutAccommodationRating(ctx, accommodationID, accommodation.Rating)
 	if err != nil {
+		as.logger.LogError("accommodations-service", fmt.Sprintf("Unable to put accommodation rating into accommodation with id: "+accommodationID))
+		as.logger.LogError("accommodation-service", fmt.Sprintf("Error:"+err.GetErrorMessage()))
 		return errors.NewError("Error calling repository service", 500)
 	}
+	as.logger.LogInfo("accommodation-service", "Successfully added rating into accommodation with id:"+accommodationID)
 	return nil
 }
 
@@ -337,7 +379,8 @@ func (as *AccommodationService) SearchAccommodations(city, country string, numOf
 
 	accommodations, err := as.accommodationRepository.SearchAccommodations(ctx, city, country, numOfVisitors, maxPrice, conveniences)
 	if err != nil {
-		// Handle the error returned by the repository
+		as.logger.LogError("accommodations-service", fmt.Sprintf("Unable to search accommodations"))
+		as.logger.LogError("accommodation-service", fmt.Sprintf("Error:"+err.GetErrorMessage()))
 		return nil, errors.NewError("Failed to find accommodations", 500) // Modify according to your error handling approach
 	}
 	var accommodationIDs []string
@@ -355,7 +398,8 @@ func (as *AccommodationService) SearchAccommodations(city, country string, numOf
 
 		dateRange, err := generateDateRange(startDate, endDate)
 		if err != nil {
-			// Handle the error returned by the repository
+			as.logger.LogError("accommodations-service", fmt.Sprintf("Unable to generate daterange"))
+			as.logger.LogError("accommodation-service", fmt.Sprintf("Error:"+err.GetErrorMessage()))
 			return nil, errors.NewError("Failed to generate dateRange", 500) // Modify according to your error handling approach
 		}
 		log.Println("dateRange je", dateRange)
@@ -367,6 +411,7 @@ func (as *AccommodationService) SearchAccommodations(city, country string, numOf
 		log.Println("Reservisani idevi", reservedIDs)
 		log.Println("Sve nadjene akomodacije", accommodations)
 		filteredAccommodations := removeAccommodations(accommodations, reservedIDs)
+		as.logger.LogInfo("accommodation-service", "Successfully filtered accommodations")
 		return filteredAccommodations, nil
 	}
 
@@ -374,12 +419,15 @@ func (as *AccommodationService) SearchAccommodations(city, country string, numOf
 
 		dateRange, err := generateDateRange(startDate, endDate)
 		if err != nil {
-			// Handle the error returned by the repository
+			as.logger.LogError("accommodations-service", fmt.Sprintf("Unable to generate daterange"))
+			as.logger.LogError("accommodation-service", fmt.Sprintf("Error:"+err.GetErrorMessage()))
 			return nil, errors.NewError("Failed to generate dateRange", 500) // Modify according to your error handling approach
 		}
 
 		reservedIDs, err := as.reservationsClient.CheckAvailabilityForAccommodations(ctx, accommodationIDs, dateRange)
 		if err != nil {
+			as.logger.LogError("accommodations-service", fmt.Sprintf("Unable check availability for accommodations"))
+			as.logger.LogError("accommodation-service", fmt.Sprintf("Error:"+err.GetErrorMessage()))
 			return nil, errors.NewError("Failed to get reserved ids ", 500)
 		}
 		log.Println("Reservisani idevi", reservedIDs)
@@ -397,6 +445,7 @@ func (as *AccommodationService) SearchAccommodations(city, country string, numOf
 				distFiltered = append(distFiltered, acc)
 			}
 		}
+		as.logger.LogInfo("accommodation-service", "Successfully filtered accommodations")
 		log.Println("Akomodacije sa distinguished likovima su", distFiltered)
 		return distFiltered, nil
 
@@ -413,6 +462,8 @@ func (as *AccommodationService) SearchAccommodations(city, country string, numOf
 			user, err := as.userClient.GetUserById(ctx, acc.UserId)
 			log.Println("User je", user)
 			if err != nil {
+				as.logger.LogError("accommodations-service", fmt.Sprintf("Error getting user with id"+acc.UserId))
+				as.logger.LogError("accommodation-service", fmt.Sprintf("Error:"+err.GetErrorMessage()))
 				log.Println("Error getting user:", err)
 				// Handle the error if needed
 				continue
@@ -422,6 +473,7 @@ func (as *AccommodationService) SearchAccommodations(city, country string, numOf
 				distFiltered = append(distFiltered, acc)
 			}
 		}
+		as.logger.LogInfo("accommodation-service", "Successfully filtered accommodations")
 
 		log.Println("Akomodacije sa distinguished likovima su", distFiltered)
 		return distFiltered, nil
@@ -430,10 +482,12 @@ func (as *AccommodationService) SearchAccommodations(city, country string, numOf
 	if startDate == "" && endDate == "" && isDistinguished == false && maxPrice != 0 {
 		accBelowPrice, err := as.reservationsClient.GetAccommodationsBelowPrice(ctx, maxPrice)
 		if err != nil {
-			// Handle the error returned by the repository
+			as.logger.LogError("accommodations-service", fmt.Sprintf("Error getting accommodation below the price of %d", maxPrice))
+			as.logger.LogError("accommodation-service", fmt.Sprintf("Error:"+err.GetErrorMessage()))
 			return nil, errors.NewError("Failed to get accommodations from reservations service", 500) // Modify according to your error handling approach
 		}
 		filteredAccommodationsWPrice := FilterAccommodationsByID(accBelowPrice, accommodations)
+		as.logger.LogInfo("accommodation-service", "Successfully filtered accommodations")
 		return filteredAccommodationsWPrice, nil
 	}
 
@@ -441,13 +495,16 @@ func (as *AccommodationService) SearchAccommodations(city, country string, numOf
 
 		dateRange, err := generateDateRange(startDate, endDate)
 		if err != nil {
-			// Handle the error returned by the repository
+			as.logger.LogError("accommodations-service", fmt.Sprintf("Error generating date range"))
+			as.logger.LogError("accommodation-service", fmt.Sprintf("Error:"+err.GetErrorMessage()))
 			return nil, errors.NewError("Failed to generate dateRange", 500) // Modify according to your error handling approach
 		}
 		log.Println("dateRange je", dateRange)
 
 		reservedIDs, err := as.reservationsClient.CheckAvailabilityForAccommodations(ctx, accommodationIDs, dateRange)
 		if err != nil {
+			as.logger.LogError("accommodations-service", fmt.Sprintf("Error checking availabilities"))
+			as.logger.LogError("accommodation-service", fmt.Sprintf("Error:"+err.GetErrorMessage()))
 			return nil, errors.NewError("Failed to get reserved ids ", 500)
 		}
 		log.Println("Reservisani idevi", reservedIDs)
@@ -461,6 +518,8 @@ func (as *AccommodationService) SearchAccommodations(city, country string, numOf
 			user, err := as.userClient.GetUserById(ctx, acc.UserId)
 			log.Println("User je", user)
 			if err != nil {
+				as.logger.LogError("accommodations-service", fmt.Sprintf("Error getting users for searching destinguished ones"))
+				as.logger.LogError("accommodation-service", fmt.Sprintf("Error:"+err.GetErrorMessage()))
 				log.Println("Error getting user:", err)
 				// Handle the error if needed
 				continue
@@ -474,10 +533,12 @@ func (as *AccommodationService) SearchAccommodations(city, country string, numOf
 		accBelowPrice, err := as.reservationsClient.GetAccommodationsBelowPrice(ctx, maxPrice)
 
 		if err != nil {
-			// Handle the error returned by the repository
+			as.logger.LogError("accommodations-service", fmt.Sprintf("Error getting accommodation below price of %d", maxPrice))
+			as.logger.LogError("accommodation-service", fmt.Sprintf("Error:"+err.GetErrorMessage()))
 			return nil, errors.NewError("Failed to get accommodations from reservations service", 500) // Modify according to your error handling approach
 		}
 		filteredAccommodationsWPrice := FilterAccommodationsByID(accBelowPrice, distFiltered)
+		as.logger.LogInfo("accommodation-service", "Successfully filtered accommodations")
 		return filteredAccommodationsWPrice, nil
 
 	}
@@ -493,6 +554,8 @@ func (as *AccommodationService) SearchAccommodations(city, country string, numOf
 			user, err := as.userClient.GetUserById(ctx, acc.UserId)
 			log.Println("User je", user)
 			if err != nil {
+				as.logger.LogError("accommodations-service", fmt.Sprintf("Error getting user by id of %s", acc.UserId))
+				as.logger.LogError("accommodation-service", fmt.Sprintf("Error:"+err.GetErrorMessage()))
 				log.Println("Error getting user:", err)
 				// Handle the error if needed
 				continue
@@ -505,10 +568,12 @@ func (as *AccommodationService) SearchAccommodations(city, country string, numOf
 
 		accBelowPrice, err := as.reservationsClient.GetAccommodationsBelowPrice(ctx, maxPrice)
 		if err != nil {
-			// Handle the error returned by the repository
+			as.logger.LogError("accommodations-service", fmt.Sprintf("Error getting accommodation below price of %d", maxPrice))
+			as.logger.LogError("accommodation-service", fmt.Sprintf("Error:"+err.GetErrorMessage()))
 			return nil, errors.NewError("Failed to get accommodations from reservations service", 500) // Modify according to your error handling approach
 		}
 		filteredAccommodationsWPrice := FilterAccommodationsByID(accBelowPrice, distFiltered)
+		as.logger.LogInfo("accommodation-service", "Successfully filtered accommodations")
 		return filteredAccommodationsWPrice, nil
 
 	}
@@ -587,14 +652,19 @@ func (as AccommodationService) ApproveAccommodation(ctx context.Context, id stri
 	log.Println("USLO DA POTVRDI AKOMODACIJU")
 	acomm, err := as.GetAccommodationById(ctx, id)
 	if err != nil {
+		as.logger.LogError("accommodations-service", fmt.Sprintf("Failed to get accommodation by id in ApproveAccommodation func with id %s", id))
+		as.logger.LogError("accommodation-service", fmt.Sprintf("Error:"+err.GetErrorMessage()))
 		return err
 	}
 	acomm.Status = "Approved"
 	err = as.accommodationRepository.PutAccommodationStatus(id, "Approved")
 	if err != nil {
+		as.logger.LogError("accommodations-service", fmt.Sprintf("Error setting accommodation status of %s", acomm.Status))
+		as.logger.LogError("accommodation-service", fmt.Sprintf("Error:"+err.GetErrorMessage()))
 		log.Println(err)
 		return err
 	}
+	as.logger.LogInfo("accommodation-service", "Successfully put accommodation status")
 	return nil
 }
 
@@ -603,5 +673,6 @@ func (as AccommodationService) DenyAccommodation(ctx context.Context, id string)
 	defer span.End()
 	log.Println("DENY ACCOMMODATION")
 	as.DeleteAccommodation(ctx, id)
+	as.logger.LogInfo("accommodation-service", fmt.Sprintf("Accommodation with id %s deleted", id))
 	return nil
 }
