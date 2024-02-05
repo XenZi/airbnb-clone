@@ -34,7 +34,7 @@ func ValidateJWT(next http.HandlerFunc) http.HandlerFunc {
 		}
 
 		ctx := context.WithValue(r.Context(), "userID", userID)
-		ctx = context.WithValue(r.Context(), "role", claims["role"])
+		ctx = context.WithValue(ctx, "role", claims["role"])
 		r = r.WithContext(ctx)
 
 		next.ServeHTTP(w, r)
