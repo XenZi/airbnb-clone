@@ -180,7 +180,7 @@ func (a AuthHandler) DeleteUser(r http.ResponseWriter, h *http.Request) {
 	vars := mux.Vars(h)
 	id := vars["id"]
 	if id == "" {
-		utils.WriteErrorResp("Bad request", 400, "api/confirm-account", r)
+		utils.WriteErrorResp("Bad request", 400, "api/delete-user", r)
 		return
 	}
 	resp, err := a.UserService.DeleteUserById(ctx, id)

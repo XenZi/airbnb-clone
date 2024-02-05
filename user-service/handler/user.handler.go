@@ -121,6 +121,10 @@ func (u UserHandler) DeleteHandler(rw http.ResponseWriter, h *http.Request) {
 	ctx := h.Context()
 	role := ctx.Value("role")
 	log.Println("DELETED USER ROLE: ", role.(string))
+	if id != ctx.Value("userID") {
+		utils.WriteErrorResponse("Not authorized", 401, "api/delete", rw)
+		return
+	}
 	err := u.UserService.DeleteUser(role.(string), id)
 	if err != nil {
 		utils.WriteErrorResponse(err.GetErrorMessage(), err.GetErrorStatus(), "api/delete", rw)

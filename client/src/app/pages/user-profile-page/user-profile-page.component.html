@@ -12,6 +12,10 @@
               {{ user.firstName + " " + user.lastName }}
             </h3>
             <h3 class="user-profile__super">Superhost</h3>
+            <div class="flex flex-row justify-center items-center">
+              <app-button size="sm" color="blue" class="" (onClick)="this.updateClick()">Update</app-button>
+              <app-button size="sm" color="rose" class="" (onClick)="this.deleteClick()">Delete</app-button>
+            </div>
           </div>
         </div>
         <div class="user-profile__small-stats flex flex-col justify-center">
