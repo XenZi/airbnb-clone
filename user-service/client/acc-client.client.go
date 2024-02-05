@@ -2,10 +2,12 @@ package client
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/sony/gobreaker"
 	"log"
 	"net/http"
+	"user-service/domain"
 	"user-service/errors"
 )
 
@@ -33,11 +35,16 @@ func (ac AccClient) DeleteUserAccommodations(ctx context.Context, id string) *er
 		return ac.client.Do(req)
 	})
 	if err != nil {
-		return errors.NewError("internal error", 500)
+		return errors.NewError(err.Error(), 500)
 	}
 	resp := cbResp.(*http.Response)
-	if resp.StatusCode == 201 {
+	if resp.StatusCode >= 200 && resp.StatusCode < 400 {
 		return nil
 	}
-	return errors.NewError("internal error", resp.StatusCode)
+	baseResp := domain.BaseErrorHttpResponse{}
+	erro := json.NewDecoder(resp.Body).Decode(&baseResp)
+	if erro != nil {
+		return errors.NewError(erro.Error(), 500)
+	}
+	return errors.NewError(baseResp.Error, baseResp.Status)
 }

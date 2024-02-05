@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"user-service/config"
 	"user-service/domain"
 	"user-service/service"
 	"user-service/utils"
@@ -14,9 +15,20 @@ import (
 
 type UserHandler struct {
 	UserService *service.UserService
+	logger      *config.Logger
+}
+
+const source = "user-handler"
+
+func NewUserHandler(userService *service.UserService, logger *config.Logger) *UserHandler {
+	return &UserHandler{
+		UserService: userService,
+		logger:      logger,
+	}
 }
 
 func (u UserHandler) CreateHandler(rw http.ResponseWriter, h *http.Request) {
+	u.logger.LogInfo(source, "Received Create request")
 	decoder := json.NewDecoder(h.Body)
 	decoder.DisallowUnknownFields()
 	var createData domain.CreateUser
@@ -33,6 +45,7 @@ func (u UserHandler) CreateHandler(rw http.ResponseWriter, h *http.Request) {
 }
 
 func (u UserHandler) UpdateHandler(rw http.ResponseWriter, h *http.Request) {
+	u.logger.LogInfo(source, "Received Update request")
 	decoder := json.NewDecoder(h.Body)
 	decoder.DisallowUnknownFields()
 	var updateData domain.CreateUser
@@ -49,6 +62,7 @@ func (u UserHandler) UpdateHandler(rw http.ResponseWriter, h *http.Request) {
 }
 
 func (u UserHandler) CredsHandler(rw http.ResponseWriter, h *http.Request) {
+	u.logger.LogInfo(source, "Received Update Credentials request")
 	decoder := json.NewDecoder(h.Body)
 	decoder.DisallowUnknownFields()
 	var updateData domain.CreateUser
@@ -65,6 +79,7 @@ func (u UserHandler) CredsHandler(rw http.ResponseWriter, h *http.Request) {
 }
 
 func (u UserHandler) GetAllHandler(rw http.ResponseWriter, h *http.Request) {
+	u.logger.LogInfo(source, "Received Get All request")
 	userCollection, err := u.UserService.GetAllUsers()
 	if err != nil {
 		utils.WriteErrorResponse(err.GetErrorMessage(), err.GetErrorStatus(), "api/get-all", rw)
@@ -74,6 +89,7 @@ func (u UserHandler) GetAllHandler(rw http.ResponseWriter, h *http.Request) {
 }
 
 func (u UserHandler) GetUserById(rw http.ResponseWriter, h *http.Request) {
+	u.logger.LogInfo(source, "Received Get By ID request")
 	vars := mux.Vars(h)
 	id := vars["id"]
 	log.Println("Id koji preuzimam iz urla je,", id)
@@ -90,6 +106,7 @@ func (u UserHandler) GetUserById(rw http.ResponseWriter, h *http.Request) {
 }
 
 func (u UserHandler) UpdateRating(rw http.ResponseWriter, h *http.Request) {
+	u.logger.LogInfo(source, "Received Update Rating request")
 	vars := mux.Vars(h)
 	id := vars["id"]
 	decoder := json.NewDecoder(h.Body)
@@ -116,6 +133,7 @@ func (u UserHandler) UpdateRating(rw http.ResponseWriter, h *http.Request) {
 }
 
 func (u UserHandler) DeleteHandler(rw http.ResponseWriter, h *http.Request) {
+	u.logger.LogInfo(source, "Received Delete request")
 	vars := mux.Vars(h)
 	id := vars["id"]
 	ctx := h.Context()
