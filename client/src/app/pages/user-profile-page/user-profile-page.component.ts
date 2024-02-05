@@ -5,6 +5,7 @@ import { User } from 'src/app/domains/entity/user-profile.model';
 import { Role } from 'src/app/domains/enums/roles.enum';
 import { FormUpdateUserProfileComponent } from 'src/app/forms/form-update-user-profile/form-update-user-profile.component';
 import { ModalService } from 'src/app/services/modal/modal.service';
+import { PreviouseRouteService } from 'src/app/services/previous-route/previouse-route.service';
 import { ProfileService } from 'src/app/services/profile/profile.service';
 import { UserService } from 'src/app/services/user/user.service';
 
@@ -22,6 +23,7 @@ export class UserProfilePageComponent {
     private profileService: ProfileService,
     private modalService: ModalService,
     private userService: UserService,
+    private previouseRouteService: PreviouseRouteService
   ) {}
 
   ngOnInit() {
@@ -47,6 +49,7 @@ export class UserProfilePageComponent {
     }
 
     this.loggedUser = this.userService.getLoggedUser() as UserAuth;
+    console.log(this.previouseRouteService.getPreviousUrl())
   }
 
   updateClick() {

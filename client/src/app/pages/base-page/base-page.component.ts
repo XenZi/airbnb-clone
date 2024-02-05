@@ -3,6 +3,7 @@ import { Observable } from 'rxjs';
 import { Accommodation } from 'src/app/domains/entity/accommodation-model';
 import { UserAuth } from 'src/app/domains/entity/user-auth.model';
 import { AccommodationsService } from 'src/app/services/accommodations-service/accommodations.service';
+import { PreviouseRouteService } from 'src/app/services/previous-route/previouse-route.service';
 import { RecommendationService } from 'src/app/services/recommendation/recommendation.service';
 import { UserService } from 'src/app/services/user/user.service';
 
@@ -18,7 +19,8 @@ export class BasePageComponent {
   constructor(
     private accommodationService: AccommodationsService,
     private recommendationService: RecommendationService,
-    private userService: UserService
+    private userService: UserService,
+    private previouseRouteService: PreviouseRouteService
   ) {}
 
   ngOnInit() {
@@ -43,6 +45,7 @@ export class BasePageComponent {
             console.log(err);
           },
         });
+    console.log(this.previouseRouteService.getPreviousUrl())
   }
 
   private loadAccommodations(): void {

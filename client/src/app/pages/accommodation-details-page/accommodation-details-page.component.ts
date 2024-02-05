@@ -12,6 +12,7 @@ import { UserService } from 'src/app/services/user/user.service';
 import { UnloadService } from 'src/app/services/unload/unload.service';
 import { Subscription } from 'rxjs';
 import { LocalStorageService } from 'src/app/services/localstorage/local-storage.service';
+import { PreviouseRouteService } from 'src/app/services/previous-route/previouse-route.service';
 
 @Component({
   selector: 'app-accommodation-details-page',
@@ -30,8 +31,8 @@ export class AccommodationDetailsPageComponent implements OnDestroy {
     private accommodationsService: AccommodationsService,
     private userService: UserService,
     private metricsService: MetricsService,
-    private unloadService: UnloadService,
-    private localStorageService: LocalStorageService
+    private localStorageService: LocalStorageService,
+    private previouseRouteService: PreviouseRouteService
   ) {
   }
 
@@ -59,6 +60,7 @@ export class AccommodationDetailsPageComponent implements OnDestroy {
 
   }
 
+
   ngOnInit() {
     this.getAccommodationID();
     this.getAccommodationById();
@@ -66,6 +68,7 @@ export class AccommodationDetailsPageComponent implements OnDestroy {
     this.isUserLogged = this.userLogged ? true : false;
     this.customEventUUID = uuidv4();
     this.sendCreateAt();
+    console.log(this.previouseRouteService.getPreviousUrl());
   }
 
   @HostListener('window:beforeunload', ['$event'])

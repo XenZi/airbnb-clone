@@ -42,17 +42,14 @@ export class MetricsService {
 
   leftAt(userID: string, accommodationID: string,customUUID: string, leftAt: string) {
       this.http.post(`${apiURL}/metrics/leftAt`, {
-        userID,
-        accommodationID,
-        customUUID,
-        leftAt
+        userID, accommodationID, customUUID, leftAt
       }).subscribe({
         next: (data) => {
-          console.log(data)
+          console.log(data);
         },
         error: (err) => {
           console.log(err);
         }
-      })
+      });
   }
 }
