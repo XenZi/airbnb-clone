@@ -18,6 +18,7 @@ func NewCreateAccommodationOrchestrator(publisher saga.Publisher, replySubscribe
 	}
 	err := orchestrator.replySubscriber.Subscribe(orchestrator.handle)
 	if err != nil {
+
 		return nil, err
 	}
 	return orchestrator, nil
