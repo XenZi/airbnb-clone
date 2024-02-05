@@ -2,11 +2,12 @@ package middleware
 
 import (
 	"context"
-	"github.com/dgrijalva/jwt-go"
 	"net/http"
 	"os"
 	"strings"
 	"user-service/utils"
+
+	"github.com/dgrijalva/jwt-go"
 )
 
 func ValidateJWT(next http.HandlerFunc) http.HandlerFunc {
@@ -34,7 +35,7 @@ func ValidateJWT(next http.HandlerFunc) http.HandlerFunc {
 		}
 
 		ctx := context.WithValue(r.Context(), "userID", userID)
-		ctx = context.WithValue(r.Context(), "role", claims["role"])
+		ctx = context.WithValue(ctx, "role", claims["role"])
 		r = r.WithContext(ctx)
 
 		next.ServeHTTP(w, r)

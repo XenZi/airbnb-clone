@@ -8,10 +8,13 @@ import (
 	"os/signal"
 	"time"
 
+	"github.com/XenZi/airbnb-clone/mail-service/config"
 	"github.com/XenZi/airbnb-clone/mail-service/domains"
 	"github.com/XenZi/airbnb-clone/mail-service/handler"
 	"github.com/XenZi/airbnb-clone/mail-service/services"
+	"github.com/XenZi/airbnb-clone/mail-service/tracing"
 	"github.com/gorilla/mux"
+	"github.com/sirupsen/logrus"
 )
 
 func main() {
@@ -20,11 +23,16 @@ func main() {
 	defer cancel()
 
 	// initialize dependencies
-
-	logger := log.New(os.Stdout, "[mail-service] ", log.LstdFlags)
+	tracerConfig := tracing.GetConfig()
+	tracerProvider, err := tracing.NewTracerProvider("mail-service", tracerConfig.JaegerAddress)
+	tracer := tracerProvider.Tracer("mail-service")
+	if err != nil {
+		log.Fatal(err)
+	}
+	logger := config.NewLogger("./logs/log.json")
 	sender := domains.NewEmailSender(
 		os.Getenv("EMAIL"), os.Getenv("PASSWORD"), "smtp.gmail.com", 587)
-	mailService := services.NewMailService(sender)
+	mailService := services.NewMailService(sender, logger, tracer)
 	mailHandler := handler.NewMailHandler(mailService)
 
 	// router
@@ -53,7 +61,7 @@ func main() {
 	go func() {
 		err := server.ListenAndServe()
 		if err != nil {
-			logger.Fatal(err)
+			logger.LogError("mail-service", err.Error())
 		}
 	}()
 
@@ -66,7 +74,10 @@ func main() {
 
 	//Try to shutdown gracefully
 	if server.Shutdown(timeoutContext) != nil {
-		logger.Fatal("Cannot gracefully shutdown...")
+		logger.Fatal("ERROR PANIC", logrus.Fields{
+			"error":  "ERROR PANIC",
+			"module": "mail-service main",
+		})
 	}
 	logger.Println("Server stopped")
 

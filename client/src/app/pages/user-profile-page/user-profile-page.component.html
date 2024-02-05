@@ -11,10 +11,14 @@
             <h3 class="user-profile__fullname">
               {{ user.firstName + " " + user.lastName }}
             </h3>
-            <h3 class="user-profile__super">Superhost</h3>
+            <h3 class="user-profile__super">{{this.user.distinguished ? "Superhost" : this.user.role}}</h3>
+            <div class="user-profile__options flex flex-row justify-center items-center" *ngIf="this.loggedUser.id === this.profileID">
+              <app-button size="sm" color="blue" class="" (onClick)="this.updateClick()">Update</app-button>
+              <app-button size="sm" color="rose" class="" (onClick)="this.deleteClick()">Delete</app-button>
+            </div>
           </div>
         </div>
-        <div class="user-profile__small-stats flex flex-col justify-center">
+        <div class="user-profile__small-stats flex flex-col justify-center" *ngIf="this.user.role == 'Host'">
           <div class="flex flex-col user-profile__small-criteria-box">
             <h4 class="user-profile__number">132</h4>
             <h4 class="user-profile__criteria">Reviews</h4>
@@ -41,13 +45,15 @@
             <span class="user-profile__item-span">{{ user.email }}</span>
           </li>
         </ul>
-        <h2 class="user-profile__section-title">Ratings</h2>
+        <h2 class="user-profile__section-title" *ngIf="this.user.role == 'Host'">Ratings</h2>
         <app-form-create-rating-for-user
           [hostID]="this.profileID"
           [userFromParent]="this.user"
+          *ngIf="this.user.role == 'Host'"
         ></app-form-create-rating-for-user>
         <app-show-rates-for-user
           [hostID]="this.profileID"
+          *ngIf="this.user.role == 'Host'"
         ></app-show-rates-for-user>
       </div>
     </div>

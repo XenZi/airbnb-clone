@@ -9,6 +9,7 @@ import (
 	"log"
 	"net/http"
 	"time"
+	"user-service/domain"
 	"user-service/errors"
 )
 
@@ -60,33 +61,67 @@ func (rc ReservationClient) getReservationsForUser(ctx context.Context, id, role
 		return rc.client.Do(req)
 	})
 	if err != nil {
-		return nil, errors.NewError("internal error", 500)
+		return nil, errors.NewError(err.Error(), 500)
 	}
 	resp := cbResp.(*http.Response)
-	if resp.StatusCode != 200 {
-		return nil, errors.NewError("communication error", resp.StatusCode)
+	if resp.StatusCode >= 200 && resp.StatusCode < 400 {
+		baseResp := ResponseData{}
+		err := json.NewDecoder(resp.Body).Decode(&baseResp)
+		if err != nil {
+			return nil, errors.NewError(err.Error(), 500)
+		}
+		list := baseResp.Data
+		return list, nil
 	}
-	var list []Reservation
-	var responseData ResponseData
-	erro := json.NewDecoder(resp.Body).Decode(&responseData)
+	baseResp := domain.BaseErrorHttpResponse{}
+	erro := json.NewDecoder(resp.Body).Decode(&baseResp)
 	if erro != nil {
-		return nil, errors.NewError("data error", 500)
+		return nil, errors.NewError(erro.Error(), 500)
 	}
-	return list, nil
+	return nil, errors.NewError(baseResp.Error, baseResp.Status)
 }
 
-func (rc ReservationClient) UserDeleteAllowed(ctx context.Context, id, role string) (bool, *errors.ErrorStruct) {
+func (rc ReservationClient) getCancelRate(ctx context.Context, id string) (*float32, *errors.ErrorStruct) {
+	cbResp, err := rc.circuitBreaker.Execute(func() (interface{}, error) {
+		req, err := http.NewRequestWithContext(ctx, http.MethodGet, rc.address+"/percentage-cancelation/"+id, http.NoBody)
+		if err != nil {
+			return nil, err
+		}
+		return rc.client.Do(req)
+	})
+	if err != nil {
+		return nil, errors.NewError(err.Error(), 500)
+	}
+	resp := cbResp.(*http.Response)
+	if resp.StatusCode >= 200 && resp.StatusCode < 400 {
+		baseResp := domain.BaseHttpResponse{}
+		err := json.NewDecoder(resp.Body).Decode(&baseResp)
+		if err != nil {
+			return nil, errors.NewError(err.Error(), 500)
+		}
+		rate := baseResp.Data.(float32)
+		return &rate, nil
+	}
+	baseResp := domain.BaseErrorHttpResponse{}
+	erro := json.NewDecoder(resp.Body).Decode(&baseResp)
+	if erro != nil {
+		return nil, errors.NewError(erro.Error(), 500)
+	}
+	return nil, errors.NewError(baseResp.Error, baseResp.Status)
+}
+
+func (rc ReservationClient) UserDeleteAllowed(ctx context.Context, id, role string) *errors.ErrorStruct {
 	list, err := rc.getReservationsForUser(ctx, id, role)
 	if err != nil {
-		return false, err
+		return err
 	}
 	if len(list) != 0 {
-		return false, errors.NewError("user has pend reservations", 401)
+		return errors.NewError(fmt.Sprintf("User by id: %v has open reservations", id), 401)
 	}
-	return true, nil
+	return nil
 }
 
-// TODO requirements lowered for easier examples
+// requirements lowered for easier examples
 func (rc ReservationClient) CheckDistinguished(ctx context.Context, id string) (bool, *errors.ErrorStruct) {
 	reqCounter := 0
 	list, err := rc.getReservationsForUser(ctx, id, "Host")
@@ -97,18 +132,19 @@ func (rc ReservationClient) CheckDistinguished(ctx context.Context, id string) (
 	if err != nil {
 		return false, err
 	}
-	// Req 1
 	if numOfReservations >= 3 {
 		reqCounter += 1
 	}
 	durOfReservations := checkPastReservationDuration(list)
-	// Req 2
 	if durOfReservations > 10 {
 		reqCounter += 1
 	}
-	cancelRate := checkCancelationRate()
-	// Req 3
-	if cancelRate <= 0.33 {
+	cancelRate, erro := rc.getCancelRate(ctx, id)
+	var margin float32 = 0.33
+	if erro != nil {
+		return false, erro
+	}
+	if *cancelRate <= margin {
 		reqCounter += 1
 	}
 	if reqCounter > 2 {
@@ -126,7 +162,6 @@ func checkNumberOfPastReservations(list []Reservation) (int, *errors.ErrorStruct
 		if err != nil {
 			return 0, errors.NewError("cannot parse date format", 500)
 		}
-		log.Println(date)
 		if date.Before(time.Now()) {
 			counter += 1
 		}
@@ -141,13 +176,5 @@ func checkPastReservationDuration(list []Reservation) int {
 		counter += res.NumberOfDays
 	}
 	log.Println("DURATION FOR OLD RESERVATIONS: ", counter)
-
 	return counter
-}
-
-// TODO cancelation rate with reservations
-func checkCancelationRate() float64 {
-	rate := 0.03
-	log.Println("CANCELATION RATE: ", rate)
-	return rate
 }

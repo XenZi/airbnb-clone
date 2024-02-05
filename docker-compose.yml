@@ -360,9 +360,9 @@ services:
     networks:
       - network
 
-  metrics_query:
-    image: metrics_query
-    container_name: metrics_query
+  metrics-query:
+    image: metrics-query
+    container_name: metrics-query
     hostname: ${QUERY_SERVICE_HOST}
     build:
       context: .

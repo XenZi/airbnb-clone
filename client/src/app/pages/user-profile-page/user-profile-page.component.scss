@@ -118,3 +118,11 @@
   margin-right: 10px;
   color: #ff5977;
 }
+
+.user-profile__options {
+  margin: 10px 0px;
+
+  & > * {
+    margin: 0 5px;
+  }
+}
