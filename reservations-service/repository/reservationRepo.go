@@ -4,7 +4,9 @@ import (
 	"context"
 	"fmt"
 	"log"
+
 	"os"
+	"reservation-service/config"
 	"reservation-service/domain"
 	"reservation-service/errors"
 	"reservation-service/utils"
@@ -18,12 +20,12 @@ import (
 
 type ReservationRepo struct {
 	session *gocql.Session
-	logger  *log.Logger
+	logger  *config.Logger
 	tracer  trace.Tracer
 }
 
 // db config and creating keyspace
-func New(logger *log.Logger, tracer trace.Tracer) (*ReservationRepo, error) {
+func New(logger *config.Logger, tracer trace.Tracer) (*ReservationRepo, error) {
 	db := os.Getenv("CASS_DB")
 
 	cluster := gocql.NewCluster(db)
@@ -222,7 +224,7 @@ func (rr *ReservationRepo) GetReservationsByUser(ctx context.Context, id string)
 			&reservation.EndDate, &reservation.Username, &reservation.AccommodationName, &reservation.Location, &reservation.Price,
 			&reservation.NumberOfDays, &reservation.DateRange, &reservation.IsActive, &reservation.Country, &reservation.HostID)
 		if err != nil {
-			rr.logger.Println(err)
+			rr.logger.LogError("reservationsRepo", err.Error())
 			return nil, err
 		}
 
@@ -230,12 +232,13 @@ func (rr *ReservationRepo) GetReservationsByUser(ctx context.Context, id string)
 	}
 
 	if err := scanner.Err(); err != nil {
-		rr.logger.Println(err)
+		rr.logger.LogError("reservationsRepo", err.Error())
 		return nil, err
 	}
-
+	rr.logger.LogInfo("reservationRepo", fmt.Sprintf("Found reservations by userID: %v", reservations))
 	return reservations, nil
 }
+
 func (rr *ReservationRepo) GetReservationsByHost(ctx context.Context, id string) ([]domain.Reservation, error) {
 	ctx, span := rr.tracer.Start(ctx, "ReservationRepo.GetReservationsByHost")
 	defer span.End()
@@ -252,7 +255,7 @@ func (rr *ReservationRepo) GetReservationsByHost(ctx context.Context, id string)
 			&reservation.EndDate, &reservation.Username, &reservation.AccommodationName, &reservation.Location, &reservation.Price,
 			&reservation.NumberOfDays, reservation.DateRange, &reservation.IsActive, &reservation.Country, &reservation.HostID)
 		if err != nil {
-			rr.logger.Println(err)
+			rr.logger.LogError("reservationsRepo", err.Error())
 			return nil, err
 		}
 
@@ -260,12 +263,13 @@ func (rr *ReservationRepo) GetReservationsByHost(ctx context.Context, id string)
 	}
 
 	if err := scanner.Err(); err != nil {
-		rr.logger.Println(err)
+		rr.logger.LogError("reservationsRepo", err.Error())
 		return nil, err
 	}
-
+	rr.logger.LogInfo("reservationRepo", fmt.Sprintf("Found reservations by hostID: %v", reservations))
 	return reservations, nil
 }
+
 func (rr *ReservationRepo) InsertAvailability(ctx context.Context, reservation *domain.FreeReservation) (*domain.FreeReservation, error) {
 	ctx, span := rr.tracer.Start(ctx, "ReservationRepo.InsertAvailability")
 	defer span.End()
@@ -292,6 +296,7 @@ func (rr *ReservationRepo) InsertAvailability(ctx context.Context, reservation *
 			`, ID, reservation.AccommodationID, reservation.Location, drwp.Price, continent, country, drwp.DateRange, true)
 
 		if err := rr.session.ExecuteBatch(batch); err != nil {
+			rr.logger.LogError("reservationsRepo", err.Error())
 			return nil, err
 		}
 
@@ -299,6 +304,7 @@ func (rr *ReservationRepo) InsertAvailability(ctx context.Context, reservation *
 
 	reservation.Continent = continent
 	reservation.Country = country
+	rr.logger.LogInfo("reservationRepo", fmt.Sprintf("Inserted availability: %v", reservation))
 	return reservation, nil
 }
 
@@ -322,11 +328,11 @@ func (rr *ReservationRepo) AvailableDates(ctx context.Context, accommodationID s
 		}
 
 		if err := iter.Close(); err != nil {
-			rr.logger.Println(err)
+			rr.logger.LogError("reservationsRepo", err.Error())
 			return nil, errors.NewReservationError(500, "Unable to check availability, database error")
 		}
 	}
-
+	rr.logger.LogInfo("reservationRepo", fmt.Sprintf("Found availability by accommodationID and dateRange: %v", result))
 	return result, nil
 }
 
@@ -373,7 +379,7 @@ func (rr *ReservationRepo) InsertReservation(ctx context.Context, reservation *d
 		reservation.Price, reservation.NumberOfDays, continent, reservation.DateRange, true, country, reservation.HostID)
 
 	if err := rr.session.ExecuteBatch(batch); err != nil {
-		rr.logger.Println(reservation.EndDate[len(reservation.EndDate)-1])
+		rr.logger.LogError("reservationsRepo", err.Error())
 		return nil, err
 	}
 
@@ -381,7 +387,7 @@ func (rr *ReservationRepo) InsertReservation(ctx context.Context, reservation *d
 	reservation.Country = country
 	reservation.Continent = continent
 	reservation.IsActive = true
-	rr.logger.Println(reservation)
+	rr.logger.LogInfo("reservationRepo", fmt.Sprintf("Inserted reservation: %v", reservation))
 
 	return reservation, nil
 }
@@ -405,9 +411,10 @@ func (rr *ReservationRepo) DeleteById(ctx context.Context, country string, id, u
 	batch.Query(`INSERT INTO deleted_reservations(id,host_id) VALUES(?,?)`, id, hostID)
 
 	if err := rr.session.ExecuteBatch(batch); err != nil {
-		rr.logger.Println(err)
+		rr.logger.LogError("reservationsRepo", err.Error())
 		return nil, errors.NewReservationError(500, "Unable to cancel the reservation")
 	}
+	rr.logger.LogInfo("reservationRepo", fmt.Sprintf("Deleted reservation by ID: %v", id))
 
 	return nil, nil
 }
@@ -427,7 +434,7 @@ func (rr *ReservationRepo) ReservationsInDateRange(ctx context.Context, accommod
 				uniqueReservations[reservation] = struct{}{}
 			}
 			if err := iter.Close(); err != nil {
-				rr.logger.Println(err)
+				rr.logger.LogError("reservationsRepo", err.Error())
 				return nil, errors.NewReservationError(500, "Unable to retrieve reservations, database error")
 			}
 		}
@@ -437,6 +444,7 @@ func (rr *ReservationRepo) ReservationsInDateRange(ctx context.Context, accommod
 	for key := range uniqueReservations {
 		result = append(result, key)
 	}
+	rr.logger.LogInfo("reservationRepo", fmt.Sprintf("Found reservation by accommodationIDs and dateRange: %v", result))
 
 	return result, nil
 }
@@ -460,10 +468,11 @@ func (rr *ReservationRepo) IsAvailable(ctx context.Context, accommodationID stri
 		}
 
 		if err := iter.Close(); err != nil {
-			rr.logger.Println(err)
+			rr.logger.LogError("reservationsRepo", err.Error())
 			return false, errors.NewReservationError(500, "Unable to check availability, database error")
 		}
 	}
+	rr.logger.LogInfo("reservationRepo", fmt.Sprintf("Found out is accommodation available or not by accommodationID and dateRange: %v", false))
 
 	return false, nil
 }
@@ -489,9 +498,10 @@ func (rr *ReservationRepo) CheckAvailabilityForAccommodation(ctx context.Context
 		result = append(result, avl)
 	}
 	if err := iter.Close(); err != nil {
-		rr.logger.Println(err)
+		rr.logger.LogError("reservationsRepo", err.Error())
 		return nil, errors.NewReservationError(500, "Unable to check availability, database error")
 	}
+	rr.logger.LogInfo("reservationRepo", fmt.Sprintf("Checked availability by accommodationID : %v", result))
 
 	return result, nil
 
@@ -516,11 +526,13 @@ func (rr *ReservationRepo) IsReserved(ctx context.Context, accommodationID strin
 		}
 
 		if err := iter.Close(); err != nil {
-			rr.logger.Println(err)
+			rr.logger.LogError("reservationsRepo", err.Error())
 			return false, errors.NewReservationError(500, "Unable to check is reserved, database error")
 		}
 
 	}
+	rr.logger.LogInfo("reservationRepo", fmt.Sprintf("Checked if is accommodation reserved by accommodationID and dateRanges: %v", false))
+
 	return false, nil
 }
 func (rr *ReservationRepo) GetNumberOfCanceledReservations(ctx context.Context, hostID string) (int, *errors.ReservationError) {
@@ -565,7 +577,7 @@ func (rr *ReservationRepo) GetReservationsByAccommodationWithEndDate(ctx context
 			&reservation.EndDate, &reservation.Username, &reservation.AccommodationName, &reservation.Location, &reservation.Price,
 			&reservation.NumberOfDays, &reservation.DateRange, &reservation.IsActive, &reservation.Country, &reservation.HostID)
 		if err != nil {
-			rr.logger.Println(err)
+			rr.logger.LogError("reservationsRepo", err.Error())
 			return nil, err
 		}
 
@@ -573,10 +585,10 @@ func (rr *ReservationRepo) GetReservationsByAccommodationWithEndDate(ctx context
 	}
 
 	if err := scanner.Err(); err != nil {
-		rr.logger.Println(err)
+		rr.logger.LogError("reservationsRepo", err.Error())
 		return nil, err
 	}
-
+	rr.logger.LogInfo("reservationRepo", fmt.Sprintf("Found expired reservations by accommodationID: %v", reservations))
 	return reservations, nil
 
 }
@@ -598,7 +610,7 @@ func (rr *ReservationRepo) GetReservationsByHostWithEndDate(ctx context.Context,
 			&reservation.EndDate, &reservation.Username, &reservation.AccommodationName, &reservation.Location, &reservation.Price,
 			&reservation.NumberOfDays, &reservation.DateRange, &reservation.IsActive, &reservation.Country, &reservation.HostID)
 		if err != nil {
-			rr.logger.Println(err)
+			rr.logger.LogError("reservationsRepo", err.Error())
 			return nil, err
 		}
 
@@ -606,10 +618,10 @@ func (rr *ReservationRepo) GetReservationsByHostWithEndDate(ctx context.Context,
 	}
 
 	if err := scanner.Err(); err != nil {
-		rr.logger.Println(err)
+		rr.logger.LogError("reservationsRepo", err.Error())
 		return nil, err
 	}
-
+	rr.logger.LogInfo("reservationRepo", fmt.Sprintf("Found expired reservations by hostID: %v", reservations))
 	return reservations, nil
 
 }
@@ -624,10 +636,10 @@ func (rr *ReservationRepo) DeleteAvl(ctx context.Context, accommodationID, id, c
 	batch.Query(`DELETE FROM avl_by_price WHERE is_active = ? AND price = ? AND id = ?`, true, price, id)
 
 	if err := rr.session.ExecuteBatch(batch); err != nil {
-		rr.logger.Println(err)
+		rr.logger.LogError("reservationsRepo", err.Error())
 		return nil, errors.NewReservationError(500, "Unable to cancel the reservation")
 	}
-
+	rr.logger.LogInfo("reservationRepo", fmt.Sprintf("Deleted availability by ID: %v", id))
 	return nil, nil
 
 }
@@ -644,6 +656,7 @@ func (rr *ReservationRepo) GetAccommodationIDsByMaxPrice(ctx context.Context, ma
 		var accommodationID string
 		err := scanner.Scan(&accommodationID)
 		if err != nil {
+			rr.logger.LogError("reservationsRepo", err.Error())
 			return nil, errors.NewReservationError(500, "Unable to retrive the data")
 		}
 		accommodationIDs = append(accommodationIDs, accommodationID)
@@ -651,9 +664,10 @@ func (rr *ReservationRepo) GetAccommodationIDsByMaxPrice(ctx context.Context, ma
 	}
 
 	if erro := scanner.Err(); erro != nil {
-		rr.logger.Println(erro)
+		rr.logger.LogError("reservationsRepo", erro.Error())
 		return nil, errors.NewReservationError(500, "Unable to retrive the data")
 	}
+	rr.logger.LogInfo("reservationRepo", fmt.Sprintf("Found accommodations by price: %v", accommodationIDs))
 	return accommodationIDs, nil
 }
 
@@ -676,7 +690,7 @@ func (rr *ReservationRepo) AvailabilityNotInDateRange(ctx context.Context, accom
 			}
 
 			if err := iter.Close(); err != nil {
-				rr.logger.Println(err)
+				rr.logger.LogError("reservationsRepo", err.Error())
 				return nil, errors.NewReservationError(500, "Unable to retrieve availability, database error")
 			}
 		}
@@ -689,6 +703,6 @@ func (rr *ReservationRepo) AvailabilityNotInDateRange(ctx context.Context, accom
 	for key := range uniqueAccommodationIDs {
 		result = append(result, key)
 	}
-
+	rr.logger.LogInfo("reservationRepo", fmt.Sprintf("Found availabilities that are not in date range by accommodationIDs and dateRange: %v", result))
 	return result, nil
 }
