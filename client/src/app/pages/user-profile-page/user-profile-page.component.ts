@@ -1,10 +1,12 @@
 import { Component } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
+import { UserAuth } from 'src/app/domains/entity/user-auth.model';
 import { User } from 'src/app/domains/entity/user-profile.model';
 import { Role } from 'src/app/domains/enums/roles.enum';
 import { FormUpdateUserProfileComponent } from 'src/app/forms/form-update-user-profile/form-update-user-profile.component';
 import { ModalService } from 'src/app/services/modal/modal.service';
 import { ProfileService } from 'src/app/services/profile/profile.service';
+import { UserService } from 'src/app/services/user/user.service';
 
 @Component({
   selector: 'app-user-profile-page',
@@ -14,11 +16,12 @@ import { ProfileService } from 'src/app/services/profile/profile.service';
 export class UserProfilePageComponent {
   profileID!: string;
   user!: User;
-
+  loggedUser!: UserAuth;
   constructor(
     private route: ActivatedRoute,
     private profileService: ProfileService,
-    private modalService: ModalService
+    private modalService: ModalService,
+    private userService: UserService,
   ) {}
 
   ngOnInit() {
@@ -42,6 +45,8 @@ export class UserProfilePageComponent {
         rating: 4.8,
       };
     }
+
+    this.loggedUser = this.userService.getLoggedUser() as UserAuth;
   }
 
   updateClick() {

@@ -202,6 +202,7 @@ export class AuthService {
           );
           this.localStorageService.clear();
           this.router.navigate(['/']);
+          window.location.reload();
         },
         error: (err) => {
           this.toastSerice.showToast(
@@ -230,17 +231,9 @@ export class AuthService {
     }, 1000);
 
     setTimeout(() => {
-      
-       
         this.router.navigate(['/']);
-      
+        window.location.reload();
     }, 300);
-    setTimeout(() => {
-
-      window.location.reload();
-     }, 300);
-
-    
    
   }
 
@@ -258,6 +251,9 @@ export class AuthService {
             data?.data?.message,
             ToastNotificationType.Success
           );
+          this.modalService.close();
+          this.router.navigate(['/']);
+          window.location.reload();
         },
         error: (err) => {
           this.toastSerice.showToast(

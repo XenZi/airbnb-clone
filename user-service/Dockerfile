@@ -32,7 +32,7 @@ WORKDIR /root/
 # Copy the Pre-built binary file from the previous stage
 COPY --from=builder /app/main .
 RUN mkdir logs
-COPY ./auth-service/logs/log.log ./logs/
+COPY ./user-service/logs/log.log ./logs/
 
 
 
