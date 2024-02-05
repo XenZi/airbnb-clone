@@ -181,6 +181,7 @@ func (s *ReservationService) DeleteReservationById(ctx context.Context, country 
 		s.logger.LogError("reservationsService", err.Error())
 		return nil, errors.NewReservationError(500, err.Error())
 	}
+	s.notification.SendReservationCanceledNotification(ctx, hostID, "Reservation canceled!")
 	s.logger.LogInfo("reservationsService", fmt.Sprintf("Deleted reservations by id: %v", deletedReservation))
 	return deletedReservation, nil
 }
