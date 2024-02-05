@@ -62,6 +62,7 @@ export class ReservationService {
     return this.http.get(`${apiURL}/reservations/user/guest/${id}`);
   }
 
+
   getPastReservations(
     accommodationID: string,
     userID: string
@@ -77,4 +78,9 @@ export class ReservationService {
     console.log(userID);
     return this.http.get(`${apiURL}/reservations/host/${hostID}/${userID}`);
   }
+  getAllReservationsByHost(hostId: string): Observable<any> {
+    return this.http.get(`${apiURL}/reservations/user/host/${hostId}`);
+  }
+
+ 
 }

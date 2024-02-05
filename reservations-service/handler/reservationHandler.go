@@ -84,7 +84,7 @@ func (rh *ReservationHandler) GetReservationsByHost(rw http.ResponseWriter, r *h
 	vars := mux.Vars(r)
 	hostID := vars["hostId"]
 
-	reservations, err := rh.ReservationService.GetReservationsByUser(ctx, hostID)
+	reservations, err := rh.ReservationService.GetReservationsByHost(ctx, hostID)
 	if err != nil {
 		utils.WriteErrorResp(err.Message, err.Status, "api/reservations/user/{hostId}", rw)
 		return

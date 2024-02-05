@@ -22,6 +22,7 @@ export class UserProfilePageComponent {
     private profileService: ProfileService,
     private modalService: ModalService,
     private userService: UserService,
+
   ) {}
 
   ngOnInit() {
@@ -96,4 +97,5 @@ export class UserProfilePageComponent {
         this.user = data.data;
       });
   }
+
 }
