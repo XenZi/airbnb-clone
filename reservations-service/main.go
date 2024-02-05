@@ -3,16 +3,18 @@ package main
 import (
 	"context"
 	"example/saga/messaging/nats"
-	"log"
 	"net/http"
 	"os"
 	"os/signal"
 	"reservation-service/client"
+	"reservation-service/config"
 	"reservation-service/handler"
 	"reservation-service/repository"
 	"reservation-service/service"
 	"reservation-service/utils"
 	"time"
+
+	log "github.com/sirupsen/logrus"
 
 	//tracing "command-line-arguments/home/janko33/Documents/airbnb-clone/reservations-service/tracing/tracer.go"
 
@@ -35,9 +37,8 @@ func main() {
 
 	timeoutContext, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
-
-	logger := log.New(os.Stdout, "[reservation-api]", log.LstdFlags)
-	storeLogger := log.New(os.Stdout, "[reservation-store]", log.LstdFlags)
+	logger := config.NewLogger("./logs/log.log")
+	//storeLogger := log.New(os.Stdout, "[reservation-store]", log.LstdFlags)
 	notificationServiceHost := os.Getenv("NOTIFICATION_SERVICE_HOST")
 	log.Println("HOST", notificationServiceHost)
 	notificationServicePort := os.Getenv("NOTIFICATION_SERVICE_PORT")
@@ -78,9 +79,12 @@ func main() {
 		log.Fatal(err)
 	}
 
-	store, err := repository.New(storeLogger, tracer)
+	store, err := repository.New(logger, tracer)
 	if err != nil {
-		logger.Fatal(err)
+		logger.Fatal("Error while server is listening and serving requests", log.Fields{
+			"module": "server-main",
+			"error":  err.Error(),
+		})
 	}
 	defer store.CloseSession()
 	store.CreateTables()
@@ -109,7 +113,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	reservationService := service.NewReservationService(reservationRepo, validator, notificationsClient, tracer)
+	reservationService := service.NewReservationService(reservationRepo, validator, notificationsClient, logger, tracer)
 	_, err = handler.NewCreateAvailabilityCommandHandler(reservationService, publisher, commandSubscriber)
 	if err != nil {
 		log.Fatal(err)
@@ -157,7 +161,10 @@ func main() {
 	go func() {
 		err := server.ListenAndServe()
 		if err != nil {
-			logger.Fatal(err)
+			logger.Fatal("Error while server is listening and serving requests", log.Fields{
+				"module": "server-main",
+				"error":  err.Error(),
+			})
 		}
 	}()
 
@@ -170,8 +177,11 @@ func main() {
 
 	//Try to shutdown gracefully
 	if server.Shutdown(timeoutContext) != nil {
-		logger.Fatal("Cannot gracefully shutdown...")
+		logger.Fatal("Error during graceful shutdown", log.Fields{
+			"module": "server-main",
+			"error":  err.Error(),
+		})
 	}
-	logger.Println("Server stopped")
+	logger.LogInfo("server-main", "Server shut down")
 
 }
