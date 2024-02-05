@@ -6,14 +6,15 @@ import (
 	"github.com/gorilla/mux"
 
 	gorillaHandlers "github.com/gorilla/handlers"
+	log "github.com/sirupsen/logrus"
 	"github.com/sony/gobreaker"
 
-	"log"
 	"net/http"
 	"os"
 	"os/signal"
 	"time"
 	"user-service/client"
+	"user-service/config"
 	"user-service/handler"
 	"user-service/middleware"
 	"user-service/repository"
@@ -22,9 +23,10 @@ import (
 )
 
 func main() {
+	const source = "server-main"
 	timeoutContext, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
-	logger := log.New(os.Stdout, "[user-api] ", log.LstdFlags)
+	logger := config.NewLogger("./logs/log.log")
 
 	//env
 
@@ -108,11 +110,8 @@ func main() {
 	}
 	userRepo := repository.NewUserRepository(mongoService.GetCli(), logger)
 	validator := utils.NewValidator()
-	jwtService := service.NewJWTService([]byte(os.Getenv("JWT_SECRET")))
-	userService := service.NewUserService(userRepo, jwtService, validator, reservationsClient, authClient, accClient)
-	profileHandler := handler.UserHandler{
-		UserService: userService,
-	}
+	userService := service.NewUserService(userRepo, validator, reservationsClient, authClient, accClient, logger)
+	profileHandler := handler.NewUserHandler(userService, logger)
 
 	// router
 
@@ -148,7 +147,10 @@ func main() {
 	go func() {
 		err := server.ListenAndServe()
 		if err != nil {
-			logger.Fatal(err)
+			logger.Fatal("Error while server is listening and serving requests", log.Fields{
+				"module": source,
+				"error":  err.Error(),
+			})
 		}
 	}()
 
@@ -161,8 +163,11 @@ func main() {
 
 	//Try to shut down gracefully
 	if server.Shutdown(timeoutContext) != nil {
-		logger.Fatal("Cannot gracefully shutdown...")
+		logger.Fatal("Error during graceful shutdown", log.Fields{
+			"module": source,
+			"error":  err.Error(),
+		})
 	}
-	logger.Println("Server stopped")
+	logger.LogInfo(source, "Server shut down")
 
 }

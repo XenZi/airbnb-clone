@@ -2,10 +2,11 @@ package client
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/sony/gobreaker"
-	"log"
 	"net/http"
+	"user-service/domain"
 	"user-service/errors"
 )
 
@@ -24,21 +25,24 @@ func NewAuthClient(host, port string, client *http.Client, circuitBreaker *gobre
 }
 
 func (ac AuthClient) DeleteUserAuth(ctx context.Context, id string) *errors.ErrorStruct {
-	log.Println("Poslato u bezdan")
 	cbResp, err := ac.circuitBreaker.Execute(func() (interface{}, error) {
 		req, err := http.NewRequestWithContext(ctx, http.MethodDelete, ac.address+"/"+id, http.NoBody)
 		if err != nil {
-			log.Println(err)
 			return nil, err
 		}
 		return ac.client.Do(req)
 	})
 	if err != nil {
-		return errors.NewError("internal error", 500)
+		return errors.NewError(err.Error(), 500)
 	}
 	resp := cbResp.(*http.Response)
-	if resp.StatusCode == 200 {
+	if resp.StatusCode >= 200 && resp.StatusCode < 400 {
 		return nil
 	}
-	return errors.NewError("internal error", resp.StatusCode)
+	baseResp := domain.BaseErrorHttpResponse{}
+	erro := json.NewDecoder(resp.Body).Decode(&baseResp)
+	if erro != nil {
+		return errors.NewError(erro.Error(), 500)
+	}
+	return errors.NewError(baseResp.Error, baseResp.Status)
 }

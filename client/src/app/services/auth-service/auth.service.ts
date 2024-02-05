@@ -184,10 +184,11 @@ export class AuthService {
   changePassword(
     oldPassword: string,
     password: string,
-    confirmedPassword: string
+    confirmedPassword: string,
+    id: string
   ) {
     this.http
-      .post(`${apiURL}/auth/change-password`, {
+      .post(`${apiURL}/auth/change-password/${id}`, {
         oldPassword,
         password,
         confirmedPassword,

@@ -99,7 +99,7 @@ func (u *UserService) CreateUser(ctx context.Context, registerUser domains.Regis
 	u.logger.LogInfo("user-service", "User with username "+user.Username+" sucessfully sent to user service for creation.")
 
 	if errFromUserService != nil {
-		_, err := u.userRepository.DeleteUserById(newUser.ID.Hex())
+		_, err := u.userRepository.DeleteUserById(ctx, newUser.ID.Hex())
 		if err != nil {
 			u.logger.LogError("user-service", fmt.Sprintf("Error creating user with username %v at user-service, rolling back.", registerUser.Username))
 			return nil, err
@@ -161,8 +161,9 @@ func (u *UserService) LoginUser(ctx context.Context, loginData domains.LoginUser
 	}, nil
 }
 
-func (u UserService) ConfirmUserAccount(token string) (*domains.UserDTO, *errors.ErrorStruct) {
-
+func (u UserService) ConfirmUserAccount(ctx context.Context, token string) (*domains.UserDTO, *errors.ErrorStruct) {
+	ctx, span := u.tracer.Start(ctx, "AuthHandler.ConfirmAccount")
+	defer span.End()
 	userID, err := u.encryptionService.ValidateToken(token)
 	u.logger.LogInfo("user-service", fmt.Sprintf("User with ID %v tries to verify his account", userID))
 
@@ -170,7 +171,7 @@ func (u UserService) ConfirmUserAccount(token string) (*domains.UserDTO, *errors
 		u.logger.LogError("user-service", err.GetErrorMessage())
 		return nil, err
 	}
-	updatedUser, err := u.userRepository.UpdateUserConfirmation(userID)
+	updatedUser, err := u.userRepository.UpdateUserConfirmation(ctx, userID)
 	if err != nil {
 		u.logger.LogError("user-service", err.GetErrorMessage())
 		return nil, err
@@ -186,7 +187,10 @@ func (u UserService) ConfirmUserAccount(token string) (*domains.UserDTO, *errors
 	}, nil
 }
 
-func (u UserService) RequestResetPassword(email string) (*domains.BaseMessageResponse, *errors.ErrorStruct) {
+func (u UserService) RequestResetPassword(ctx context.Context, email string) (*domains.BaseMessageResponse, *errors.ErrorStruct) {
+	ctx, span := u.tracer.Start(ctx, "UserService.RequestResetPassword")
+	defer span.End()
+
 	if email == "" {
 		return nil, errors.NewError("Email is empty or incorrect", 400)
 	}
@@ -211,7 +215,9 @@ func (u UserService) RequestResetPassword(email string) (*domains.BaseMessageRes
 	}, nil
 }
 
-func (u UserService) ResetPassword(requestData domains.ResetPassword, token string) (*domains.UserDTO, *errors.ErrorStruct) {
+func (u UserService) ResetPassword(ctx context.Context, requestData domains.ResetPassword, token string) (*domains.UserDTO, *errors.ErrorStruct) {
+	ctx, span := u.tracer.Start(ctx, "UserService.ResetPassword")
+	defer span.End()
 	u.validator.ValidatePassword(requestData.Password)
 	validatorErrors := u.validator.GetErrors()
 	if len(validatorErrors) > 0 {
@@ -240,7 +246,7 @@ func (u UserService) ResetPassword(requestData domains.ResetPassword, token stri
 		return nil, err
 	}
 
-	user, err := u.userRepository.UpdateUserPassword(userID, hashedPassword)
+	user, err := u.userRepository.UpdateUserPassword(ctx, userID, hashedPassword)
 	if err != nil {
 		return nil, err
 	}
@@ -254,7 +260,10 @@ func (u UserService) ResetPassword(requestData domains.ResetPassword, token stri
 	}, nil
 }
 
-func (u UserService) ChangePassword(data domains.ChangePassword, userID string) (*domains.BaseMessageResponse, *errors.ErrorStruct) {
+func (u UserService) ChangePassword(ctx context.Context, data domains.ChangePassword, userID string) (*domains.BaseMessageResponse, *errors.ErrorStruct) {
+	ctx, span := u.tracer.Start(ctx, "UserService.ChangePassword")
+	defer span.End()
+
 	if data.ConfirmedPassword != data.Password {
 		return nil, errors.NewError("New password doesn't match with each other", 400)
 	}
@@ -262,7 +271,7 @@ func (u UserService) ChangePassword(data domains.ChangePassword, userID string) 
 		return nil, errors.NewError("Choose better password", 400)
 	}
 	u.logger.LogInfo("user-service", fmt.Sprintf("User %v wants to change password", userID))
-	user, err := u.userRepository.FindUserById(userID)
+	user, err := u.userRepository.FindUserById(ctx, userID)
 	if err != nil {
 		u.logger.LogError("user-service", err.GetErrorMessage())
 		return nil, err
@@ -276,7 +285,7 @@ func (u UserService) ChangePassword(data domains.ChangePassword, userID string) 
 	if hashError != nil {
 		return nil, errors.NewError(hashError.Error(), 500)
 	}
-	_, err = u.userRepository.UpdateUserPassword(userID, hashedPassword)
+	_, err = u.userRepository.UpdateUserPassword(ctx, userID, hashedPassword)
 	if err != nil {
 		u.logger.LogError("user-service", err.GetErrorMessage())
 		return nil, err
@@ -291,12 +300,14 @@ func (u UserService) ChangePassword(data domains.ChangePassword, userID string) 
 
 // OVDE SAM STAO ZA LOGOCE DA ZNAM
 func (u UserService) UpdateCredentials(ctx context.Context, id string, updatedData domains.User) (*domains.BaseMessageResponse, *errors.ErrorStruct) {
+	ctx, span := u.tracer.Start(ctx, "UserService.UpdateCredentials")
+	defer span.End()
 	if updatedData.Email == "" || updatedData.Username == "" {
 		return nil, errors.NewError("Email or username are empty", 400)
 	}
 	u.logger.LogInfo("user-service", fmt.Sprintf("User %v wants to update his credentials.", updatedData.ID.Hex()))
 
-	foundUser, _ := u.userRepository.FindUserById(id)
+	foundUser, _ := u.userRepository.FindUserById(ctx, id)
 	if foundUser.Username == updatedData.Username && foundUser.Email == updatedData.Email {
 		u.logger.LogInfo("user-service", fmt.Sprintf("User %v updated his credentials.", updatedData.ID.Hex()))
 
@@ -312,7 +323,7 @@ func (u UserService) UpdateCredentials(ctx context.Context, id string, updatedDa
 		}
 	}
 	if foundUser.Username != updatedData.Username {
-		_, err := u.userRepository.FindUserByUsername(updatedData.Username)
+		_, err := u.userRepository.FindUserByUsername(ctx, updatedData.Username)
 		if err == nil {
 			u.logger.LogError("user-service", err.GetErrorMessage())
 			return nil, errors.NewError("User with same username already exists", 400)
@@ -333,7 +344,7 @@ func (u UserService) UpdateCredentials(ctx context.Context, id string, updatedDa
 		u.logger.LogError("user-service", errFromCredentialsUpdate.GetErrorMessage())
 		return nil, errFromCredentialsUpdate
 	}
-	_, err := u.userRepository.UpdateUserCredentials(updatedData)
+	_, err := u.userRepository.UpdateUserCredentials(ctx, updatedData)
 	if err != nil {
 		u.logger.LogError("user-service", err.GetErrorMessage())
 		return nil, err
@@ -344,13 +355,15 @@ func (u UserService) UpdateCredentials(ctx context.Context, id string, updatedDa
 	}, nil
 }
 
-func (u UserService) DeleteUserById(id string) (*domains.UserDTO, *errors.ErrorStruct) {
+func (u UserService) DeleteUserById(ctx context.Context, id string) (*domains.UserDTO, *errors.ErrorStruct) {
+	ctx, span := u.tracer.Start(ctx, "UserService.DeleteUserById")
+	defer span.End()
 	if id == "" {
 		return nil, errors.NewError("Invalid ID format", 400)
 	}
 	u.logger.LogInfo("user-service", fmt.Sprintf("User %v wants to delete his account.", id))
 
-	user, err := u.userRepository.DeleteUserById(id)
+	user, err := u.userRepository.DeleteUserById(ctx, id)
 	if err != nil {
 		return nil, err
 	}

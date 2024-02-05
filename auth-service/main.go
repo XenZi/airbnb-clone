@@ -131,7 +131,7 @@ func main() {
 	router.HandleFunc("/confirm-account/{token}", authHandler.ConfirmAccount).Methods("POST")
 	router.HandleFunc("/request-reset-password", authHandler.RequestResetPassword).Methods("POST")
 	router.HandleFunc("/reset-password/{token}", authHandler.ResetPassword).Methods("POST")
-	router.HandleFunc("/change-password", middlewares.ValidateJWT(authHandler.ChangePassword)).Methods("POST")
+	router.HandleFunc("/change-password/{id}", middlewares.ValidateJWT(authHandler.ChangePassword)).Methods("POST")
 	router.HandleFunc("/update-credentials", middlewares.ValidateJWT(authHandler.UpdateCredentials)).Methods("POST")
 	router.HandleFunc("/{id}", authHandler.DeleteUser).Methods("DELETE")
 	router.HandleFunc("/all", middlewares.ValidateJWT(middlewares.RoleValidator(accessControl, authHandler.All))).Methods("GET")
