@@ -52,7 +52,7 @@ func main() {
 	}
 	headersOk := gorillaHandlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"})
 	methodsOk := gorillaHandlers.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "OPTIONS"})
-	originsOk := gorillaHandlers.AllowedOrigins([]string{"http://localhost:4200"})
+	originsOk := gorillaHandlers.AllowedOrigins([]string{"*"})
 	server := http.Server{
 		Addr:         ":" + port,
 		Handler:      gorillaHandlers.CORS(headersOk, methodsOk, originsOk)(router),

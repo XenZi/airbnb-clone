@@ -31,9 +31,6 @@ export class AccommodationsService {
   getCountries(): Observable<any[]> {
     return this.http.get<any[]>('assets/countries.json');
   }
-
-
-
   private formatFormData(
     userId: string,
     username: string,
@@ -70,17 +67,9 @@ export class AccommodationsService {
       });
     }
     formData.append('paying', paying);
-
-
-
     return formData;
   }
   
-
-
-
-
-
   create(
     userId: string,
     username: string,
@@ -135,8 +124,8 @@ export class AccommodationsService {
           );
         },
       });
-    this.router.navigate(['/']);
-    window.location.reload();
+    // this.router.navigate(['/']);
+    // window.location.reload();
   }
 
   public loadAccommodations(): Observable<any> {
@@ -222,6 +211,7 @@ export class AccommodationsService {
     return this.http.get<any>(
       `${apiURL}/accommodations/search?city=${city}&country=${country}&numOfVisitors=${numOfVisitors}&startDate=${startDate}&endDate=${endDate}&maxPrice=${maxPrice}&conveniences=${conveniences}&isDistinguished=${isDistinguished}`
     );
-    
   }
+
+
 }
