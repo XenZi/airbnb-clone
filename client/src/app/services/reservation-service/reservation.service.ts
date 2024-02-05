@@ -55,7 +55,7 @@ export class ReservationService {
     endDate: string
   ): Observable<any> {
     const url = `${this.apiURL}/reservations/${country}/${id}/${userID}/${hostID}/${accommodationID}/${endDate}`;
-    return this.http.delete(url);
+    return this.http.put(url, {});
   }
 
   getAllReservationsById(id: string): Observable<any> {

@@ -31,7 +31,8 @@ func main() {
 	accommodationServicePort := os.Getenv("ACCOMMODATION_SERVICE_PORT")
 	userServiceHost := os.Getenv("USER_SERVICE_HOST")
 	userServicePort := os.Getenv("USER_SERVICE_PORT")
-
+	notificationsHost := os.Getenv("NOTIFICATIONS_SERVICE_HOST")
+	notificationsPort := os.Getenv("NOTIFICATIONS_SERVICE_PORT")
 	customAccommodationClient := &http.Client{
 		Transport: &http.Transport{
 			MaxIdleConns:        10,
@@ -69,9 +70,29 @@ func main() {
 			},
 		},
 	)
+
+	customNotificationsClient := &http.Client{
+		Transport: &http.Transport{
+			MaxIdleConns:        10,
+			MaxIdleConnsPerHost: 10,
+			MaxConnsPerHost:     10,
+		},
+	}
+	notificationsCircuitBreaker := gobreaker.NewCircuitBreaker(
+		gobreaker.Settings{
+			Name:        "user-service",
+			MaxRequests: 1,
+			Timeout:     10 * time.Second,
+			Interval:    0,
+			OnStateChange: func(name string, from gobreaker.State, to gobreaker.State) {
+				log.Printf("Circuit Breaker %v: %v -> %v", name, from, to)
+			},
+		},
+	)
+	notificationsClient := client.NewNotificationClient(notificationsHost, notificationsPort, customNotificationsClient, notificationsCircuitBreaker)
 	userClient := client.NewUserClient(userServiceHost, userServicePort, customUserClient, userServiceCircuitBreaker)
 	accommodationClient := client.NewAccommodationClient(accommodationServiceHost, accommodationServicePort, customAccommodationClient, accommodationServiceCircuitBreaker)
-	ratingService := services.NewRatingService(ratingRepository, accommodationClient, userClient)
+	ratingService := services.NewRatingService(ratingRepository, accommodationClient, userClient, notificationsClient)
 	ratingHandler := handler.NewRatingHandler(ratingService)
 	recommendationRepository := repository.NewRecommendationRepository(neo4jService.GetDriver())
 	recommendationService := services.NewRecommendationService(recommendationRepository, accommodationClient)

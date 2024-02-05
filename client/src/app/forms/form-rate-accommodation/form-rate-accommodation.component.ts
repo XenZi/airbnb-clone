@@ -15,6 +15,8 @@ export class FormRateAccommodationComponent {
   stars: number[] = [1, 2, 3, 4, 5];
   rating: number = 0;
   @Input() accommodationID!: string;
+  @Input() hostID!: string;
+  @Input() hostEmail!: string;
   user!: UserAuth;
   doesUserHaveReservedThisInPast: boolean = false;
   doesUserHaveRatedThisPreviously: boolean = false;
@@ -62,6 +64,8 @@ export class FormRateAccommodationComponent {
         email: this.user.email,
       },
       rate: this.rating,
+      hostEmail: this.hostEmail,
+      hostID: this.hostID
     };
     if (this.doesUserHaveRatedThisPreviously) {
       this.ratingService.updateRateForAccommodation(rateAccommodation);

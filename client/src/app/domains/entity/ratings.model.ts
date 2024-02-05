@@ -4,6 +4,8 @@ export interface AccommodationRate {
   guest?: Guest;
   createdAt?: string;
   avgRating?: number;
+  hostEmail?: string;
+  hostID?: string;
 }
 
 export interface HostRate {
@@ -12,6 +14,8 @@ export interface HostRate {
   guest?: Guest;
   createdAt?: string;
   avgRating?: number;
+  hostEmail?: string;
+  hostID?: string;
 }
 
 export interface Guest {

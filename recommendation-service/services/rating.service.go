@@ -14,13 +14,15 @@ type RatingService struct {
 	repo                *repository.RatingRepository
 	accommodationClient *client.AccommodationClient
 	userClient          *client.UserClient
+	notificationClient  *client.NotificationClient
 }
 
-func NewRatingService(repo *repository.RatingRepository, accommodationClient *client.AccommodationClient, userClient *client.UserClient) *RatingService {
+func NewRatingService(repo *repository.RatingRepository, accommodationClient *client.AccommodationClient, userClient *client.UserClient, notificationClient *client.NotificationClient) *RatingService {
 	return &RatingService{
 		repo:                repo,
 		accommodationClient: accommodationClient,
 		userClient:          userClient,
+		notificationClient:  notificationClient,
 	}
 }
 
@@ -31,6 +33,10 @@ func (rs RatingService) CreateRatingForAccommodation(ctx context.Context, rating
 		return nil, err
 	}
 	err = rs.accommodationClient.SendNewRatingForAccommodation(ctx, resp.AvgRating, resp.AccommodationID)
+	if err != nil {
+		return nil, err
+	}
+	err = rs.notificationClient.SendNewNotificationToUser(ctx, "Someone rated your accommodation!", rating.HostEmail, rating.HostID)
 	if err != nil {
 		return nil, err
 	}
@@ -64,6 +70,9 @@ func (rs RatingService) DeleteRatingForAccommodation(ctx context.Context, accomm
 		return nil, err
 	}
 	err = rs.accommodationClient.SendNewRatingForAccommodation(ctx, data.AvgRating, data.AccommodationID)
+	if err != nil {
+		return nil, err
+	}
 	return &domains.BaseMessageResponse{
 		Message: "You have successfully deleted your rating for accommodation",
 	}, nil
@@ -76,6 +85,10 @@ func (rs RatingService) CreateRatingForHost(ctx context.Context, rating domains.
 		return nil, err
 	}
 	err = rs.userClient.SendNewRatingForUser(ctx, resp.AvgRating, rating.Host.ID)
+	if err != nil {
+		return nil, err
+	}
+	err = rs.notificationClient.SendNewNotificationToUser(ctx, "Someone rated you!", rating.Host.Email, rating.Host.ID)
 	if err != nil {
 		return nil, err
 	}

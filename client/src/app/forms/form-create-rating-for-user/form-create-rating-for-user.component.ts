@@ -16,6 +16,7 @@ export class FormCreateRatingForUserComponent {
   rating: number = 0;
   @Input() hostID!: string;
   @Input() userFromParent!: User;
+  @Input() hostEmail!: string;
   user!: UserAuth;
   doesUserHaveReservedThisInPast: boolean = false;
   doesUserHaveRatedThisPreviously: boolean = false;

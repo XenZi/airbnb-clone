@@ -6,6 +6,8 @@ type RateAccommodation struct {
 	Guest           Guest   `json:"guest"`
 	CreatedAt       string  `json:"createdAt"`
 	AvgRating       float64 `json:"avgRating"`
+	HostEmail       string  `json:"hostEmail"`
+	HostID          string  `json:"hostID"`
 }
 
 type RateHost struct {
@@ -14,6 +16,8 @@ type RateHost struct {
 	Guest     Guest   `json:"guest"`
 	CreatedAt string  `json:"createdAt"`
 	AvgRating float64 `json:"avgRating"`
+	HostEmail string  `json:"hostEmail"`
+	HostID    string  `json:"hostID"`
 }
 
 type Guest struct {

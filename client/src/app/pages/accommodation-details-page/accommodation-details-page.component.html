@@ -44,6 +44,8 @@
     <div class="accommodation-details__ratings">
       <app-form-rate-accommodation
         [accommodationID]="accommodationID"
+        [hostEmail]="accommodation.email"
+        [hostID]="accommodation.userId"
       ></app-form-rate-accommodation>
       <app-show-rates-for-accommodation
         [accommodationID]="accommodationID"
