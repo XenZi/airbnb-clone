@@ -14,13 +14,15 @@ type RatingService struct {
 	repo                *repository.RatingRepository
 	accommodationClient *client.AccommodationClient
 	userClient          *client.UserClient
+	commandQueryClient  *client.CommandQueryClient
 }
 
-func NewRatingService(repo *repository.RatingRepository, accommodationClient *client.AccommodationClient, userClient *client.UserClient) *RatingService {
+func NewRatingService(repo *repository.RatingRepository, accommodationClient *client.AccommodationClient, userClient *client.UserClient, commandQueryClient *client.CommandQueryClient) *RatingService {
 	return &RatingService{
 		repo:                repo,
 		accommodationClient: accommodationClient,
 		userClient:          userClient,
+		commandQueryClient:  commandQueryClient,
 	}
 }
 
@@ -34,6 +36,11 @@ func (rs RatingService) CreateRatingForAccommodation(ctx context.Context, rating
 	if err != nil {
 		return nil, err
 	}
+	currentTime := time.Now()
+
+	formattedTime := currentTime.Format("2006-01-02 15:04")
+
+	err = rs.commandQueryClient.SendNewRatingForAccommodation(ctx, rating.Guest.ID, rating.AccommodationID, formattedTime)
 	return resp, nil
 }
 
