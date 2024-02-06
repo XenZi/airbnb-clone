@@ -28,6 +28,8 @@ import (
 func main() {
 	timeoutContext, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
+	cert := "/etc/ssl/certs/server.crt"
+	key := "/etc/ssl/private/server.key"
 	logger := config.NewLogger("./logs/log.log")
 
 	// env reads
@@ -46,13 +48,7 @@ func main() {
 	customHttpMailClient := &http.Client{Timeout: time.Second * 10}
 	mailClient := client.NewMailClient(mailServiceHost, mailServicePort, customHttpMailClient)
 
-	customUserServiceClient := &http.Client{
-		Transport: &http.Transport{
-			MaxIdleConns:        10,
-			MaxIdleConnsPerHost: 10,
-			MaxConnsPerHost:     10,
-		},
-	}
+	customUserServiceClient := client.NewCustomClient(cert, key)
 
 	userServiceCircuitBreaker := gobreaker.NewCircuitBreaker(
 		gobreaker.Settings{
@@ -154,7 +150,7 @@ func main() {
 	logger.Println("Server listening on port", port)
 
 	go func() {
-		err := server.ListenAndServe()
+		err := server.ListenAndServeTLS(cert, key)
 		if err != nil {
 			logger.Panicf("PANIC FROM AUTH-SERVICE ON LISTENING")
 		}

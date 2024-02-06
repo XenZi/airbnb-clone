@@ -21,7 +21,7 @@ type UserClient struct {
 
 func NewUserClient(host, port string, client *http.Client, circuitBreaker *gobreaker.CircuitBreaker) *UserClient {
 	return &UserClient{
-		address:        fmt.Sprintf("http://%s:%s", host, port),
+		address:        fmt.Sprintf("https://%s:%s", host, port),
 		client:         client,
 		circuitBreaker: circuitBreaker,
 	}
@@ -82,15 +82,15 @@ func (uc UserClient) SendCreatedUser(ctx context.Context, id string, user domain
 	return errors.NewError(baseResp.Error, baseResp.Status)
 }
 
-func (uc UserClient) SendUpdateCredentials(ctx context.Context,updatedUser domains.User) *errors.ErrorStruct {
+func (uc UserClient) SendUpdateCredentials(ctx context.Context, updatedUser domains.User) *errors.ErrorStruct {
 	userForUserService := struct {
-		ID        string `json:"id"`
-		Email     string `json:"email"`
-		Username  string `json:"username"`
+		ID       string `json:"id"`
+		Email    string `json:"email"`
+		Username string `json:"username"`
 	}{
-		ID:        updatedUser.ID.Hex(),
-		Email:     updatedUser.Email,
-		Username:  updatedUser.Username,
+		ID:       updatedUser.ID.Hex(),
+		Email:    updatedUser.Email,
+		Username: updatedUser.Username,
 	}
 	jsonData, err := json.Marshal(userForUserService)
 	if err != nil {
@@ -98,7 +98,7 @@ func (uc UserClient) SendUpdateCredentials(ctx context.Context,updatedUser domai
 	}
 	requestBody := bytes.NewReader(jsonData)
 	cbResp, err := uc.circuitBreaker.Execute(func() (interface{}, error) {
-		req, err := http.NewRequestWithContext(ctx, http.MethodPost, uc.address+"/creds/" + updatedUser.ID.Hex(), requestBody)
+		req, err := http.NewRequestWithContext(ctx, http.MethodPost, uc.address+"/creds/"+updatedUser.ID.Hex(), requestBody)
 		if err != nil {
 			log.Println(err)
 			return nil, err
@@ -106,7 +106,7 @@ func (uc UserClient) SendUpdateCredentials(ctx context.Context,updatedUser domai
 		return uc.client.Do(req)
 	})
 	if err != nil {
-		return errors.NewError(err.Error(), 500)	
+		return errors.NewError(err.Error(), 500)
 	}
 	resp := cbResp.(*http.Response)
 	if resp.StatusCode >= 200 && resp.StatusCode < 400 {

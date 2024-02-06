@@ -18,7 +18,7 @@ type AuthClient struct {
 
 func NewAuthClient(host, port string, client *http.Client, circuitBreaker *gobreaker.CircuitBreaker) *AuthClient {
 	return &AuthClient{
-		address:        fmt.Sprintf("http://%s:%s", host, port),
+		address:        fmt.Sprintf("https://%s:%s", host, port),
 		client:         client,
 		circuitBreaker: circuitBreaker,
 	}

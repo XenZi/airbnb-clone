@@ -33,6 +33,10 @@ WORKDIR /root/
 COPY --from=builder /app/main .
 RUN mkdir logs
 COPY ./user-service/logs/log.log ./logs/
+COPY ./user-service/server.crt /etc/ssl/certs/server.crt
+COPY ./user-service/server.csr /etc/ssl/csr/server.csr
+COPY ./user-service/server.key /etc/ssl/private/server.key
+COPY ./user-service/server.pem /etc/ssl/private/server.pem
 
 
 

@@ -36,6 +36,10 @@ COPY ./auth-service/data/blacklist-passwords.txt ./data/
 COPY ./auth-service/security/rbac.json ./security/
 RUN mkdir logs
 COPY ./auth-service/logs/log.log ./logs/
+COPY ./auth-service/server.crt /etc/ssl/certs/server.crt
+COPY ./auth-service/server.csr /etc/ssl/csr/server.csr
+COPY ./auth-service/server.key /etc/ssl/private/server.key
+COPY ./auth-service/server.pem /etc/ssl/private/server.pem
 
 # Command to run the executable
 CMD ["./main"]

@@ -26,6 +26,8 @@ func main() {
 	const source = "server-main"
 	timeoutContext, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
+	cert := "/etc/ssl/certs/server.crt"
+	key := "/etc/ssl/private/server.key"
 	logger := config.NewLogger("./logs/log.log")
 
 	//env
@@ -47,13 +49,7 @@ func main() {
 		},
 	}
 
-	customAuthServiceClient := &http.Client{
-		Transport: &http.Transport{
-			MaxIdleConns:        10,
-			MaxIdleConnsPerHost: 10,
-			MaxConnsPerHost:     10,
-		},
-	}
+	customAuthServiceClient := client.NewCustomClient(cert, key)
 
 	customAccServiceClient := &http.Client{
 		Transport: &http.Transport{
@@ -145,7 +141,7 @@ func main() {
 	logger.Println("Server listening on port", port)
 
 	go func() {
-		err := server.ListenAndServe()
+		err := server.ListenAndServeTLS(cert, key)
 		if err != nil {
 			logger.Fatal("Error while server is listening and serving requests", log.Fields{
 				"module": source,
