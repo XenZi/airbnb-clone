@@ -12,7 +12,7 @@ trap interrupt_handler SIGINT
 # Define the Docker images to load into Minikube
 images=(
     "user-service:latest"
-#    "notifications-service:latest"
+    "notifications-service:latest"
     "accommodations-service:latest"
     "reservations-service:latest"
     "metrics-command:latest"

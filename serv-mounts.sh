@@ -16,7 +16,7 @@ files=(
     "mail-serv.yml"
     "metrics-command-serv.yml"
     "metrics-query-serv.yml"
-#    "notification-serv.yml"
+    "notification-serv.yml"
     "recommendation-serv.yml"
     "reservation-serv.yml"
     "user-serv.yml"
