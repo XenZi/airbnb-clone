@@ -3,7 +3,7 @@ package services
 import (
 	"context"
 	"fmt"
-	"log"
+	"notifications-service/config"
 	"os"
 	"time"
 
@@ -14,15 +14,14 @@ import (
 
 type MongoService struct {
 	cli    *mongo.Client
-	logger *log.Logger
+	logger *config.Logger
 }
 
-func New(ctx context.Context, logger *log.Logger) (*MongoService, error) {
+func New(ctx context.Context, logger *config.Logger) (*MongoService, error) {
 	uri := os.Getenv("MONGO_DB_URI")
 	logger.Println("URI: ", uri)
 	client, err := mongo.Connect(ctx, options.Client().ApplyURI(uri))
 	if err != nil {
-		logger.Fatal("Error while connecting to auth-mongo", err)
 		return nil, err
 	}
 
