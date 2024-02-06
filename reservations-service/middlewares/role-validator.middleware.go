@@ -1,9 +1,9 @@
 package middlewares
 
 import (
-	"accommodations-service/utils"
 	"log"
 	"net/http"
+	"reservation-service/utils"
 )
 
 func RoleValidator(allowedRole string, next http.HandlerFunc) http.HandlerFunc {

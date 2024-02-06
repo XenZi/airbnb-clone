@@ -4,6 +4,7 @@ import (
 	"accommodations-service/client"
 	"accommodations-service/config"
 	"accommodations-service/handlers"
+	"accommodations-service/middlewares"
 	"accommodations-service/orchestrator"
 	"accommodations-service/repository"
 	"accommodations-service/security"
@@ -134,7 +135,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	orch, err := orchestrator.NewCreateAccommodationOrchestrator(publisher, replySubscriber)
+	orch, err := orchestrator.NewCreateAccommodationOrchestrator(publisher, replySubscriber, loggerW)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -160,7 +161,7 @@ func main() {
 		os.Getenv("NATS_PASS"),
 		os.Getenv("CREATE_ACCOMMODATION_COMMAND_SUBJECT"),
 		"accommodations-service")
-	_, err = handlers.NewCreateAccommodationCommandHandler(accommodationService, publisher1, replySubscriber2, tracer)
+	_, err = handlers.NewCreateAccommodationCommandHandler(accommodationService, publisher1, replySubscriber2, tracer, loggerW)
 	if err != nil {
 		log.Println(err)
 	}
@@ -184,11 +185,11 @@ func main() {
 
 	router.HandleFunc("/", accommodationsHandler.GetAllAccommodations).Methods("GET")
 
-	router.HandleFunc("/", accommodationsHandler.CreateAccommodationById).Methods("POST")
+	router.HandleFunc("/", middlewares.ValidateJWT(middlewares.RoleValidator("Host", accommodationsHandler.CreateAccommodationById))).Methods("POST")
 
-	router.HandleFunc("/{id}", accommodationsHandler.UpdateAccommodationById).Methods("PUT")
+	router.HandleFunc("/{id}", middlewares.ValidateJWT(middlewares.RoleValidator("Host", accommodationsHandler.UpdateAccommodationById))).Methods("PUT")
 
-	router.HandleFunc("/{id}", accommodationsHandler.DeleteAccommodationById).Methods("DELETE")
+	router.HandleFunc("/{id}", middlewares.ValidateJWT(middlewares.RoleValidator("Host", accommodationsHandler.DeleteAccommodationById))).Methods("DELETE")
 
 	router.HandleFunc("/user/{id}", accommodationsHandler.DeleteAccommodationsByUserId).Methods("DELETE")
 

@@ -1,20 +1,24 @@
 package middlewares
 
 import (
-	"accommodations-service/utils"
 	"context"
 	m "github.com/dgrijalva/jwt-go"
+	"log"
 	"net/http"
 	"os"
+	"reservation-service/utils"
 	"strings"
 )
 
 func ValidateJWT(next http.HandlerFunc) http.HandlerFunc {
+	log.Println("USLO U RESERVATION VALIDATOR")
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		tokenString := extractToken(r.Header.Get("Authorization"))
+		log.Println("TOKENSTRINGJE", tokenString)
 		token, err := m.Parse(tokenString, func(token *m.Token) (interface{}, error) {
 			return []byte(os.Getenv("JWT_SECRET")), nil
 		})
+		log.Println("TOKENJE", token)
 
 		if err != nil || !token.Valid {
 			utils.WriteErrorResp("Unathorized", 401, r.URL.Path, w)

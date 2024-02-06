@@ -171,7 +171,7 @@ func (as *AccommodationService) GetAllAccommodations(ctx context.Context) ([]*do
 	ctx, span := as.tracer.Start(ctx, "AccommodationService.GetAllAccommodations")
 	defer span.End()
 	accommodations, err := as.accommodationRepository.GetAllAccommodations(ctx)
-
+	log.Println("USLO JE U SVPETAR")
 	if err != nil {
 		as.logger.LogError("accommodations-service", fmt.Sprintf("Unable to get all accommodations"))
 		as.logger.LogError("accommodation-service", fmt.Sprintf("Error:"+err.GetErrorMessage()))
@@ -320,15 +320,12 @@ func (as *AccommodationService) DeleteAccommodation(ctx context.Context, accommo
 
 	existingAccommodation, foundErr := as.accommodationRepository.GetAccommodationById(ctx, accommodationID)
 	if foundErr != nil {
+
 		as.logger.LogError("accommodations-service", fmt.Sprintf("Unable to get accommodation by id"+accommodationID))
 		as.logger.LogError("accommodation-service", fmt.Sprintf("Error:"+foundErr.GetErrorMessage()))
 		return nil, foundErr
 	}
-	for _, imageId := range existingAccommodation.ImageIds {
-		err2 := as.fileStorage.DeleteFile(ctx, imageId)
-		as.logger.LogError("accommodations-service", fmt.Sprintf("Unable to delete accommodation image"+imageId))
-		as.logger.LogError("accommodation-service", fmt.Sprintf("Error:"+err2.Error()))
-	}
+
 	deleteErr := as.accommodationRepository.DeleteAccommodationById(ctx, accommodationID)
 	if deleteErr != nil {
 		as.logger.LogError("accommodations-service", fmt.Sprintf("Unable to delete accommodation by id"+accommodationID))
@@ -345,6 +342,7 @@ func (as *AccommodationService) DeleteAccommodationsByUserId(ctx context.Context
 
 	deleteErr := as.accommodationRepository.DeleteAccommodationsByUserId(ctx, userID)
 	if deleteErr != nil {
+
 		as.logger.LogError("accommodations-service", fmt.Sprintf("Unable to delete accommodation by user id:"+userID))
 		as.logger.LogError("accommodation-service", fmt.Sprintf("Error:"+deleteErr.GetErrorMessage()))
 		return deleteErr

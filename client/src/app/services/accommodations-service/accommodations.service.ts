@@ -124,8 +124,12 @@ export class AccommodationsService {
           );
         },
       });
-    // this.router.navigate(['/']);
-    // window.location.reload();
+      this.router.navigate(['/']);
+
+      // Adding a timeout of 1 second (1000 milliseconds)
+      setTimeout(() => {
+          window.location.reload();
+      }, 100);
   }
 
   public loadAccommodations(): Observable<any> {

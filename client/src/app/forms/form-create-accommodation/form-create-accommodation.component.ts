@@ -42,13 +42,13 @@ export class FormCreateAccommodationComponent {
     private userService: UserService
   ) {
     this.createAccommodationForm = this.fb.group({
-      name: [''],
-      address: [''],
-      city: [''],
+      name: ['',Validators.required],
+      address: ['',Validators.required],
+      city: ['',Validators.required],
       country: [''],
       conveniences: this.buildConveniences(),
-      maxNumOfVisitors: [''],
-      minNumOfVisitors: [''],
+      maxNumOfVisitors: ['',Validators.required],
+      minNumOfVisitors: ['',Validators.required],
       dateAvailabilities: this.fb.array([this.initDateAvailability()]),
       pictures: this.fb.array([]),
       paying: ['Per Accommodation', Validators.required],
