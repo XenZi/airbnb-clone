@@ -13,6 +13,7 @@ import { UnloadService } from 'src/app/services/unload/unload.service';
 import { Subscription } from 'rxjs';
 import { LocalStorageService } from 'src/app/services/localstorage/local-storage.service';
 import { PreviouseRouteService } from 'src/app/services/previous-route/previouse-route.service';
+import { Metrics } from 'src/app/domains/entity/metrics.model';
 
 @Component({
   selector: 'app-accommodation-details-page',
@@ -25,6 +26,13 @@ export class AccommodationDetailsPageComponent implements OnDestroy {
   userLogged!: UserAuth | null;
   isUserLogged: boolean = false;
   customEventUUID!: string;
+  currentStateOfLookingForMetrics: number = 0;
+  currentStateOfMetrics: Metrics = {
+    numberOfRatings: 0,
+    numberOfReservations: 0,
+    numberOfVisits: 0,
+    onScreenTime: 0
+  };
   constructor(
     private route: ActivatedRoute,
     private modalService: ModalService,
@@ -35,7 +43,6 @@ export class AccommodationDetailsPageComponent implements OnDestroy {
     private previouseRouteService: PreviouseRouteService
   ) {
   }
-
 
   ngOnDestroy(): void {
     const currentDate = new Date();
@@ -57,7 +64,6 @@ export class AccommodationDetailsPageComponent implements OnDestroy {
       }]
     }
     sessionStorage.setItem("joins", JSON.stringify(currentStateOfLocalStorage));
-
   }
 
 
@@ -94,22 +100,33 @@ export class AccommodationDetailsPageComponent implements OnDestroy {
     sessionStorage.setItem("joins", JSON.stringify(currentStateOfLocalStorage));
   }
 
+  setNewCurrentStateOfLookingForMetrics(num: number) {
+    this.currentStateOfLookingForMetrics = num;
+
+  }
+
+  handleValueChangeOfStateOfMetrics(num: number) {
+    console.log(num);
+    this.checkUserForMetricsAndGetThoseIfHeIsAHost(this.currentStateOfLookingForMetrics);
+  }
+
   sendCreateAt() {
     const currentDate = new Date();
     const formattedDate = currentDate.toISOString().slice(0, 16).replace("T", " ");
     this.metricsService.joinedAt(this.userLogged?.id ? this.userLogged?.id : "not logged in", this.accommodationID, this.customEventUUID, formattedDate)
   }
 
-  checkUserForMetricsAndGetThoseIfHeIsAHost() {
+  checkUserForMetricsAndGetThoseIfHeIsAHost(numb: number) {
     if (!this.isUserLogged) {
       return;
     }
     if ((this.userLogged?.id as string) !== this.accommodation.userId) {
       return;
     }
-    this.metricsService.getMetrics(this.accommodationID, "daily").subscribe({
+    this.metricsService.getMetrics(this.accommodationID, numb ? "monthly" : "daily").subscribe({
       next: (data) => {
         console.log("SUCC METRICS", data)
+        this.currentStateOfMetrics = data.data;
       },
       error: (err) => {
         console.log(err);
@@ -139,7 +156,7 @@ export class AccommodationDetailsPageComponent implements OnDestroy {
       .subscribe((data) => {
         console.log(data);
         this.accommodation = data.data;
-        this.checkUserForMetricsAndGetThoseIfHeIsAHost();
+        this.checkUserForMetricsAndGetThoseIfHeIsAHost(0);
       });
   }
 
@@ -156,4 +173,5 @@ export class AccommodationDetailsPageComponent implements OnDestroy {
   callDeleteAccommodation() {
     this.accommodationsService.deleteById(this.accommodationID as string);
   }
+
 }

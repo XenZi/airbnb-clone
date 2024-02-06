@@ -1,0 +1,53 @@
+<div class="show-metrics">
+    <div class="show-metrics__container">
+        <div class="show-metrics__selection">
+            <p class="show-metrics__selection-value"
+            [ngClass]="{
+                'show-metrics__selection-value--selected': this.currentActiveSelection == 0
+            }"
+            (click)="this.changeCurrentActiveSelection(0)">
+                Daily
+            </p>
+            <p class="show-metrics__selection-value" [ngClass]="{
+                'show-metrics__selection-value--selected': this.currentActiveSelection == 1
+            }"
+            (click)="this.changeCurrentActiveSelection(1)">
+                Monthly
+            </p>
+        </div>
+        <div class="show-metrics__elements">
+            <div class="show-metrics__box">
+                <h3 class="show-metrics__value">
+                    {{numberOfRatings}}
+                </h3>
+                <h3 class="show-metrics__name">
+                    Ratings
+                </h3>
+            </div>
+            <div class="show-metrics__box">
+                <h3 class="show-metrics__value">
+                    {{numberOfReservations}}
+                </h3>
+                <h3 class="show-metrics__name">
+                    Reservations
+                </h3>
+            </div>
+            <div class="show-metrics__box">
+                <h3 class="show-metrics__value">
+                    {{numberOfVisits}}
+                </h3>
+                <h3 class="show-metrics__name">
+                    Visits
+                </h3>
+            </div>
+            <div class="show-metrics__box">
+                <h3 class="show-metrics__value">
+                    {{onScreenTime}}
+                </h3>
+                <h3 class="show-metrics__name">
+                    Time
+                </h3>
+            </div>
+        </div>
+    </div>
+</div>

@@ -18,6 +18,14 @@
           [accommodation]="accommodation"
           [accommodationID]="accommodationID"
         ></app-reservation-form>
+        <app-show-metrics 
+        *ngIf="this.isUserLogged && this.userLogged?.id == this.accommodation.userId"
+        [numberOfRatings]="this.currentStateOfMetrics.numberOfRatings"
+        [numberOfVisits]="this.currentStateOfMetrics.numberOfVisits"
+        [numberOfReservations]="this.currentStateOfMetrics.numberOfReservations"
+        [onScreenTime]="this.currentStateOfMetrics.onScreenTime"
+        [changeValueOfUpper]="this.setNewCurrentStateOfLookingForMetrics"
+        (handleChangeValue)="handleValueChangeOfStateOfMetrics($event)"></app-show-metrics>
       </div>
       <div
         class="accommodation-details__row flex-row"

@@ -1,0 +1,50 @@
+.show-metrics {
+    margin: 10px 0px;
+    padding: 15px;
+    box-shadow: rgba(99, 99, 99, 0.2) 0px 2px 8px 0px;
+    min-width: 300px;
+}
+
+.show-metrics__selection {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.show-metrics__selection-value {
+    color: #eee;
+    transition: all .3s ease;
+    &:hover {
+        cursor: pointer;
+        color: #000;
+    }
+}
+.show-metrics__selection-value--selected {
+    color: #000;
+    text-decoration: underline;
+}
+
+.show-metrics__selection-value {
+    margin-right: 5px;
+
+    &:last-of-type {
+        margin-right: 5px;
+    }
+}
+
+.show-metrics__elements {
+    display: flex;
+}
+
+.show-metrics__box {
+    padding: 5px;
+}
+
+.show-metrics__value {
+    font-size: 16px;
+    font-weight: bold;
+}
+
+.show-metrics__name {
+    font-size: 16px;
+}

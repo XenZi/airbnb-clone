@@ -55,6 +55,7 @@ import { FilterComponent } from './components/filter/filter.component';
 import { FormFilterComponent } from './forms/form-filter/form-filter.component';
 import { UnloadService } from './services/unload/unload.service';
 import { HostReservationsTableComponent } from './components/host-reservations-table/host-reservations-table/host-reservations-table.component';
+import { ShowMetricsComponent } from './components/show-metrics/show-metrics.component';
 @NgModule({
   declarations: [
     AppComponent,
@@ -102,6 +103,7 @@ import { HostReservationsTableComponent } from './components/host-reservations-t
     FilterComponent,
     FormFilterComponent,
     HostReservationsTableComponent,
+    ShowMetricsComponent,
   ],
   imports: [
     BrowserModule,
