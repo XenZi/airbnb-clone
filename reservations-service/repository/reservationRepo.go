@@ -199,12 +199,12 @@ func (rr *ReservationRepo) DropTables() {
 	}
 
 	dropTable("reservations")
-	dropTable("free_accommodation")
+	//dropTable("free_accommodation")
 	dropTable("reservation_by_user")
 	dropTable("reservation_by_host")
 	dropTable("reservation_by_accommodation")
 	dropTable("deleted_reservations")
-	dropTable("avl_by_price")
+	//	dropTable("avl_by_price")
 
 }
 
@@ -483,7 +483,7 @@ func (rr *ReservationRepo) CheckAvailabilityForAccommodation(ctx context.Context
 	var result []domain.GetAvailabilityForAccommodation
 
 	query := `
-    SELECT date_range,price
+    SELECT date_range,price,id
     FROM free_accommodation 
     WHERE accommodation_id = ? 
     `
@@ -491,10 +491,12 @@ func (rr *ReservationRepo) CheckAvailabilityForAccommodation(ctx context.Context
 	iter := rr.session.Query(query, accommodationID).Iter()
 	var dateRange []string
 	var price int
+	var id string
 	var avl domain.GetAvailabilityForAccommodation
-	for iter.Scan(&dateRange, &price) {
+	for iter.Scan(&dateRange, &price, &id) {
 		avl.DateRange = dateRange
 		avl.Price = price
+		avl.Id = id
 		result = append(result, avl)
 	}
 	if err := iter.Close(); err != nil {
@@ -637,7 +639,7 @@ func (rr *ReservationRepo) DeleteAvl(ctx context.Context, accommodationID, id, c
 
 	if err := rr.session.ExecuteBatch(batch); err != nil {
 		rr.logger.LogError("reservationsRepo", err.Error())
-		return nil, errors.NewReservationError(500, "Unable to cancel the reservation")
+		return nil, errors.NewReservationError(500, "Unable to delete availability")
 	}
 	rr.logger.LogInfo("reservationRepo", fmt.Sprintf("Deleted availability by ID: %v", id))
 	return nil, nil

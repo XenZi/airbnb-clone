@@ -1,0 +1,39 @@
+<form [formGroup]="updateAvailabilityForm">
+    <div class="form__group">
+      <label class="form__label">Start Date</label>
+      <input
+        type="date"
+        class="form__input"
+        formControlName="startDate"
+      />
+    </div>
+    <div class="form__group">
+      <label class="form__label">End Date</label>
+      <input
+        type="date"
+        class="form__input"
+        formControlName="endDate"
+      />
+    </div>
+    <div class="form__group">
+      <label class="form__label">Price</label>
+      <input
+        type="number"
+        class="form__input"
+        formControlName="price"
+      />
+    </div>
+  
+    <app-button
+      (click)="onSubmit()"
+      type="button"
+      class="form__button"
+      size="sm"
+      color="blue"
+    >
+      <span>Update Availability</span>
+    </app-button>
+  </form>
+  
+
+
