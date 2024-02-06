@@ -65,3 +65,17 @@ func (nc NotificationClient) SendReservationCreatedNotification(ctx context.Cont
 	log.Println("Notification for reservation has be sent")
 
 }
+
+func (nc NotificationClient) SendReservationCanceledNotification(ctx context.Context, userId, message string) {
+	req := ReservationNotification{
+		Text:      message,
+		CreatedAt: time.Now().String(),
+		IsOpened:  false,
+	}
+	reqURL := nc.address + "/" + userId
+	res, err := nc.request(http.MethodPost, reqURL, req)
+	if err != nil || res.StatusCode != 502 {
+		log.Println(err)
+		return
+	}
+}

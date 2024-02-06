@@ -24,6 +24,7 @@ export class UserProfilePageComponent {
     private modalService: ModalService,
     private userService: UserService,
     private previouseRouteService: PreviouseRouteService
+
   ) {}
 
   ngOnInit() {
@@ -99,4 +100,5 @@ export class UserProfilePageComponent {
         this.user = data.data;
       });
   }
+
 }

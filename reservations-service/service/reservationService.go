@@ -31,13 +31,13 @@ func NewReservationService(repo *repository.ReservationRepo, validator *utils.Va
 func (r ReservationService) CreateReservation(ctx context.Context, reservation domain.Reservation) (*domain.Reservation, *errors.ReservationError) {
 	ctx, span := r.tracer.Start(ctx, "ReservationService.CreateReservation")
 	defer span.End()
-	r.validator.ValidateReservation(&reservation)
-	validationErrors := r.validator.GetErrors()
+	/*	r.validator.ValidateReservation(&reservation)
+		validationErrors := r.validator.GetErrors()
 
-	if len(validationErrors) > 0 {
-		return nil, errors.NewReservationError(400, "Validation failed")
-	}
-
+		if len(validationErrors) > 0 {
+			return nil, errors.NewReservationError(400, "Validation failed")
+		}
+	*/
 	available, err := r.IsAvailable(ctx, reservation.AccommodationID, reservation.DateRange)
 	if err != nil {
 		r.logger.LogError("reservationsService", err.Message)
@@ -70,7 +70,11 @@ func (r ReservationService) CreateReservation(ctx context.Context, reservation d
 func (r ReservationService) CreateAvailability(ctx context.Context, reservation domain.FreeReservation) (*domain.FreeReservation, *errors.ReservationError) {
 	ctx, span := r.tracer.Start(ctx, "ReservationService.CreateAvailability")
 	defer span.End()
-
+	r.validator.ValidateAvailability(&reservation)
+	validationErrors := r.validator.GetErrors()
+	if len(validationErrors) > 0 {
+		return nil, errors.NewReservationError(400, "Validation failed")
+	}
 	createdAvailability, insertErr := r.repo.InsertAvailability(ctx, &reservation)
 	if insertErr != nil {
 		r.logger.LogError("reservationsService", insertErr.Error())
@@ -181,6 +185,7 @@ func (s *ReservationService) DeleteReservationById(ctx context.Context, country 
 		s.logger.LogError("reservationsService", err.Error())
 		return nil, errors.NewReservationError(500, err.Error())
 	}
+	s.notification.SendReservationCanceledNotification(ctx, hostID, "Reservation canceled!")
 	s.logger.LogInfo("reservationsService", fmt.Sprintf("Deleted reservations by id: %v", deletedReservation))
 	return deletedReservation, nil
 }

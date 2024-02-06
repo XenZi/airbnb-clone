@@ -54,6 +54,7 @@ import { FormCreateRatingForUserComponent } from './forms/form-create-rating-for
 import { FilterComponent } from './components/filter/filter.component';
 import { FormFilterComponent } from './forms/form-filter/form-filter.component';
 import { UnloadService } from './services/unload/unload.service';
+import { HostReservationsTableComponent } from './components/host-reservations-table/host-reservations-table/host-reservations-table.component';
 @NgModule({
   declarations: [
     AppComponent,
@@ -100,6 +101,7 @@ import { UnloadService } from './services/unload/unload.service';
     FormCreateRatingForUserComponent,
     FilterComponent,
     FormFilterComponent,
+    HostReservationsTableComponent,
   ],
   imports: [
     BrowserModule,

@@ -253,7 +253,7 @@ func (rr *ReservationRepo) GetReservationsByHost(ctx context.Context, id string)
 
 		err := scanner.Scan(&reservation.Id, &reservation.AccommodationID, &reservation.UserID, &reservation.StartDate,
 			&reservation.EndDate, &reservation.Username, &reservation.AccommodationName, &reservation.Location, &reservation.Price,
-			&reservation.NumberOfDays, reservation.DateRange, &reservation.IsActive, &reservation.Country, &reservation.HostID)
+			&reservation.NumberOfDays, &reservation.DateRange, &reservation.IsActive, &reservation.Country, &reservation.HostID)
 		if err != nil {
 			rr.logger.LogError("reservationsRepo", err.Error())
 			return nil, err
