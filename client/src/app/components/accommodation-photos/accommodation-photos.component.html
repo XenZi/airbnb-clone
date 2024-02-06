@@ -6,7 +6,7 @@
     />
   </div>
   <div class="accommodation-photos__thumbnail-list">
-    <div class="accommodation-photos__thumbnail" *ngFor="let image of imageIds">
+    <div class="accommodation-photos__thumbnail" *ngFor="let image of startedImagesArray">
       <img
       [src]="'https://localhost/api/accommodations/images/'+image"
         alt="Thumbnail 1"
