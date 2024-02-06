@@ -110,12 +110,13 @@ func (u *UserService) CreateUser(ctx context.Context, registerUser domains.Regis
 	go func() {
 		u.mailClient.SendAccountConfirmationEmail(registerUser.Email, token)
 	}()
-	errFromNotificationService := u.notificationClient.CreateNewUserStructNotification(ctx, newUser.ID.Hex())
+	u.logger.LogInfo("error checking", newUser.ID.Hex())
+	errFromNotificationService := u.notificationClient.CreateNewUserStructNotification(context.Background(), newUser.ID.Hex())
 	u.logger.LogInfo("user-service", "Creating user struct for user with username  "+user.Username+" in notification service.")
 
 	if errFromNotificationService != nil {
 		u.logger.LogError("user-service", fmt.Sprintf("Error creating user with username %v at notification-service.", registerUser.Username))
-		u.logger.LogError("user-service", err.Error())
+		u.logger.LogError("user-service", errFromNotificationService.GetErrorMessage())
 	}
 	return &domains.UserDTO{
 		ID:       string(id[1 : len(id)-1]),

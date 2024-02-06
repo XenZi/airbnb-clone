@@ -59,8 +59,6 @@ data:
       location /api/mail/ {
       proxy_pass http://mail-service;
       rewrite ^/api/mail/(.*)$ /$1 break;
-      proxy_read_timeout 30s;
-      proxy_connect_timeout 10s;
       }
       
       location /api/reservations/ {
@@ -76,8 +74,6 @@ data:
       location /api/notifications/ {
       proxy_pass http://notifications-service;
       rewrite ^/api/notifications/(.*)$ /$1 break;
-      proxy_read_timeout 30s; 
-      proxy_connect_timeout 10s;
       }
       
       location /api/recommendations/ {
