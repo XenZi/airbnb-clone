@@ -160,7 +160,7 @@ func main() {
 		os.Getenv("NATS_PASS"),
 		os.Getenv("CREATE_ACCOMMODATION_COMMAND_SUBJECT"),
 		"accommodations-service")
-	_, err = handlers.NewCreateAccommodationCommandHandler(accommodationService, publisher1, replySubscriber2, tracer)
+	_, err = handlers.NewCreateAccommodationCommandHandler(accommodationService, publisher1, replySubscriber2, tracer, loggerW)
 	if err != nil {
 		log.Println(err)
 	}

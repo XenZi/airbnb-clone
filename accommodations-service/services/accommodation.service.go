@@ -652,11 +652,9 @@ func generateDateRange(startDateStr, endDateStr string) ([]string, *errors.Error
 	return dates, nil
 }
 
-func (as AccommodationService) ApproveAccommodation(ctx context.Context, id string) *errors.ErrorStruct {
-	ctx, span := as.tracer.Start(ctx, "AccommodationService.ApproveAccommodation")
-	defer span.End()
+func (as AccommodationService) ApproveAccommodation(id string) *errors.ErrorStruct {
 	log.Println("USLO DA POTVRDI AKOMODACIJU")
-	acomm, err := as.GetAccommodationById(ctx, id)
+	acomm, err := as.GetAccommodationById(context.Background(), id)
 	if err != nil {
 		as.logger.LogError("accommodations-service", fmt.Sprintf("Failed to get accommodation by id in ApproveAccommodation func with id %s", id))
 		as.logger.LogError("accommodation-service", fmt.Sprintf("Error:"+err.GetErrorMessage()))
@@ -674,11 +672,9 @@ func (as AccommodationService) ApproveAccommodation(ctx context.Context, id stri
 	return nil
 }
 
-func (as AccommodationService) DenyAccommodation(ctx context.Context, id string) error {
-	ctx, span := as.tracer.Start(ctx, "AccommodationService.DenyAccommodation")
-	defer span.End()
+func (as AccommodationService) DenyAccommodation(id string) error {
 	log.Println("DENY ACCOMMODATION")
-	as.DeleteAccommodation(ctx, id)
+	as.DeleteAccommodation(context.Background(), id)
 	as.logger.LogInfo("accommodation-service", fmt.Sprintf("Accommodation with id %s deleted", id))
 	return nil
 }

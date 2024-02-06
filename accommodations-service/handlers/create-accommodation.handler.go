@@ -1,11 +1,11 @@
 package handlers
 
 import (
+	"accommodations-service/config"
 	"accommodations-service/services"
-	"context"
 	events "example/saga/create_accommodation"
 	saga "example/saga/messaging"
-	"log"
+	"fmt"
 
 	"go.opentelemetry.io/otel/trace"
 )
@@ -15,14 +15,16 @@ type CreateAccommodationCommandHandler struct {
 	replyPublisher       saga.Publisher
 	commandSubscriber    saga.Subscriber
 	tracer               trace.Tracer
+	logger               *config.Logger
 }
 
-func NewCreateAccommodationCommandHandler(accommodationService *services.AccommodationService, publisher saga.Publisher, subscriber saga.Subscriber, tracer trace.Tracer) (*CreateAccommodationCommandHandler, error) {
+func NewCreateAccommodationCommandHandler(accommodationService *services.AccommodationService, publisher saga.Publisher, subscriber saga.Subscriber, tracer trace.Tracer, logger *config.Logger) (*CreateAccommodationCommandHandler, error) {
 	o := &CreateAccommodationCommandHandler{
 		accommodationService: accommodationService,
 		replyPublisher:       publisher,
 		commandSubscriber:    subscriber,
 		tracer:               tracer,
+		logger:               logger,
 	}
 	err := o.commandSubscriber.Subscribe(o.handle)
 	if err != nil {
@@ -31,20 +33,22 @@ func NewCreateAccommodationCommandHandler(accommodationService *services.Accommo
 	return o, nil
 }
 
-func (handler *CreateAccommodationCommandHandler) handle(ctx context.Context, command *events.CreateAccommodationCommand) {
-	ctx, span := handler.tracer.Start(ctx, "CreateAccommodationCommandHandler.handle")
-	defer span.End()
-	log.Println("KOMANDA USLA U CREATE AVAILABILITY KOD ACCOMMODATIONS SERVICE", command.Type)
+func (handler *CreateAccommodationCommandHandler) handle(command *events.CreateAccommodationCommand) {
+	// ctx, span := handler.tracer.Start(ctx, "CreateAccommodationCommandHandler.handle")
+	// defer span.End()
+	handler.logger.LogInfo("saga-handler", fmt.Sprintf("USLO U CREATE KOD ACCOMMODATION %v", command.Type))
 	returnedValue := command.Payload
 	switch command.Type {
 	case events.UpdateAccommodation:
-		err := handler.accommodationService.ApproveAccommodation(ctx, returnedValue.AccommodationID)
+		handler.logger.LogInfo("saga-handler", fmt.Sprintf("USLO U CREATE KOD ACCOMMODATION ZA UPDATE ACCOMMODATION %v", command.Type))
+		err := handler.accommodationService.ApproveAccommodation(returnedValue.AccommodationID)
 		if err != nil {
 			return
 		}
 		break
 	case events.DenyAccommodation:
-		err := handler.accommodationService.DenyAccommodation(ctx, returnedValue.AccommodationID)
+		handler.logger.LogInfo("saga-handler", fmt.Sprintf("USLO U CREATE KOD ACCOMMODATION ZA DENY ACCOMMODATION %v", command.Type))
+		err := handler.accommodationService.DenyAccommodation(returnedValue.AccommodationID)
 		if err != nil {
 			return
 		}

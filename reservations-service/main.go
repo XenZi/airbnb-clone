@@ -114,7 +114,7 @@ func main() {
 	}
 
 	reservationService := service.NewReservationService(reservationRepo, validator, notificationsClient, logger, tracer)
-	_, err = handler.NewCreateAvailabilityCommandHandler(reservationService, publisher, commandSubscriber)
+	_, err = handler.NewCreateAvailabilityCommandHandler(reservationService, publisher, commandSubscriber, logger)
 	if err != nil {
 		log.Fatal(err)
 	}
