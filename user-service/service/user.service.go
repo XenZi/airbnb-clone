@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.opentelemetry.io/otel/trace"
 	"user-service/config"
 
 	"user-service/client"
@@ -20,6 +21,7 @@ type UserService struct {
 	authClient        *client.AuthClient
 	accClient         *client.AccClient
 	logger            *config.Logger
+	tracer            trace.Tracer
 }
 
 const source = "user-service"
@@ -29,7 +31,8 @@ func NewUserService(userRepo *repository.UserRepository,
 	reservationClient *client.ReservationClient,
 	authClient *client.AuthClient,
 	accClient *client.AccClient,
-	logger *config.Logger) *UserService {
+	logger *config.Logger,
+	tracer trace.Tracer) *UserService {
 	return &UserService{
 		userRepository:    userRepo,
 		validator:         validator,
@@ -37,10 +40,13 @@ func NewUserService(userRepo *repository.UserRepository,
 		authClient:        authClient,
 		accClient:         accClient,
 		logger:            logger,
+		tracer:            tracer,
 	}
 }
 
-func (u *UserService) CreateUser(createUser domain.CreateUser) (*domain.User, *errors.ErrorStruct) {
+func (u *UserService) CreateUser(ctx context.Context, createUser domain.CreateUser) (*domain.User, *errors.ErrorStruct) {
+	ctx, span := u.tracer.Start(ctx, "UserService.CreateUser")
+	defer span.End()
 	u.validator.ValidateUser(&createUser)
 	validErrors := u.validator.GetErrors()
 	if len(validErrors) > 0 {
@@ -67,7 +73,7 @@ func (u *UserService) CreateUser(createUser domain.CreateUser) (*domain.User, *e
 		Age:       createUser.Age,
 		Rating:    createUser.Rating,
 	}
-	newUser, foundErr := u.userRepository.CreatUser(user)
+	newUser, foundErr := u.userRepository.CreatUser(ctx, user)
 	if foundErr != nil {
 		u.logger.LogError(source, foundErr.GetErrorMessage())
 		return nil, foundErr
@@ -76,7 +82,9 @@ func (u *UserService) CreateUser(createUser domain.CreateUser) (*domain.User, *e
 	return newUser, nil
 }
 
-func (u *UserService) UpdateUser(updateUser domain.CreateUser) (*domain.User, *errors.ErrorStruct) {
+func (u *UserService) UpdateUser(ctx context.Context, updateUser domain.CreateUser) (*domain.User, *errors.ErrorStruct) {
+	ctx, span := u.tracer.Start(ctx, "UserService.UpdateUser")
+	defer span.End()
 	u.validator.ValidateUser(&updateUser)
 	validErrors := u.validator.GetErrors()
 	if len(validErrors) > 0 {
@@ -103,7 +111,7 @@ func (u *UserService) UpdateUser(updateUser domain.CreateUser) (*domain.User, *e
 		Age:       updateUser.Age,
 		Rating:    updateUser.Rating,
 	}
-	newUser, foundErr := u.userRepository.UpdateUser(user)
+	newUser, foundErr := u.userRepository.UpdateUser(ctx, user)
 	if foundErr != nil {
 		u.logger.LogError(source, foundErr.GetErrorMessage())
 		return nil, foundErr
@@ -112,7 +120,9 @@ func (u *UserService) UpdateUser(updateUser domain.CreateUser) (*domain.User, *e
 	return newUser, nil
 }
 
-func (u *UserService) UpdateUserCreds(updateUser domain.CreateUser) (*domain.User, *errors.ErrorStruct) {
+func (u *UserService) UpdateUserCreds(ctx context.Context, updateUser domain.CreateUser) (*domain.User, *errors.ErrorStruct) {
+	ctx, span := u.tracer.Start(ctx, "UserService.UpdateUserCreds")
+	defer span.End()
 	u.validator.ValidateCreds(&updateUser)
 	validErrors := u.validator.GetErrors()
 	if len(validErrors) > 0 {
@@ -131,7 +141,7 @@ func (u *UserService) UpdateUserCreds(updateUser domain.CreateUser) (*domain.Use
 		Username: updateUser.Username,
 		Email:    updateUser.Email,
 	}
-	newUser, foundErr := u.userRepository.UpdateUserCreds(user)
+	newUser, foundErr := u.userRepository.UpdateUserCreds(ctx, user)
 	if foundErr != nil {
 		return nil, foundErr
 	}
@@ -140,8 +150,10 @@ func (u *UserService) UpdateUserCreds(updateUser domain.CreateUser) (*domain.Use
 	return newUser, nil
 }
 
-func (u *UserService) GetAllUsers() ([]*domain.User, *errors.ErrorStruct) {
-	userCollection, err := u.userRepository.GetAllUsers()
+func (u *UserService) GetAllUsers(ctx context.Context) ([]*domain.User, *errors.ErrorStruct) {
+	ctx, span := u.tracer.Start(ctx, "UserService.GetAllUsers")
+	defer span.End()
+	userCollection, err := u.userRepository.GetAllUsers(ctx)
 	if err != nil {
 		message := err.GetErrorMessage()
 		u.logger.LogError(source, message)
@@ -150,15 +162,17 @@ func (u *UserService) GetAllUsers() ([]*domain.User, *errors.ErrorStruct) {
 	return userCollection, nil
 }
 
-func (u *UserService) GetUserById(id string) (*domain.User, *domain.HostUser, *errors.ErrorStruct) {
-	foundUser, err := u.userRepository.GetUserById(id)
+func (u *UserService) GetUserById(ctx context.Context, id string) (*domain.User, *domain.HostUser, *errors.ErrorStruct) {
+	ctx, span := u.tracer.Start(ctx, "UserService.GetUserById")
+	defer span.End()
+	foundUser, err := u.userRepository.GetUserById(ctx, id)
 	if err != nil {
 		message := err.GetErrorMessage()
 		u.logger.LogError(source, message)
 		return nil, nil, err
 	}
 	if foundUser.Role == "Host" {
-		dist, erro := u.isDistinguished(foundUser.ID.Hex(), foundUser.Rating)
+		dist, erro := u.isDistinguished(ctx, foundUser.ID.Hex(), foundUser.Rating)
 		if erro != nil {
 			message := erro.GetErrorMessage()
 			u.logger.LogError(source, message)
@@ -183,8 +197,10 @@ func (u *UserService) GetUserById(id string) (*domain.User, *domain.HostUser, *e
 	return foundUser, nil, nil
 }
 
-func (u *UserService) isDistinguished(id string, rating float64) (bool, *errors.ErrorStruct) {
-	reqs, err := u.reservationClient.CheckDistinguished(context.TODO(), id)
+func (u *UserService) isDistinguished(ctx context.Context, id string, rating float64) (bool, *errors.ErrorStruct) {
+	ctx, span := u.tracer.Start(ctx, "UserService.isDistinguished")
+	defer span.End()
+	reqs, err := u.reservationClient.CheckDistinguished(ctx, id)
 	if err != nil {
 		message := err.GetErrorMessage()
 		u.logger.LogError(source, message)
@@ -198,15 +214,17 @@ func (u *UserService) isDistinguished(id string, rating float64) (bool, *errors.
 	return false, nil
 }
 
-func (u *UserService) DeleteUser(role string, id string) *errors.ErrorStruct {
-	err := u.reservationClient.UserDeleteAllowed(context.TODO(), id, role)
+func (u *UserService) DeleteUser(ctx context.Context, role string, id string) *errors.ErrorStruct {
+	ctx, span := u.tracer.Start(ctx, "UserService.DeleteUser")
+	defer span.End()
+	err := u.reservationClient.UserDeleteAllowed(ctx, id, role)
 	if err != nil {
 		message := err.GetErrorMessage()
 		u.logger.LogError(source, message)
 		return err
 	}
 	if role == "Host" {
-		err := u.accClient.DeleteUserAccommodations(context.TODO(), id)
+		err := u.accClient.DeleteUserAccommodations(ctx, id)
 		if err != nil {
 			message := err.GetErrorMessage()
 			u.logger.LogError(source, message)
@@ -218,13 +236,13 @@ func (u *UserService) DeleteUser(role string, id string) *errors.ErrorStruct {
 		u.logger.LogError(source, err2.GetErrorMessage())
 		return err2
 	}
-	newErr := u.authClient.DeleteUserAuth(context.TODO(), id)
+	newErr := u.authClient.DeleteUserAuth(ctx, id)
 	if newErr != nil {
 		message := newErr.GetErrorMessage()
 		u.logger.LogError(source, message)
 		return newErr
 	}
-	err3 := u.userRepository.DeleteUser(id)
+	err3 := u.userRepository.DeleteUser(ctx, id)
 	if err3 != nil {
 		message := err3.GetErrorMessage()
 		u.logger.LogError(source, message)
@@ -234,8 +252,10 @@ func (u *UserService) DeleteUser(role string, id string) *errors.ErrorStruct {
 	return nil
 }
 
-func (u *UserService) UpdateRating(id string, rating float64) *errors.ErrorStruct {
-	err := u.userRepository.UpdateRating(id, rating)
+func (u *UserService) UpdateRating(ctx context.Context, id string, rating float64) *errors.ErrorStruct {
+	ctx, span := u.tracer.Start(ctx, "UserService.UpdateRating")
+	defer span.End()
+	err := u.userRepository.UpdateRating(ctx, id, rating)
 	if err != nil {
 		message := err.GetErrorMessage()
 		u.logger.LogError(source, message)

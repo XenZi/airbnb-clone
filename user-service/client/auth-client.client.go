@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/sony/gobreaker"
+	"go.opentelemetry.io/otel/trace"
 	"net/http"
 	"user-service/domain"
 	"user-service/errors"
@@ -14,17 +15,21 @@ type AuthClient struct {
 	address        string
 	client         *http.Client
 	circuitBreaker *gobreaker.CircuitBreaker
+	tracer         trace.Tracer
 }
 
-func NewAuthClient(host, port string, client *http.Client, circuitBreaker *gobreaker.CircuitBreaker) *AuthClient {
+func NewAuthClient(host, port string, client *http.Client, circuitBreaker *gobreaker.CircuitBreaker, tracer trace.Tracer) *AuthClient {
 	return &AuthClient{
 		address:        fmt.Sprintf("http://%s:%s", host, port),
 		client:         client,
 		circuitBreaker: circuitBreaker,
+		tracer:         tracer,
 	}
 }
 
 func (ac AuthClient) DeleteUserAuth(ctx context.Context, id string) *errors.ErrorStruct {
+	ctx, span := ac.tracer.Start(ctx, "AuthnClient.DeleteUserAuth")
+	defer span.End()
 	cbResp, err := ac.circuitBreaker.Execute(func() (interface{}, error) {
 		req, err := http.NewRequestWithContext(ctx, http.MethodDelete, ac.address+"/"+id, http.NoBody)
 		if err != nil {

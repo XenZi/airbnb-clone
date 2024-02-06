@@ -34,6 +34,8 @@ func NewUserRepository(cli *mongo.Client, logger *config.Logger, tracer trace.Tr
 }
 
 func (ur UserRepository) CreatUser(ctx context.Context, user domain.User) (*domain.User, *errors.ErrorStruct) {
+	ctx, span := ur.tracer.Start(ctx, "UserRepo.CreateUser")
+	defer span.End()
 	userCollection := ur.cli.Database(userDB).Collection(userCol)
 	insertedUser, err := userCollection.InsertOne(context.TODO(), user)
 	if err != nil {
@@ -51,6 +53,8 @@ func (ur UserRepository) CreatUser(ctx context.Context, user domain.User) (*doma
 }
 
 func (ur UserRepository) GetAllUsers(ctx context.Context) ([]*domain.User, *errors.ErrorStruct) {
+	ctx, span := ur.tracer.Start(ctx, "UserRepo.GetAllUsers")
+	defer span.End()
 	userCollection := ur.cli.Database(userDB).Collection(userCol)
 	findOptions := options.Find()
 	found, err := userCollection.Find(context.TODO(), bson.D{{}}, findOptions)
@@ -77,6 +81,8 @@ func (ur UserRepository) GetAllUsers(ctx context.Context) ([]*domain.User, *erro
 }
 
 func (ur UserRepository) GetUserById(ctx context.Context, id string) (*domain.User, *errors.ErrorStruct) {
+	ctx, span := ur.tracer.Start(ctx, "UserRepo.GetUserById")
+	defer span.End()
 	userCollection := ur.cli.Database(userDB).Collection(userCol)
 	foundId, erro := primitive.ObjectIDFromHex(id)
 	if erro != nil {
@@ -99,6 +105,8 @@ func (ur UserRepository) GetUserById(ctx context.Context, id string) (*domain.Us
 }
 
 func (ur UserRepository) UpdateUser(ctx context.Context, user domain.User) (*domain.User, *errors.ErrorStruct) {
+	ctx, span := ur.tracer.Start(ctx, "UserRepo.UpdateUser")
+	defer span.End()
 	userCollection := ur.cli.Database(userDB).Collection(userCol)
 	filter := bson.D{{"_id", user.ID}}
 	update := bson.D{{"$set", bson.D{
@@ -118,6 +126,8 @@ func (ur UserRepository) UpdateUser(ctx context.Context, user domain.User) (*dom
 }
 
 func (ur UserRepository) UpdateUserCreds(ctx context.Context, user domain.User) (*domain.User, *errors.ErrorStruct) {
+	ctx, span := ur.tracer.Start(ctx, "UserRepo.UpdateUserCreds")
+	defer span.End()
 	userCollection := ur.cli.Database(userDB).Collection(userCol)
 	filter := bson.D{{"_id", user.ID}}
 	update := bson.D{{"$set", bson.D{
@@ -135,6 +145,8 @@ func (ur UserRepository) UpdateUserCreds(ctx context.Context, user domain.User) 
 }
 
 func (ur UserRepository) DeleteUser(ctx context.Context, id string) *errors.ErrorStruct {
+	ctx, span := ur.tracer.Start(ctx, "UserRepo.DeleteUser")
+	defer span.End()
 	userCollection := ur.cli.Database(userDB).Collection(userCol)
 	foundId, erro := primitive.ObjectIDFromHex(id)
 	if erro != nil {
@@ -153,6 +165,8 @@ func (ur UserRepository) DeleteUser(ctx context.Context, id string) *errors.Erro
 }
 
 func (ur UserRepository) UpdateRating(ctx context.Context, id string, rating float64) *errors.ErrorStruct {
+	ctx, span := ur.tracer.Start(ctx, "UserRepo.UpdateRating")
+	defer span.End()
 	userCollection := ur.cli.Database(userDB).Collection(userCol)
 	foundId, erro := primitive.ObjectIDFromHex(id)
 	if erro != nil {

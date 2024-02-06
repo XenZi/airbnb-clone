@@ -7,7 +7,6 @@ import (
 	"github.com/gofrs/uuid"
 	"github.com/sirupsen/logrus"
 	log "github.com/sirupsen/logrus"
-	"gopkg.in/natefinch/lumberjack.v2"
 )
 
 type Logger struct {

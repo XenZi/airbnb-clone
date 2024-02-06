@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/sony/gobreaker"
+	"go.opentelemetry.io/otel/trace"
 	"log"
 	"net/http"
 	"user-service/domain"
@@ -15,17 +16,21 @@ type AccClient struct {
 	address        string
 	client         *http.Client
 	circuitBreaker *gobreaker.CircuitBreaker
+	tracer         trace.Tracer
 }
 
-func NewAccClient(host, port string, client *http.Client, circuitBreaker *gobreaker.CircuitBreaker) *AccClient {
+func NewAccClient(host, port string, client *http.Client, circuitBreaker *gobreaker.CircuitBreaker, tracer trace.Tracer) *AccClient {
 	return &AccClient{
 		address:        fmt.Sprintf("http://%s:%s", host, port),
 		client:         client,
 		circuitBreaker: circuitBreaker,
+		tracer:         tracer,
 	}
 }
 
 func (ac AccClient) DeleteUserAccommodations(ctx context.Context, id string) *errors.ErrorStruct {
+	ctx, span := ac.tracer.Start(ctx, "AccommodationClient.DeleteUserAccommodations")
+	defer span.End()
 	cbResp, err := ac.circuitBreaker.Execute(func() (interface{}, error) {
 		req, err := http.NewRequestWithContext(ctx, http.MethodDelete, ac.address+"/user/"+id, http.NoBody)
 		if err != nil {

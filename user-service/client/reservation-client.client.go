@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/gocql/gocql"
 	"github.com/sony/gobreaker"
+	"go.opentelemetry.io/otel/trace"
 	"log"
 	"net/http"
 	"time"
@@ -17,6 +18,7 @@ type ReservationClient struct {
 	address        string
 	client         *http.Client
 	circuitBreaker *gobreaker.CircuitBreaker
+	tracer         trace.Tracer
 }
 
 type ResponseData struct {
@@ -40,15 +42,18 @@ type Reservation struct {
 	HostID            string     `json:"hostId"`
 }
 
-func NewReservationClient(host, port string, client *http.Client, circuitBreaker *gobreaker.CircuitBreaker) *ReservationClient {
+func NewReservationClient(host, port string, client *http.Client, circuitBreaker *gobreaker.CircuitBreaker, tracer trace.Tracer) *ReservationClient {
 	return &ReservationClient{
 		address:        fmt.Sprintf("http://%s:%s", host, port),
 		client:         client,
 		circuitBreaker: circuitBreaker,
+		tracer:         tracer,
 	}
 }
 
 func (rc ReservationClient) getReservationsForUser(ctx context.Context, id, role string) ([]Reservation, *errors.ErrorStruct) {
+	ctx, span := rc.tracer.Start(ctx, "ReservationClient.GetReservationsForUser")
+	defer span.End()
 	path := "host"
 	if role == "Guest" {
 		path = "guest"
@@ -82,6 +87,8 @@ func (rc ReservationClient) getReservationsForUser(ctx context.Context, id, role
 }
 
 func (rc ReservationClient) getCancelRate(ctx context.Context, id string) (*float32, *errors.ErrorStruct) {
+	ctx, span := rc.tracer.Start(ctx, "ReservationClient.GetCancelRateForUser")
+	defer span.End()
 	cbResp, err := rc.circuitBreaker.Execute(func() (interface{}, error) {
 		req, err := http.NewRequestWithContext(ctx, http.MethodGet, rc.address+"/percentage-cancelation/"+id, http.NoBody)
 		if err != nil {
@@ -111,6 +118,8 @@ func (rc ReservationClient) getCancelRate(ctx context.Context, id string) (*floa
 }
 
 func (rc ReservationClient) UserDeleteAllowed(ctx context.Context, id, role string) *errors.ErrorStruct {
+	ctx, span := rc.tracer.Start(ctx, "ReservationClient.UserDeleteAllowed")
+	defer span.End()
 	list, err := rc.getReservationsForUser(ctx, id, role)
 	if err != nil {
 		return err
@@ -123,6 +132,8 @@ func (rc ReservationClient) UserDeleteAllowed(ctx context.Context, id, role stri
 
 // requirements lowered for easier examples
 func (rc ReservationClient) CheckDistinguished(ctx context.Context, id string) (bool, *errors.ErrorStruct) {
+	ctx, span := rc.tracer.Start(ctx, "ReservationClient.CheckDistinguished")
+	defer span.End()
 	reqCounter := 0
 	list, err := rc.getReservationsForUser(ctx, id, "Host")
 	if err != nil {

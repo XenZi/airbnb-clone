@@ -111,9 +111,9 @@ func main() {
 		},
 	)
 
-	reservationsClient := client.NewReservationClient(reservationsServiceHost, reservationsServicePort, customReservationsServiceClient, reservationsServiceCircuitBreaker)
-	authClient := client.NewAuthClient(authServiceHost, authServicePort, customAuthServiceClient, authServiceCircuitBreaker)
-	accClient := client.NewAccClient(accServiceHost, accServicePort, customAccServiceClient, accommodationServiceCircuitBreaker)
+	reservationsClient := client.NewReservationClient(reservationsServiceHost, reservationsServicePort, customReservationsServiceClient, reservationsServiceCircuitBreaker, tracer)
+	authClient := client.NewAuthClient(authServiceHost, authServicePort, customAuthServiceClient, authServiceCircuitBreaker, tracer)
+	accClient := client.NewAccClient(accServiceHost, accServicePort, customAccServiceClient, accommodationServiceCircuitBreaker, tracer)
 
 	// service
 
@@ -121,10 +121,10 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	userRepo := repository.NewUserRepository(mongoService.GetCli(), logger)
+	userRepo := repository.NewUserRepository(mongoService.GetCli(), logger, tracer)
 	validator := utils.NewValidator()
-	userService := service.NewUserService(userRepo, validator, reservationsClient, authClient, accClient, logger)
-	profileHandler := handler.NewUserHandler(userService, logger)
+	userService := service.NewUserService(userRepo, validator, reservationsClient, authClient, accClient, logger, tracer)
+	profileHandler := handler.NewUserHandler(userService, logger, tracer)
 
 	// router
 
