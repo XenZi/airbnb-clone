@@ -1,0 +1,11 @@
+<div class="table">
+    <div class="table__row table__header">
+      <div class="table__cell">Reservation Date</div>
+      <div class="table__cell">Price</div>
+    </div>
+    <div class="table__row" *ngFor="let reservation of hostReservations; index as i;">
+      <div class="table__cell">{{ reservation.startDate}} - {{reservation.endDate}}</div>
+      <div class="table__cell">{{ reservation.price }}</div>
+    </div>
+  </div>
+  

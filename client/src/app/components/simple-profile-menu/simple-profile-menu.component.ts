@@ -11,6 +11,8 @@ import { Role } from 'src/app/domains/enums/roles.enum';
 import { AuthService } from 'src/app/services/auth-service/auth.service';
 import { Route, Router } from '@angular/router';
 import { UserReservationsTableComponent } from '../user-reservations-table/user-reservations-table.component';
+import { ReservationService } from 'src/app/services/reservation-service/reservation.service';
+import { HostReservationsTableComponent } from '../host-reservations-table/host-reservations-table/host-reservations-table.component';
 
 @Component({
   selector: 'app-simple-profile-menu',
@@ -67,6 +69,13 @@ export class SimpleProfileMenuComponent {
         this.callNewAccommodation();
       },
     },
+    {
+      icon: 'fa-solid fa-user',
+      title: 'Reservations',
+      action: () => {
+        this.callReservations();
+      }
+    }
   ];
   guestItems: SimpleProfileMenuItem[] = [
     {
@@ -145,6 +154,12 @@ export class SimpleProfileMenuComponent {
   callReservationsList() {
     this.modalService.open(
       UserReservationsTableComponent,'All reservations', {}
+    )
+  }
+
+  callReservations(){
+    this.modalService.open(
+      HostReservationsTableComponent,'All reservations',{}
     )
   }
 }
