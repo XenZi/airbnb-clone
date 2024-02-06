@@ -155,11 +155,12 @@ func main() {
 		ReadTimeout:  1 * time.Second,
 		WriteTimeout: 1 * time.Second,
 	}
-
+	certFile := "/app/localhost.crt"
+	keyFile := "/app/localhost.key"
 	logger.Println("Server listening on port", port)
 	//Distribute all the connections to goroutines
 	go func() {
-		err := server.ListenAndServe()
+		err := server.ListenAndServeTLS(certFile, keyFile)
 		if err != nil {
 			logger.Fatal("Error while server is listening and serving requests", log.Fields{
 				"module": "server-main",

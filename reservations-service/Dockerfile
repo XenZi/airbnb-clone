@@ -32,6 +32,9 @@ WORKDIR /root/
 
 # Copy the Pre-built binary file from the previous stage
 COPY --from=builder /app/main .
+
+COPY ./reservations-service/localhost.crt /app/localhost.crt
+COPY ./reservations-service/localhost.key /app/localhost.key
 RUN mkdir data
 
 
