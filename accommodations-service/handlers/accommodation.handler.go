@@ -36,13 +36,13 @@ func (a *AccommodationsHandler) CreateAccommodationById(rw http.ResponseWriter, 
 	ctx, span := a.Tracer.Start(h.Context(), "AccommodationsHandler.CreateAccommodationById")
 	defer span.End()
 	//decoder.DisallowUnknownFields()
-	var image multipart.File
+	var images []multipart.File
 
 	contentType := h.Header.Get("Content-Type")
 	isMultipart := strings.HasPrefix(contentType, "multipart/form-data")
 
 	if isMultipart {
-		err := h.ParseMultipartForm(10 << 20)
+		err := h.ParseMultipartForm(50 << 20)
 		if err != nil {
 			a.Logger.Error("Error while parsing multipartForm", log.Fields{
 				"module": "handler",
@@ -51,17 +51,29 @@ func (a *AccommodationsHandler) CreateAccommodationById(rw http.ResponseWriter, 
 			utils.WriteErrorResp(err.Error(), http.StatusBadRequest, "e puklo", rw)
 			return
 		}
-		file, _, err := h.FormFile("images")
-		if err != nil {
-			a.Logger.Error("Error returning formfile", log.Fields{
+		files, ok := h.MultipartForm.File["images"]
+		if !ok || len(files) == 0 {
+			a.Logger.Error("No files uploaded", log.Fields{
 				"module": "handler",
-				"error":  err.Error(),
+				"error":  "No files Uploaded",
 			})
 			utils.WriteErrorResp(err.Error(), http.StatusBadRequest, "nista bajo", rw)
 			return
 		}
-		image = file
-		defer file.Close()
+		for _, fileHeader := range files {
+			file, err1 := fileHeader.Open()
+			if err1 != nil {
+				a.Logger.Error("Error returning formfile", log.Fields{
+					"module": "handler",
+					"error":  err1.Error(),
+				})
+				utils.WriteErrorResp(err.Error(), http.StatusBadRequest, "nista bajo", rw)
+				return
+			}
+			defer file.Close()
+			images = append(images, file)
+
+		}
 	}
 
 	var accDates []domain.AvailableAccommodationDates
@@ -110,7 +122,7 @@ func (a *AccommodationsHandler) CreateAccommodationById(rw http.ResponseWriter, 
 		Paying:                      h.FormValue("paying"),
 	}
 
-	_, err4 := a.AccommodationService.CreateAccommodation(accomm, image, ctx)
+	_, err4 := a.AccommodationService.CreateAccommodation(accomm, images, ctx)
 	if err4 != nil {
 		a.Logger.Error("Error creating accomodation", log.Fields{
 			"module": "handler",

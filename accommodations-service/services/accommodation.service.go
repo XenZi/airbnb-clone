@@ -46,7 +46,7 @@ func NewAccommodationService(accommodationRepo *repository.AccommodationRepo, va
 	}
 }
 
-func (as *AccommodationService) CreateAccommodation(accommodation domain.CreateAccommodation, image multipart.File, ctx context.Context) (*domain.AccommodationDTO, *errors.ErrorStruct) {
+func (as *AccommodationService) CreateAccommodation(accommodation domain.CreateAccommodation, images []multipart.File, ctx context.Context) (*domain.AccommodationDTO, *errors.ErrorStruct) {
 	ctx, span := as.tracer.Start(ctx, "AccommodationService.CreateAccommodation")
 	defer span.End()
 	var imageIds []string
@@ -78,10 +78,12 @@ func (as *AccommodationService) CreateAccommodation(accommodation domain.CreateA
 	}
 
 	log.Println(accomm)
-	uuidStr := uuid.New().String()
-	imageIds = append(imageIds, uuidStr)
-	as.fileStorage.WriteFile(ctx, image, uuidStr)
-	as.cache.Post(ctx, image, uuidStr)
+	for _, file := range images {
+		uuidStr := uuid.New().String()
+		imageIds = append(imageIds, uuidStr)
+		as.fileStorage.WriteFile(ctx, file, uuidStr)
+		as.cache.Post(ctx, file, uuidStr)
+	}
 	accomm.ImageIds = imageIds
 	accomm.Status = "Pending"
 	newAccommodation, foundErr := as.accommodationRepository.SaveAccommodation(ctx, accomm)
@@ -322,7 +324,11 @@ func (as *AccommodationService) DeleteAccommodation(ctx context.Context, accommo
 		as.logger.LogError("accommodation-service", fmt.Sprintf("Error:"+foundErr.GetErrorMessage()))
 		return nil, foundErr
 	}
-
+	for _, imageId := range existingAccommodation.ImageIds {
+		err2 := as.fileStorage.DeleteFile(ctx, imageId)
+		as.logger.LogError("accommodations-service", fmt.Sprintf("Unable to delete accommodation image"+imageId))
+		as.logger.LogError("accommodation-service", fmt.Sprintf("Error:"+err2.Error()))
+	}
 	deleteErr := as.accommodationRepository.DeleteAccommodationById(ctx, accommodationID)
 	if deleteErr != nil {
 		as.logger.LogError("accommodations-service", fmt.Sprintf("Unable to delete accommodation by id"+accommodationID))

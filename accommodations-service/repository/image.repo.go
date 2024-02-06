@@ -81,6 +81,11 @@ func (fs *FileStorage) WalkDirectories(ctx context.Context) []string {
 }
 
 func (fs *FileStorage) WriteFile(ctx context.Context, fileContent multipart.File, fileName string) error {
+	fs.logger.LogInfo("image-repo", fmt.Sprintf("INSERTED IMAGE WITH ID: %s", fileName))
+	fs.logger.LogInfo("image-repo", fmt.Sprintf("ONCE"))
+	fs.logger.LogInfo("image-repo", fmt.Sprintf("ONCE"))
+	fs.logger.LogInfo("image-repo", fmt.Sprintf("ONCE"))
+
 	ctx, span := fs.tracer.Start(ctx, "FileStorage.WriteFile")
 	defer span.End()
 	filePath := hdfsWriteDir + fileName
@@ -123,4 +128,17 @@ func (fs *FileStorage) ReadFile(ctx context.Context, fileName string) ([]byte, e
 	}
 
 	return fileContent, nil
+}
+
+func (fs *FileStorage) DeleteFile(ctx context.Context, fileName string) error {
+	ctx, span := fs.tracer.Start(ctx, "FileStorage.DeleteFile")
+	defer span.End()
+	filePath := hdfsWriteDir + fileName
+	err := fs.client.Remove(filePath)
+	if err != nil {
+		fs.logger.Println("Error in deleting file from HDFS:", err)
+
+		return err
+	}
+	return nil
 }

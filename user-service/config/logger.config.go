@@ -1,12 +1,12 @@
 package config
 
 import (
-	"io"
-	"os"
-
 	"github.com/gofrs/uuid"
 	"github.com/sirupsen/logrus"
 	log "github.com/sirupsen/logrus"
+	s "gopkg.in/natefinch/lumberjack.v2"
+	"io"
+	"os"
 )
 
 type Logger struct {
@@ -17,7 +17,7 @@ func NewLogger(path string) *Logger {
 	baseLogger := log.New()
 	baseLogger.SetLevel(log.DebugLevel)
 	baseLogger.SetFormatter(&log.JSONFormatter{})
-	logFile := &lumberjack.Logger{
+	logFile := &s.Logger{
 		Filename:   path,
 		MaxSize:    1, // megabytes
 		MaxBackups: 3,
