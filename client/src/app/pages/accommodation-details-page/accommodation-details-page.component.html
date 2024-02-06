@@ -18,6 +18,7 @@
           [accommodation]="accommodation"
           [accommodationID]="accommodationID"
         ></app-reservation-form>
+       
         <app-show-metrics 
         *ngIf="this.isUserLogged && this.userLogged?.id == this.accommodation.userId"
         [numberOfRatings]="this.currentStateOfMetrics.numberOfRatings"
@@ -57,5 +58,8 @@
         [accommodationID]="accommodationID"
       ></app-show-rates-for-accommodation>
     </div>
+    <ul class="flex flex-col">
+      <li *ngFor="let avl of availabilityData; index as i;" (click)="callUpdateAvailability(i)">{{avl.dateRange[0] }}-{{ avl.dateRange[avl.dateRange.length - 1] }} - {{avl.price}}</li>
+    </ul>
   </div>
 </div>

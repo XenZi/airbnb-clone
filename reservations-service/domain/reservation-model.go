@@ -28,8 +28,6 @@ type Reservation struct {
 type FreeReservation struct {
 	Id              gocql.UUID           `json:"id"`
 	AccommodationID string               `json:"accommodationId"`
-	StartDate       string               `json:"startDate"`
-	EndDate         string               `json:"endDate"`
 	Location        string               `json:"location"`
 	Price           int                  `json:"price"`
 	Continent       string               `json:"continent"`
@@ -51,6 +49,7 @@ type CheckAvailabilityRequest struct {
 type GetAvailabilityForAccommodation struct {
 	DateRange []string `json:"dateRange"`
 	Price     int      `json:"price"`
+	Id        string   `json:"id"`
 }
 
 type ReservationById []*Reservation
