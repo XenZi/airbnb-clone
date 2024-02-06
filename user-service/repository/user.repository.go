@@ -7,6 +7,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.opentelemetry.io/otel/trace"
 	"user-service/config"
 	"user-service/domain"
 	"user-service/errors"
@@ -15,6 +16,7 @@ import (
 type UserRepository struct {
 	cli    *mongo.Client
 	logger *config.Logger
+	tracer trace.Tracer
 }
 
 const (
@@ -23,14 +25,15 @@ const (
 	userCol = "users"
 )
 
-func NewUserRepository(cli *mongo.Client, logger *config.Logger) *UserRepository {
+func NewUserRepository(cli *mongo.Client, logger *config.Logger, tracer trace.Tracer) *UserRepository {
 	return &UserRepository{
 		cli:    cli,
 		logger: logger,
+		tracer: tracer,
 	}
 }
 
-func (ur UserRepository) CreatUser(user domain.User) (*domain.User, *errors.ErrorStruct) {
+func (ur UserRepository) CreatUser(ctx context.Context, user domain.User) (*domain.User, *errors.ErrorStruct) {
 	userCollection := ur.cli.Database(userDB).Collection(userCol)
 	insertedUser, err := userCollection.InsertOne(context.TODO(), user)
 	if err != nil {
@@ -47,7 +50,7 @@ func (ur UserRepository) CreatUser(user domain.User) (*domain.User, *errors.Erro
 	return &user, nil
 }
 
-func (ur UserRepository) GetAllUsers() ([]*domain.User, *errors.ErrorStruct) {
+func (ur UserRepository) GetAllUsers(ctx context.Context) ([]*domain.User, *errors.ErrorStruct) {
 	userCollection := ur.cli.Database(userDB).Collection(userCol)
 	findOptions := options.Find()
 	found, err := userCollection.Find(context.TODO(), bson.D{{}}, findOptions)
@@ -73,7 +76,7 @@ func (ur UserRepository) GetAllUsers() ([]*domain.User, *errors.ErrorStruct) {
 	return users, nil
 }
 
-func (ur UserRepository) GetUserById(id string) (*domain.User, *errors.ErrorStruct) {
+func (ur UserRepository) GetUserById(ctx context.Context, id string) (*domain.User, *errors.ErrorStruct) {
 	userCollection := ur.cli.Database(userDB).Collection(userCol)
 	foundId, erro := primitive.ObjectIDFromHex(id)
 	if erro != nil {
@@ -95,7 +98,7 @@ func (ur UserRepository) GetUserById(id string) (*domain.User, *errors.ErrorStru
 	return user, nil
 }
 
-func (ur UserRepository) UpdateUser(user domain.User) (*domain.User, *errors.ErrorStruct) {
+func (ur UserRepository) UpdateUser(ctx context.Context, user domain.User) (*domain.User, *errors.ErrorStruct) {
 	userCollection := ur.cli.Database(userDB).Collection(userCol)
 	filter := bson.D{{"_id", user.ID}}
 	update := bson.D{{"$set", bson.D{
@@ -114,7 +117,7 @@ func (ur UserRepository) UpdateUser(user domain.User) (*domain.User, *errors.Err
 	return &user, nil
 }
 
-func (ur UserRepository) UpdateUserCreds(user domain.User) (*domain.User, *errors.ErrorStruct) {
+func (ur UserRepository) UpdateUserCreds(ctx context.Context, user domain.User) (*domain.User, *errors.ErrorStruct) {
 	userCollection := ur.cli.Database(userDB).Collection(userCol)
 	filter := bson.D{{"_id", user.ID}}
 	update := bson.D{{"$set", bson.D{
@@ -131,7 +134,7 @@ func (ur UserRepository) UpdateUserCreds(user domain.User) (*domain.User, *error
 	return &user, nil
 }
 
-func (ur UserRepository) DeleteUser(id string) *errors.ErrorStruct {
+func (ur UserRepository) DeleteUser(ctx context.Context, id string) *errors.ErrorStruct {
 	userCollection := ur.cli.Database(userDB).Collection(userCol)
 	foundId, erro := primitive.ObjectIDFromHex(id)
 	if erro != nil {
@@ -149,7 +152,7 @@ func (ur UserRepository) DeleteUser(id string) *errors.ErrorStruct {
 	return nil
 }
 
-func (ur UserRepository) UpdateRating(id string, rating float64) *errors.ErrorStruct {
+func (ur UserRepository) UpdateRating(ctx context.Context, id string, rating float64) *errors.ErrorStruct {
 	userCollection := ur.cli.Database(userDB).Collection(userCol)
 	foundId, erro := primitive.ObjectIDFromHex(id)
 	if erro != nil {

@@ -2,6 +2,8 @@ package main
 
 import (
 	"context"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/propagation"
 
 	"github.com/gorilla/mux"
 
@@ -19,6 +21,7 @@ import (
 	"user-service/middleware"
 	"user-service/repository"
 	"user-service/service"
+	"user-service/tracing"
 	"user-service/utils"
 )
 
@@ -28,6 +31,16 @@ func main() {
 	defer cancel()
 	logger := config.NewLogger("./logs/log.log")
 
+	tracerConfig := tracing.GetConfig()
+	tracerProvider, err := tracing.NewTracerProvider("user-service", tracerConfig.JaegerAddress)
+	if err != nil {
+		log.Fatal("JaegerTraceProvider failed to Initialize", err)
+	}
+	tracer := tracerProvider.Tracer("user-service")
+	otel.SetTextMapPropagator(propagation.TraceContext{})
+	if err != nil {
+		log.Fatal(err)
+	}
 	//env
 
 	reservationsServiceHost := os.Getenv("RESERVATIONS_SERVICE_HOST")
