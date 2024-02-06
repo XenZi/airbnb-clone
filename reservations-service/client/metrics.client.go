@@ -21,9 +21,9 @@ type MetricsClient struct {
 	circuitBreaker *gobreaker.CircuitBreaker
 }
 type ReservationMetrics struct {
-	userID          string `json:"userID"`
-	accommodationID string `json:"accommodationID"`
-	reservedAt      string `json:"reservedAt"`
+	UserID          string `json:"userId"`
+	AccommodationID string `json:"accommodationId"`
+	ReservedAt      string `json:"reservedAt"`
 }
 
 func NewMetricsClient(host, port string, client *http.Client, circuitBreaker *gobreaker.CircuitBreaker) *MetricsClient {
@@ -41,9 +41,9 @@ func (mc MetricsClient) SendReserved(ctx context.Context, userID, accommodationI
 	fmt.Println("Formatted Time:", formattedTime)
 
 	metrics := ReservationMetrics{
-		userID:          userID,
-		accommodationID: accommodationID,
-		reservedAt:      formattedTime,
+		UserID:          userID,
+		AccommodationID: accommodationID,
+		ReservedAt:      formattedTime,
 	}
 	jsonData, err := json.Marshal(metrics)
 	if err != nil {
