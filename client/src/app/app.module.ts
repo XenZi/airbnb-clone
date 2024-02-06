@@ -53,6 +53,7 @@ import { ShowRatesForUserComponent } from './components/show-rates-for-user/show
 import { FormCreateRatingForUserComponent } from './forms/form-create-rating-for-user/form-create-rating-for-user.component';
 import { FilterComponent } from './components/filter/filter.component';
 import { FormFilterComponent } from './forms/form-filter/form-filter.component';
+import { UnloadService } from './services/unload/unload.service';
 @NgModule({
   declarations: [
     AppComponent,
@@ -118,6 +119,7 @@ import { FormFilterComponent } from './forms/form-filter/form-filter.component';
       useClass: TokenInterceptor,
       multi: true,
     },
+    UnloadService
   ],
   bootstrap: [AppComponent],
 })
