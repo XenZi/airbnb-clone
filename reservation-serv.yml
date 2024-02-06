@@ -1,0 +1,61 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: reservations-service
+spec:
+  selector:
+    app: reservations-service
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: 8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: reservations-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: reservations-service
+  template:
+    metadata:
+      labels:
+        app: reservations-service
+    spec:
+      containers:
+        - name: reservations-service
+          image: reservations-service
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8080
+          env:
+            - name: PORT
+              value: "8080"
+            - name: CASS_DB
+              value: "reservations-db:9042"
+            - name: NOTIFICATION_SERVICE_HOST
+              value: "notifications-service"
+            - name: NOTIFICATION_SERVICE_PORT
+              value: "8080"
+            - name: NATS_HOST
+              value: "nats"
+            - name: NATS_PORT
+              value: "4222"
+            - name: NATS_USER
+              value: "ruser"
+            - name: NATS_PASS
+              value: "T0pS3cr3t"
+            - name: CREATE_ACCOMMODATION_COMMAND_SUBJECT
+              value: "accommodation.create.command"
+            - name: CREATE_ACCOMMODATION_REPLY_SUBJECT
+              value: "accommodation.create.reply"
+            - name: JAEGER_ADDRESS
+              value: "http://jaeger:14268/api/traces"
+          volumeMounts:
+          - mountPath: /app/logs
+            name: reserv-logs
+      volumes:
+      - name: reserv-logs
+        emptyDir: { }

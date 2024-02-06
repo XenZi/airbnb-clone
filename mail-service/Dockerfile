@@ -33,6 +33,8 @@ WORKDIR /root/
 COPY --from=builder /app/main .
 RUN mkdir data
 COPY ./mail-service/templates/ ./templates/
+COPY ./mail-service/logs/log.log ./logs/
+
 
 # Command to run the executable
 CMD ["./main"]

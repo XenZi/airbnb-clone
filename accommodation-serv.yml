@@ -1,0 +1,79 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: accommodations-service
+spec:
+  selector:
+    app: accommodations-service
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: 8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: accommodations-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: accommodations-service
+  template:
+    metadata:
+      labels:
+        app: accommodations-service
+    spec:
+      containers:
+        - name: accommodations-service
+          image: accommodations-service
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8080
+          env:
+            - name: PORT
+              value: "8080"
+            - name: JWT_SECRET
+              value: "sadjkasdjhid32jd13ikd13"
+            - name: SECRET_KEY
+              value: "sadjkasdjkjksadljldksakjdlasjklsdalkj"
+            - name: MONGO_DB_URI
+              value: "mongodb://root:pass@accommodation-db:27017"
+            - name: RESERVATIONS_SERVICE_HOST
+              value: "reservations-service"
+            - name: RESERVATIONS_SERVICE_PORT
+              value: "8080"
+            - name: USER_SERVICE_HOST
+              value: "user-service"
+            - name: USER_SERVICE_PORT
+              value: "8080"
+            - name: HDFS_URI
+              value: "namenode:9870"
+            - name: REDIS_HOST
+              value: "acc-redis"
+            - name: REDIS_PORT
+              value: "6379"
+            - name: NATS_HOST
+              value: "nats"
+            - name: NATS_PORT
+              value: "4222"
+            - name: NATS_USER
+              value: "ruser"
+            - name: NATS_PASS
+              value: "T0pS3cr3t"
+            - name: CREATE_ACCOMMODATION_COMMAND_SUBJECT
+              value: "accommodation.create.command"
+            - name: CREATE_ACCOMMODATION_REPLY_SUBJECT
+              value: "accommodation.create.reply"
+            - name: JAEGER_ADDRESS
+              value: "http://jaeger:14268/api/traces"
+          volumeMounts:
+            - mountPath: /app/logs
+              name: accomm-logs
+            - mountPath: /app/security
+              name: rbac
+      volumes:
+        - name: accomm-logs
+          emptyDir: {}
+        - name: rbac
+          emptyDir: {}

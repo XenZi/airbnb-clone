@@ -32,6 +32,8 @@ WORKDIR /root/
 # Copy the Pre-built binary file from the previous stage
 COPY --from=builder /app/main .
 RUN mkdir data
+COPY ./notifications-service/logs/log.log ./logs/
+
 
 # Command to run the executable
 CMD ["./main"]

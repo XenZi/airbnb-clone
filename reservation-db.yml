@@ -1,0 +1,52 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: reservations-db
+spec:
+  selector:
+    app: reservations-db
+  ports:
+    - protocol: TCP
+      port: 9042
+      targetPort: 9042
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: reservations-db
+spec:
+  serviceName: "reservations-db"
+  replicas: 1
+  selector:
+    matchLabels:
+      app: reservations-db
+  template:
+    metadata:
+      labels:
+        app: reservations-db
+    spec:
+      containers:
+        - name: reservations-db
+          image: cassandra
+          ports:
+            - containerPort: 9042
+          resources:
+            limits:
+              memory: "10Gi"
+            requests:
+              memory: "5Gi"
+      volumes:
+        - name: cass-store
+          persistentVolumeClaim:
+            claimName: cass-pvc
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: cass-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
