@@ -44,7 +44,6 @@ export class FormRateAccommodationComponent {
           this.rating = data.data.rate;
         },
         error: (err) => {
-          console.log(err);
         },
       });
   }

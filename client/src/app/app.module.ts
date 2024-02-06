@@ -56,6 +56,7 @@ import { FormFilterComponent } from './forms/form-filter/form-filter.component';
 import { UnloadService } from './services/unload/unload.service';
 import { HostReservationsTableComponent } from './components/host-reservations-table/host-reservations-table/host-reservations-table.component';
 import { ShowMetricsComponent } from './components/show-metrics/show-metrics.component';
+import { FormUpdateAvailabilityComponent } from './forms/form-update-availability/form-update-availability/form-update-availability.component';
 @NgModule({
   declarations: [
     AppComponent,
@@ -104,6 +105,7 @@ import { ShowMetricsComponent } from './components/show-metrics/show-metrics.com
     FormFilterComponent,
     HostReservationsTableComponent,
     ShowMetricsComponent,
+    FormUpdateAvailabilityComponent,
   ],
   imports: [
     BrowserModule,

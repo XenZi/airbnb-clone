@@ -44,7 +44,10 @@ func main() {
 	log.Println("HOST", notificationServiceHost)
 	notificationServicePort := os.Getenv("NOTIFICATION_SERVICE_PORT")
 	log.Println("PORT", notificationServicePort)
-
+	metricsCommandHost := os.Getenv("COMMAND_SERVICE_HOST")
+	log.Println("HOST", metricsCommandHost)
+	metricsCommandPort := os.Getenv("COMMAND_SERVICE_PORT")
+	log.Println("PORT", metricsCommandPort)
 	customNotificationServiceClient := &http.Client{
 		Transport: &http.Transport{
 			MaxIdleConns:        10,
@@ -65,9 +68,29 @@ func main() {
 		},
 	)
 
+	customMetricsServiceClient := &http.Client{
+		Transport: &http.Transport{
+			MaxIdleConns:        10,
+			MaxIdleConnsPerHost: 10,
+			MaxConnsPerHost:     10,
+		},
+	}
+
+	metricsServiceCircuitBreaker := gobreaker.NewCircuitBreaker(
+		gobreaker.Settings{
+			Name:        "metrics-command",
+			MaxRequests: 1,
+			Timeout:     10 * time.Second,
+			Interval:    0,
+			OnStateChange: func(name string, from gobreaker.State, to gobreaker.State) {
+				log.Printf("Circuit Breaker %v: %v -> %v", name, from, to)
+			},
+		},
+	)
+
 	validator := utils.NewValidator()
 	notificationsClient := client.NewNotificationClient(notificationServiceHost, notificationServicePort, customNotificationServiceClient, notificationServiceCircuitBreaker)
-
+	metricsClient := client.NewMetricsClient(metricsCommandHost, metricsCommandPort, customMetricsServiceClient, metricsServiceCircuitBreaker)
 	tracerConfig := tracing.GetConfig()
 	tracerProvider, err := tracing.NewTracerProvider("reservations-service", tracerConfig.JaegerAddress)
 	if err != nil {
@@ -114,8 +137,8 @@ func main() {
 		log.Fatal(err)
 	}
 
-	reservationService := service.NewReservationService(reservationRepo, validator, notificationsClient, logger, tracer)
-	_, err = handler.NewCreateAvailabilityCommandHandler(reservationService, publisher, commandSubscriber)
+	reservationService := service.NewReservationService(reservationRepo, validator, notificationsClient, logger, tracer, metricsClient)
+	_, err = handler.NewCreateAvailabilityCommandHandler(reservationService, publisher, commandSubscriber, logger)
 	if err != nil {
 		log.Fatal(err)
 	}

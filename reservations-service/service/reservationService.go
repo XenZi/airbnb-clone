@@ -20,10 +20,11 @@ type ReservationService struct {
 	notification *client.NotificationClient
 	logger       *config.Logger
 	tracer       trace.Tracer
+	metricClient *client.MetricsClient
 }
 
-func NewReservationService(repo *repository.ReservationRepo, validator *utils.Validator, notification *client.NotificationClient, logger *config.Logger, tracer trace.Tracer) *ReservationService {
-	return &ReservationService{repo: repo, validator: validator, notification: notification, logger: logger, tracer: tracer}
+func NewReservationService(repo *repository.ReservationRepo, validator *utils.Validator, notification *client.NotificationClient, logger *config.Logger, tracer trace.Tracer, metricsClient *client.MetricsClient) *ReservationService {
+	return &ReservationService{repo: repo, validator: validator, notification: notification, logger: logger, tracer: tracer, metricClient: metricsClient}
 }
 
 // service/reservationService.go
@@ -63,7 +64,9 @@ func (r ReservationService) CreateReservation(ctx context.Context, reservation d
 		return nil, errors.NewReservationError(500, "Unable to create reservation: "+insertErr.Error())
 	}
 	r.notification.SendReservationCreatedNotification(ctx, reservation.HostID, "Reservation successfully created")
+
 	r.logger.LogInfo("reservationsService", fmt.Sprintf("Reservation created: %v", createdReservation))
+	r.metricClient.SendReserved(ctx, createdReservation.UserID, createdReservation.AccommodationID)
 	return createdReservation, nil
 }
 
@@ -295,6 +298,7 @@ func (s *ReservationService) DeleteAvl(ctx context.Context, accommodationID, id,
 func (s *ReservationService) UpdateAvailability(ctx context.Context, accommodationID, id, country string, price int, reservation *domain.FreeReservation) (*domain.FreeReservation, *errors.ReservationError) {
 	ctx, span := s.tracer.Start(ctx, "ReservationService.UpdateAvailability")
 	defer span.End()
+	s.logger.LogInfo("reservationService", fmt.Sprintf("Vrednost: %v", reservation))
 	_, err := s.repo.DeleteAvl(ctx, accommodationID, id, country, price)
 	if err != nil {
 		s.logger.LogError("reservationsService", err.Error())

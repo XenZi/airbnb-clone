@@ -82,9 +82,10 @@ func (rr RecommendationRepository) GetAllRecommendationsByRating() ([]domains.Re
 			result, err := transaction.Run(ctx,
 				`MATCH (a:Accommodation)<-[r:RATED]-()
 				WITH a, AVG(r.rate) AS averageRating
-				ORDER BY averageRating DESC
-				LIMIT 10
+				WHERE averageRating > 3.5
 				RETURN a.id AS accommodationId, averageRating AS avgRating
+				ORDER BY avgRating DESC
+				LIMIT 10				
 				`,
 				map[string]any{})
 			if err != nil {

@@ -31,6 +31,8 @@ func main() {
 	accommodationServicePort := os.Getenv("ACCOMMODATION_SERVICE_PORT")
 	userServiceHost := os.Getenv("USER_SERVICE_HOST")
 	userServicePort := os.Getenv("USER_SERVICE_PORT")
+	commandQueryHost := os.Getenv("COMMAND_QUERY_HOST")
+	commandQueryPort := os.Getenv("COMMAND_QUERY_PORT")
 
 	customAccommodationClient := &http.Client{
 		Transport: &http.Transport{
@@ -69,9 +71,29 @@ func main() {
 			},
 		},
 	)
+
+	customCommandQueryClient := &http.Client{
+		Transport: &http.Transport{
+			MaxIdleConns:        10,
+			MaxIdleConnsPerHost: 10,
+			MaxConnsPerHost:     10,
+		},
+	}
+	commandQueryCircuitBreaker := gobreaker.NewCircuitBreaker(
+		gobreaker.Settings{
+			Name:        "cqrs-command",
+			MaxRequests: 1,
+			Timeout:     10 * time.Second,
+			Interval:    0,
+			OnStateChange: func(name string, from gobreaker.State, to gobreaker.State) {
+				log.Printf("Circuit Breaker %v: %v -> %v", name, from, to)
+			},
+		},
+	)
+	commandQueryClient := client.NewCommandQueryClient(commandQueryHost, commandQueryPort, customCommandQueryClient, commandQueryCircuitBreaker)
 	userClient := client.NewUserClient(userServiceHost, userServicePort, customUserClient, userServiceCircuitBreaker)
 	accommodationClient := client.NewAccommodationClient(accommodationServiceHost, accommodationServicePort, customAccommodationClient, accommodationServiceCircuitBreaker)
-	ratingService := services.NewRatingService(ratingRepository, accommodationClient, userClient)
+	ratingService := services.NewRatingService(ratingRepository, accommodationClient, userClient, commandQueryClient)
 	ratingHandler := handler.NewRatingHandler(ratingService)
 	recommendationRepository := repository.NewRecommendationRepository(neo4jService.GetDriver())
 	recommendationService := services.NewRecommendationService(recommendationRepository, accommodationClient)

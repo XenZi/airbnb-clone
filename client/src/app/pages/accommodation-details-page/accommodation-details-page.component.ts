@@ -14,6 +14,10 @@ import { Subscription } from 'rxjs';
 import { LocalStorageService } from 'src/app/services/localstorage/local-storage.service';
 import { PreviouseRouteService } from 'src/app/services/previous-route/previouse-route.service';
 import { Metrics } from 'src/app/domains/entity/metrics.model';
+import { ReservationService } from 'src/app/services/reservation-service/reservation.service';
+import { FormUpdateAvailabilityComponent } from 'src/app/forms/form-update-availability/form-update-availability/form-update-availability.component';
+import { th } from 'date-fns/locale';
+import { DateAvailability } from 'src/app/domains/entity/date-availability.model';
 
 @Component({
   selector: 'app-accommodation-details-page',
@@ -23,6 +27,7 @@ import { Metrics } from 'src/app/domains/entity/metrics.model';
 export class AccommodationDetailsPageComponent implements OnDestroy {
   accommodationID!: string;
   accommodation!: Accommodation;
+  availabilityData: DateAvailability [] = [];
   userLogged!: UserAuth | null;
   isUserLogged: boolean = false;
   customEventUUID!: string;
@@ -40,7 +45,8 @@ export class AccommodationDetailsPageComponent implements OnDestroy {
     private userService: UserService,
     private metricsService: MetricsService,
     private localStorageService: LocalStorageService,
-    private previouseRouteService: PreviouseRouteService
+    private previouseRouteService: PreviouseRouteService,
+    private reservationService: ReservationService
   ) {
   }
 
@@ -75,6 +81,12 @@ export class AccommodationDetailsPageComponent implements OnDestroy {
     this.customEventUUID = uuidv4();
     this.sendCreateAt();
     console.log(this.previouseRouteService.getPreviousUrl());
+    this.reservationService.getAvailability(this.accommodationID).subscribe({next: (data) => {
+      console.log(data)
+      this.availabilityData = data
+    },error: (err) => {
+      console.log(err)
+    }})
   }
 
   @HostListener('window:beforeunload', ['$event'])
@@ -172,6 +184,28 @@ export class AccommodationDetailsPageComponent implements OnDestroy {
 
   callDeleteAccommodation() {
     this.accommodationsService.deleteById(this.accommodationID as string);
+  }
+  
+  callUpdateAvailability(index: number){
+    this.modalService.open(
+      FormUpdateAvailabilityComponent,
+      'Update availability',
+      {
+        accommodationID:this.accommodationID,
+        id:this.availabilityData[index].id,
+        country: this.accommodation.country,
+        price: this.availabilityData[index].price,
+        location: this.createLocationCsv()
+        
+      }
+    )
+  }
+  createLocationCsv():string{
+    const address=this.accommodation.address;
+    const city=  this.accommodation.city;
+    const countryCSV= this.accommodation.country;
+    console.log(address + ","+city +","+countryCSV)
+    return address + ","+city +","+countryCSV
   }
 
 }

@@ -7,6 +7,8 @@ import { Router } from '@angular/router';
 import { ToastNotificationType } from 'src/app/domains/enums/toast-notification-type.enum';
 import { UserService } from '../user/user.service';
 import { UserAuth } from 'src/app/domains/entity/user-auth.model';
+import { DateAvailability } from 'src/app/domains/entity/date-availability.model';
+import { th } from 'date-fns/locale';
 
 @Injectable({
   providedIn: 'root',
@@ -81,6 +83,36 @@ export class ReservationService {
   getAllReservationsByHost(hostId: string): Observable<any> {
     return this.http.get(`${apiURL}/reservations/user/host/${hostId}`);
   }
+
+  update(
+    accommodationID:string,
+    id: string,
+    country: string,
+    price: number,
+    location: string,
+    dateRange: DateAvailability[]
+    ): void{
+      this.http.post(`${apiURL}/reservations/${accommodationID}/${id}/${country}/${price}`,{
+        accommodationID,
+        location,
+        dateRange,
+      }).subscribe({
+        next: (data) => {
+          this.toastService.showToast(
+            'Success',
+            'Availability updated!',
+            ToastNotificationType.Success
+          );
+        },
+        error:(err) => {
+          this.toastService.showToast(
+            'Error',
+            err.error.error,
+            ToastNotificationType.Error
+          );
+        },
+      });
+    }
 
  
 }
