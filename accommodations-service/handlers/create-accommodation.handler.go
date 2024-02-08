@@ -6,7 +6,6 @@ import (
 	events "example/saga/create_accommodation"
 	saga "example/saga/messaging"
 	"fmt"
-	"log"
 
 	"go.opentelemetry.io/otel/trace"
 )

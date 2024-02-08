@@ -158,7 +158,7 @@ func main() {
 	router.HandleFunc("/", middlewares.ValidateJWT(middlewares.RoleValidator("Guest", reservationsHandler.CreateReservation))).Methods("POST")
 	router.HandleFunc("/accommodations", reservationsHandler.ReservationsInDateRangeHandler).Methods("GET")
 	router.HandleFunc("/availability", reservationsHandler.CreateAvailability).Methods("POST")
-	router.HandleFunc("/user/host/{hostId}", middlewares.ValidateJWT(middlewares.RoleValidator("Host", reservationsHandler.GetReservationsByHost))).Methods("GET")
+	router.HandleFunc("/user/host/{hostId}", reservationsHandler.GetReservationsByHost).Methods("GET")
 	//router.HandleFunc("/accommodations/{accommodationID}", reservationsHandler.GetReservationsByAccommodation).Methods("GET")
 	router.HandleFunc("/accommodation/dates", reservationsHandler.GetAvailableDates).Methods("GET")
 	router.HandleFunc("/{country}/{id}/{userID}/{hostID}/{accommodationID}/{endDate}", reservationsHandler.DeleteReservationById).Methods("PUT")
